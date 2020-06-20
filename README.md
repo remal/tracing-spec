@@ -1,2 +1,3 @@
-# oss-java-template
-Template repository for OSS Java projects
+# Tracing spec
+
+readme ...
