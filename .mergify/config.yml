@@ -1,0 +1,40 @@
+# Configuration file for Mergify GitHub App: https://github.com/marketplace/mergify
+
+# All Status Checks should be listed explicitly (see https://doc.mergify.io/conditions.html#validating-all-status-check):
+#     WIP - https://github.com/marketplace/wip
+#     Travis CI - https://travis-ci.com/
+
+pull_request_rules:
+  - name: Auto merge approved
+    conditions:
+      - "#approved-reviews-by>=1"
+      - -locked
+      - -draft
+      - -conflict
+      - "#changes-requested-reviews-by=0"
+      - label!=wip
+      - status-success=WIP
+      - status-success~=Travis CI\b.*
+      - '#status-neutral=0'
+      - '#status-failure=0'
+    actions:
+      merge:
+        method: squash
+        strict: smart+fasttrack
+      #backport: {}
+      delete_head_branch: {}
+
+  - name: Auto merge dependencies
+    conditions:
+      - author~=^(dependabot(-preview)?|renovate)\[bot\]$
+      - status-success=WIP
+      - status-success~=Travis CI\b.*
+      - '#status-neutral=0'
+      - '#status-failure=0'
+    actions:
+      review: {}
+      merge:
+        method: squash
+        strict: smart+fasttrack
+      #backport: {}
+      delete_head_branch: {}

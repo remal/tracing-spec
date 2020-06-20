@@ -1,0 +1,35 @@
+log/
+*.log
+hs_err_pid*
+java_pid*.hprof
+
+# Maven:
+target/
+
+# Gradle:
+build/
+build-cache/
+.gradle/
+
+# Intellij
+/.idea/*
+!/.idea/checkstyle-idea.xml
+!/.idea/misc.xml
+!/.idea/externalDependencies.xml
+!/.idea/saveactions_settings.xml
+!/.idea/inspectionProfiles/
+!/.idea/inspectionProfiles/*
+!/.idea/runConfigurations/
+!/.idea/runConfigurations/*
+!/.idea/dictionaries/.placeholder
+*.iml
+*.iws
+*.*___jb_tmp___
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Mac
+.DS_Store
