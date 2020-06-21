@@ -16,7 +16,7 @@ dependencies {
         api 'org.jacoco:org.jacoco.report:0.8.5'
 
         // Checkstyle
-        api 'com.puppycrawl.tools:checkstyle:8.32'
+        api 'com.puppycrawl.tools:checkstyle:8.33'
     }
 }
 
