@@ -1,4 +1,5 @@
 rootProject.name = 'tracing-spec'
 
 include(
+    ':dependency-versions',
 )

@@ -25,6 +25,13 @@ allprojects {
         jcenter()
     }
 
+    if (path != ':dependency-versions') {
+        dependencies {
+            allResolvable platform(project(':dependency-versions'))
+            allResolvable platform('org.springframework.boot:spring-boot-dependencies')
+        }
+    }
+
     pluginManager.withPlugin('java') {
         apply plugin: 'checkstyle'
         apply plugin: 'jacoco'
@@ -61,9 +68,6 @@ allprojects {
         }
 
         dependencies {
-            allResolvable platform('org.springframework.boot:spring-boot-dependencies:2.3.1.RELEASE')
-
-
             staticAnalysis 'com.google.code.findbugs:jsr305:3.0.2'
             staticAnalysis 'org.jetbrains:annotations:19.0.0'
 
