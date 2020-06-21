@@ -325,7 +325,7 @@ ij_editorconfig_spaces_around_assignment_operators = true
 [{spring.schemas, spring.handlers, *.properties}]
 charset = latin1
 
-[*.{yml, yaml}]
+[*.{yml, yaml, xml, json, json5}]
 tab_width = 2
 indent_size = 2
 continuation_indent_size = 2

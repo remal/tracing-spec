@@ -4,6 +4,6 @@ version: '1'
 invalidStatus: "pending"
 labelRule:
   not:
-    - wip
-    - needs-more-approvals
-    - changes-requested
+  - wip
+  - needs-more-approvals
+  - changes-requested

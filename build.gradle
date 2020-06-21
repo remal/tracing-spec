@@ -1,1 +1,157 @@
-apply plugin: 'java'
+import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath 'name.remal:gradle-plugins:1.0.194'
+        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7'
+    }
+    repositories {
+        jcenter()
+        gradlePluginPortal()
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+allprojects {
+    group = 'name.remal.tracing-spec'
+    version = '0.0.0-SNAPSHOT'
+
+    apply plugin: 'name.remal.default-plugins'
+
+    repositories {
+        jcenter()
+    }
+
+    if (path != ':dependency-versions') {
+        dependencies {
+            allResolvable platform(project(':dependency-versions'))
+            allResolvable platform('org.springframework.boot:spring-boot-dependencies')
+        }
+    }
+
+    pluginManager.withPlugin('java') {
+        apply plugin: 'checkstyle'
+        apply plugin: 'jacoco'
+        apply plugin: 'name.remal.insert-null-checks'
+        apply plugin: 'name.remal.module-info-generator'
+
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+
+        configurations {
+            compileOnlyAllHidden { conf ->
+                // We don't want IDE to index these dependencies, but they are required for compilation
+                project.afterEvaluate {
+                    project.tasks.withType(AbstractCompile) {
+                        onlyIf {
+                            classpath += conf
+                            return true
+                        }
+                    }
+                }
+            }
+            staticAnalysis {
+                compileOnly.extendsFrom(it)
+                testImplementation.extendsFrom(it)
+            }
+            annotationProcessing {
+                compileOnlyAll.extendsFrom(it)
+                apt.extendsFrom(it)
+            }
+            optional {
+                compileOnly.extendsFrom(it)
+                testImplementation.extendsFrom(it)
+            }
+        }
+
+        dependencies {
+            staticAnalysis 'com.google.code.findbugs:jsr305:3.0.2'
+            staticAnalysis 'org.jetbrains:annotations:19.0.0'
+
+            annotationProcessing 'org.projectlombok:lombok'
+
+            apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
+
+
+            testImplementation 'org.junit.jupiter:junit-jupiter-api'
+            testImplementation 'org.hamcrest:hamcrest'
+            testImplementation 'org.mockito:mockito-junit-jupiter'
+            testImplementation 'org.mockito:mockito-inline'
+
+            testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+            testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
+            testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
+        }
+
+        transitiveDependencies {
+            excludeStaticAnalysisTools()
+        }
+
+        configurations.all {
+            resolutionStrategy {
+                eachDependency { DependencyResolveDetails details ->
+                    if ("${details.target.group}:${details.target.name}" == 'org.hamcrest:hamcrest-core') {
+                        details.useTarget("org.hamcrest:hamcrest:${details.target.version}")
+                    }
+                }
+            }
+        }
+
+        tasks.withType(JavaCompile) {
+            options.compilerArgs.addAll(
+                [
+                    '-Werror',
+                    '-Xlint:all',
+                    '-Xlint:-rawtypes',
+                    '-Xlint:-serial',
+                    '-Xlint:-processing',
+                ]
+            )
+        }
+
+        tasks.withType(Test) {
+            useJUnitPlatform()
+        }
+
+        pluginManager.withPlugin('checkstyle') {
+            checkstyle {
+                configDirectory = rootProject.projectDir
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+apply plugin: 'java-library'
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+forBuildOnLocal {
+    apply plugin: 'idea'
+    apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
+
+    idea {
+        project {
+            jdkName = '1.8'
+            languageLevel = new IdeaLanguageLevel('8')
+            targetBytecodeVersion = JavaVersion.VERSION_1_8
+
+            settings {
+                doNotDetectFrameworks('android', 'web')
+
+                encodings {
+                    encoding = 'UTF-8'
+                    bomPolicy = 'WITH_NO_BOM'
+                    properties {
+                        encoding = 'US-ASCII'
+                        transparentNativeToAsciiConversion = true
+                    }
+                }
+            }
+        }
+    }
+}
