@@ -1,6 +1,6 @@
 apply plugin: 'java-platform'
 
-String jacocoVersion = '0.8.4'
+String jacocoVersion = '0.8.5'
 
 dependencies {
     constraints {
