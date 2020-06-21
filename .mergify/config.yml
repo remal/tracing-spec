@@ -26,16 +26,8 @@ pull_request_rules:
       #backport: {}
       delete_head_branch: {}
 
-  - name: Auto merge dependencies
+  - name: Auto approve dependencies
     conditions:
       - author~=^(dependabot(-preview)?|renovate)\[bot\]$
-      - status-success=Travis CI - Pull Request
-      - '#status-neutral=0'
-      - '#status-failure=0'
     actions:
       review: {}
-      merge:
-        method: squash
-        strict: smart+fasttrack
-      #backport: {}
-      delete_head_branch: {}
