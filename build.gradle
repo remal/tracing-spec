@@ -68,8 +68,8 @@ allprojects {
         }
 
         dependencies {
-            staticAnalysis 'com.google.code.findbugs:jsr305:3.0.2'
-            staticAnalysis 'org.jetbrains:annotations:19.0.0'
+            staticAnalysis 'com.google.code.findbugs:jsr305'
+            staticAnalysis 'org.jetbrains:annotations'
 
             annotationProcessing 'org.projectlombok:lombok'
 

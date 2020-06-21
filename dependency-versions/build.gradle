@@ -1,5 +1,7 @@
 apply plugin: 'java-platform'
 
+String jacocoVersion = '0.8.4'
+
 dependencies {
     constraints {
         // BOMs:
@@ -10,10 +12,10 @@ dependencies {
         api 'org.jetbrains:annotations:19.0.0'
 
         // Jacoco
-        api 'org.jacoco:org.jacoco.agent:0.8.4'
-        api 'org.jacoco:org.jacoco.ant:0.8.4'
-        api 'org.jacoco:org.jacoco.core:0.8.4'
-        api 'org.jacoco:org.jacoco.report:0.8.4'
+        api "org.jacoco:org.jacoco.agent:$jacocoVersion"
+        api "org.jacoco:org.jacoco.ant:$jacocoVersion"
+        api "org.jacoco:org.jacoco.core:$jacocoVersion"
+        api "org.jacoco:org.jacoco.report:$jacocoVersion"
 
         // Checkstyle
         api 'com.puppycrawl.tools:checkstyle:8.33'
