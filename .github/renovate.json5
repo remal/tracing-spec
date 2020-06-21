@@ -1,5 +1,6 @@
 {
   extends: ["config:base"],
+  stabilityDays: 1,
   labels: [
     "dependencies"
   ],
