@@ -3,7 +3,7 @@ apply plugin: 'java-platform'
 dependencies {
     constraints {
         // BOMs:
-        api 'org.springframework.boot:spring-boot-dependencies:2.3.0.RELEASE'
+        api 'org.springframework.boot:spring-boot-dependencies:2.3.1.RELEASE'
 
         // Static analysis annotations
         api 'com.google.code.findbugs:jsr305:3.0.2'
