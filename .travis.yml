@@ -18,6 +18,7 @@ cache:
 
 before_script:
 - export GRADLE_OPTS="-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.warning.mode=all -Dsun.net.client.defaultConnectTimeout=15000 -Dsun.net.client.defaultReadTimeout=600000 -Dsun.io.useCanonCaches=false -Djava.awt.headless=true"
+- sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
 
 script:
 - ./gradlew build
