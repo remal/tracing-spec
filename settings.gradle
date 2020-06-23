@@ -4,6 +4,6 @@ include(
     ':dependency-versions',
     ':tracing-spec-model',
     ':tracing-spec-retriever-jaeger',
-    ':tracing-spec-retriever-jaeger:jaeger-client',
+    ':tracing-spec-retriever-jaeger:jaeger-grpc',
     ':tracing-spec-retriever-zipkin',
 )
