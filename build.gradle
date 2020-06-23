@@ -68,10 +68,17 @@ allprojects {
         }
 
         dependencies {
+            components.all(GrpcAlignmentRule)
+            components.all(JacocoAlignmentRule)
+
+            compileOnly 'org.hibernate.validator:hibernate-validator'
+            compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+
             staticAnalysis 'com.google.code.findbugs:jsr305'
             staticAnalysis 'org.jetbrains:annotations'
 
             annotationProcessing 'org.projectlombok:lombok'
+            annotationProcessing 'org.immutables:value'
 
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
 
@@ -126,7 +133,35 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+class GrpcAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group == 'io.grpc') {
+                belongsTo("${id.group}:grpc-bom:${id.version}")
+            }
+        }
+    }
+}
+
+class JacocoAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group == 'org.jacoco') {
+                belongsTo("${id.group}:jacoco-bom:${id.version}")
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/*
 apply plugin: 'java-library'
+
+dependencies {
+    runtimeOnly gradleApi()
+}
+//*/
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

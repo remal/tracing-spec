@@ -1,5 +1,6 @@
 apply plugin: 'java-platform'
 
+String grpcVersion = '1.8.0'
 String jacocoVersion = '0.8.5'
 
 dependencies {
@@ -11,11 +12,12 @@ dependencies {
         api 'com.google.code.findbugs:jsr305:3.0.2'
         api 'org.jetbrains:annotations:19.0.0'
 
+        // Annotation processors
+        api 'org.immutables:value:2.8.8'
+
         // Jacoco
         api "org.jacoco:org.jacoco.agent:$jacocoVersion"
-        api "org.jacoco:org.jacoco.ant:$jacocoVersion"
         api "org.jacoco:org.jacoco.core:$jacocoVersion"
-        api "org.jacoco:org.jacoco.report:$jacocoVersion"
 
         // Checkstyle
         api 'com.puppycrawl.tools:checkstyle:8.33'
