@@ -1,1 +1,32 @@
 apply plugin: 'java-library'
+
+dependencies {
+    api project(':tracing-spec-model')
+
+    testImplementation 'org.testcontainers:testcontainers'
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
+    if (!tagName.matches(/\d+\.\d+/)) return
+
+    SourceSet testSourceSet = sourceSets.test
+    TaskProvider<Task> testVersionTask = tasks.register("test-$tagName", Test) {
+        dependsOn(testSourceSet.classesTaskName)
+
+        systemProperty('docker-image-tag', tagName)
+
+        Test testTask = tasks.test
+        group = testTask.group
+        testClassesDirs = testTask.testClassesDirs
+        classpath = testTask.classpath
+
+        filter {
+            includeTestsMatching('*VersionTest')
+            failOnNoMatchingTests = true
+        }
+    }
+
+    tasks.named('check').configure { dependsOn(testVersionTask) }
+}

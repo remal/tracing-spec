@@ -1,3 +1,8 @@
+import groovy.json.JsonSlurper
+import java.time.ZonedDateTime
+import java.util.Map.Entry
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -31,6 +36,7 @@ allprojects {
             allResolvable platform('org.springframework.boot:spring-boot-dependencies')
             allResolvable platform('io.grpc:grpc-bom')
             allResolvable platform('com.google.protobuf:protobuf-bom')
+            allResolvable platform('org.testcontainers:testcontainers-bom')
         }
     }
 
@@ -72,11 +78,6 @@ allprojects {
         dependencies {
             components.all(JacocoAlignmentRule)
 
-            compileOnlyAllHidden 'com.google.j2objc:j2objc-annotations'
-
-            compileOnly 'org.hibernate.validator:hibernate-validator'
-            compileOnly 'com.fasterxml.jackson.core:jackson-databind'
-
             staticAnalysis 'com.google.code.findbugs:jsr305'
             staticAnalysis 'com.google.errorprone:error_prone_annotations'
             staticAnalysis 'org.jetbrains:annotations'
@@ -85,6 +86,9 @@ allprojects {
             annotationProcessing 'org.immutables:value'
 
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
+
+            compileOnly 'org.hibernate.validator:hibernate-validator'
+            compileOnly 'com.fasterxml.jackson.core:jackson-databind'
 
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
@@ -105,12 +109,6 @@ allprojects {
             resolutionStrategy {
                 eachDependency { DependencyResolveDetails details ->
                     String groupModule = "${details.target.group}:${details.target.name}"
-                    if (groupModule == 'com.google.guava:guava') {
-                        if (details.target.version.endsWith('-android')) {
-                            String newVersion = details.target.version.replaceFirst(/-android$/, '-jre')
-                            details.useTarget("$groupModule:$newVersion")
-                        }
-                    }
                     if ("$groupModule" == 'org.hamcrest:hamcrest-core') {
                         details.useTarget("org.hamcrest:hamcrest:${details.target.version}")
                     }
@@ -137,8 +135,13 @@ allprojects {
         pluginManager.withPlugin('name.remal.classes-relocation') {
             configurations.excludeFromForcedClassesRelocation.extendsFrom(configurations.staticAnalysis)
 
-            dependencies {
-                excludeFromForcedClassesRelocation 'com.google.j2objc:j2objc-annotations'
+            classesRelocation {
+                relocatedClassesPackageName = project.group
+                if (project.path != ':') {
+                    relocatedClassesPackageName += project.path.replace(':', '.').replace("${rootProject.name}-", '')
+                }
+                relocatedClassesPackageName += '.internal._relocated'
+                relocatedClassesPackageName = relocatedClassesPackageName.replaceAll(/[^\w.]/, '')
             }
         }
 
@@ -149,8 +152,6 @@ allprojects {
         }
     }
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class JacocoAlignmentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext ctx) {
@@ -164,7 +165,77 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*
+class DockerImages {
+
+    private static final ConcurrentMap<String, List<String>> getAllTagsCache = new ConcurrentHashMap<>()
+
+    private final File cacheDir
+
+    DockerImages(Project project) {
+        cacheDir = project.rootProject.file('build/cache/dockerImages')
+    }
+
+    List<String> getAllTags(String image) {
+        File cacheFile = new File(cacheDir, "getAllTags/$image")
+        return getAllTagsCache.computeIfAbsent(image) {
+            if (cacheFile.file) {
+                return cacheFile.getText('UTF-8').readLines()
+                    .collect { it.trim() }
+                    .findAll { !it.isEmpty() }
+            }
+
+            Map<String, ZonedDateTime> tagsMap = new LinkedHashMap<>()
+            int page = 0
+            while (true) {
+                ++page
+                URL url = new URL("https://hub.docker.com/v2/repositories/$image/tags/?page=$page")
+                HttpURLConnection connection = url.openConnection()
+                connection.connectTimeout = 5000
+                connection.readTimeout = 30000
+                connection.useCaches = false
+                connection.allowUserInteraction = false
+                try {
+                    int responseCode = connection.getResponseCode()
+                    if (responseCode != 200) {
+                        throw new GradleScriptException("Error retrieving GET $url: Status $responseCode")
+                    }
+                    String content = connection.inputStream.getText('UTF-8')
+                    def json = new JsonSlurper().parseText(content)
+                    if (json.results == null || json.results.isEmpty()) {
+                        break
+                    }
+                    json.results.forEach { tagInfo ->
+                        String tag = tagInfo.name
+                        ZonedDateTime updatedAt = ZonedDateTime.parse(tagInfo.last_updated)
+                        tagsMap.put(tag, updatedAt)
+                    }
+                } finally {
+                    connection.disconnect()
+                }
+            }
+
+            List<Entry<String, ZonedDateTime>> tagsMapEntries = tagsMap.entrySet().collect()
+            tagsMapEntries.sort(Entry.comparingByValue())
+            tagsMap = new LinkedHashMap<>()
+            tagsMapEntries.forEach { tagsMap.put(it.key, it.value) }
+
+            List<String> tags = tagsMap.keySet().collect()
+            cacheFile.parentFile.mkdirs()
+            cacheFile.setText(tags.join('\n'), 'UTF-8')
+
+            return tags
+        }
+    }
+
+}
+
+allprojects {
+    extensions.create("dockerImages", DockerImages.class, project)
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+//*
 apply plugin: 'java-library'
 
 dependencies {
