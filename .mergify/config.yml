@@ -7,27 +7,27 @@
 #   `WIP` - https://github.com/marketplace/wip
 
 pull_request_rules:
-- name: Auto merge approved
-  conditions:
-  - "#approved-reviews-by>=1"
-  - -conflict
-  - -draft
-  - -locked
-  - "#changes-requested-reviews-by=0"
-  - status-success=Travis CI - Pull Request
-  - status-success=CodeFactor
-  - status-success=WIP
-  - '#status-neutral=0'
-  - '#status-failure=0'
-  actions:
-    merge:
-      method: squash
-      strict: smart+fasttrack
-    #backport: {}
-    delete_head_branch: {}
+  - name: Auto merge approved
+    conditions:
+      - "#approved-reviews-by>=1"
+      - -conflict
+      - -draft
+      - -locked
+      - "#changes-requested-reviews-by=0"
+      - status-success=Travis CI - Pull Request
+      - status-success=CodeFactor
+      - status-success=WIP
+      - '#status-neutral=0'
+      - '#status-failure=0'
+    actions:
+      merge:
+        method: squash
+        strict: smart+fasttrack
+      #backport: {}
+      delete_head_branch: {}
 
-- name: Auto approve dependencies
-  conditions:
-  - author~=^(dependabot(-preview)?|renovate)(\[bot\]|-bot)$
-  actions:
-    review: {}
+  - name: Auto approve dependencies
+    conditions:
+      - author~=^(dependabot(-preview)?|renovate)\[bot\]$
+    actions:
+      review: {}
