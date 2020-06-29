@@ -255,7 +255,7 @@ allprojects {
     sonarqube {
         properties {
             property('sonar.verbose', 'true')
-            //property('sonar.branch', getenv('TRAVIS_PULL_REQUEST_BRANCH') ?: getenv('TRAVIS_BRANCH') ?: '')
+            property('sonar.branch', getenv('TRAVIS_PULL_REQUEST_BRANCH') ?: getenv('TRAVIS_BRANCH') ?: '')
         }
     }
 }
