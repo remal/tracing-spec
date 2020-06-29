@@ -4,4 +4,24 @@
   labels: [
     "dependencies"
   ],
+  vulnerabilityAlerts: {
+    labels: ["security"],
+  },
+  packageRules: [
+    {
+      datasources: ["maven"],
+      labels: ["java"],
+    },
+    {
+      datasources: ["gradle-version"],
+      labels: ["gradle"],
+    },
+    {
+      datasources: ["docker"],
+      labels: ["docker"],
+    },
+  ],
+  "git-submodules": {
+    labels: ["submodules"],
+  },
 }
