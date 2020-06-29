@@ -44,6 +44,12 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
     TaskProvider<Task> generateModelProto = tasks.register(taskName, Exec) {
         dependsOn(copyProtoFiles)
 
+        outputs.dir(outputDir)
+        doFirst {
+            outputDir.deleteDir()
+            outputDir.mkdirs()
+        }
+
         /*
          * If you use Docker for Windows, don't forget to go to Settings -> Resource -> File share and add project
          * directory (or one of its parents) to the list there.
@@ -72,12 +78,6 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
             "-I$protoFilesDirRelativePath",
             "$protoFilesDirRelativePath/$protoFileName"
         )
-
-        outputs.dir(outputDir)
-        doFirst {
-            outputDir.deleteDir()
-            outputDir.mkdirs()
-        }
     }
 
     SourceSet sourceSet = sourceSets.main

@@ -3,7 +3,8 @@ apply plugin: 'java-library'
 dependencies {
     api project(':tracing-spec-model')
 
-    testImplementation 'org.testcontainers:testcontainers'
+    integrationImplementation 'org.testcontainers:testcontainers'
+    integrationImplementation 'io.jaegertracing:jaeger-client'
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

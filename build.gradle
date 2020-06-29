@@ -1,15 +1,21 @@
 import groovy.json.JsonSlurper
+import java.nio.file.Path
 import java.time.ZonedDateTime
 import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+import org.jdom2.Document
+import org.jdom2.input.SAXBuilder
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 buildscript {
     dependencies {
         classpath 'name.remal:gradle-plugins:1.0.199'
+        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
+        classpath 'org.jdom:jdom2:2.0.6'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7'
     }
     repositories {
@@ -41,10 +47,12 @@ allprojects {
     }
 
     pluginManager.withPlugin('java') {
-        apply plugin: 'checkstyle'
-        apply plugin: 'jacoco'
         apply plugin: 'name.remal.insert-null-checks'
         apply plugin: 'name.remal.module-info-generator'
+        apply plugin: 'name.remal.integration-tests'
+        apply plugin: 'checkstyle'
+        apply plugin: 'jacoco'
+        apply plugin: 'com.github.hierynomus.license'
 
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -131,23 +139,80 @@ allprojects {
         tasks.withType(Test) {
             useJUnitPlatform()
         }
+    }
 
-        pluginManager.withPlugin('name.remal.classes-relocation') {
-            configurations.excludeFromForcedClassesRelocation.extendsFrom(configurations.staticAnalysis)
+    pluginManager.withPlugin('name.remal.classes-relocation') {
+        configurations.excludeFromForcedClassesRelocation.extendsFrom(configurations.staticAnalysis)
 
-            classesRelocation {
-                relocatedClassesPackageName = project.group
-                if (project.path != ':') {
-                    relocatedClassesPackageName += project.path.replace(':', '.').replace("${rootProject.name}-", '')
+        classesRelocation {
+            relocatedClassesPackageName = project.group
+            if (project.path != ':') {
+                relocatedClassesPackageName += project.path.replace(':', '.').replace("${rootProject.name}-", '')
+            }
+            relocatedClassesPackageName += '.internal._relocated'
+            relocatedClassesPackageName = relocatedClassesPackageName.replaceAll(/[^\w.]/, '')
+        }
+    }
+
+    pluginManager.withPlugin('checkstyle') {
+        checkstyle {
+            configDirectory = rootProject.projectDir
+        }
+    }
+
+    pluginManager.withPlugin('com.github.hierynomus.license') {
+        File licenseTemplateFile = project.file('build/license-template.txt')
+        TaskProvider<Task> prepareLicenseTemplate = tasks.register('prepareLicenseTemplate') {
+            File ideaLicenseFile = rootProject.file('.idea/copyright/Apache_License_2_0.xml')
+            inputs.file(ideaLicenseFile)
+            outputs.file(licenseTemplateFile)
+
+            doLast {
+                licenseTemplateFile.delete()
+
+                SAXBuilder saxBuilder = new SAXBuilder();
+                Document document = saxBuilder.build(ideaLicenseFile)
+                String licenseTemplate = document.rootElement
+                    .getChildren('copyright')
+                    .collect { it.getChildren('option') }.flatten()
+                    .find { it.getAttributeValue('name') == 'notice' }
+                    ?.getAttributeValue('value')
+                if (licenseTemplate == null) {
+                    throw new GradleScriptException("IDEA license template can't be retrieved")
                 }
-                relocatedClassesPackageName += '.internal._relocated'
-                relocatedClassesPackageName = relocatedClassesPackageName.replaceAll(/[^\w.]/, '')
+                licenseTemplate = licenseTemplate.replaceAll(/(?:\$|&#36;)([\w.]+)/, '\\$\\{$1\\}')
+
+                licenseTemplateFile.parentFile?.mkdirs()
+                licenseTemplateFile.setText(licenseTemplate, 'UTF-8')
+
+                didWork = true
             }
         }
 
-        pluginManager.withPlugin('checkstyle') {
-            checkstyle {
-                configDirectory = rootProject.projectDir
+        license {
+            strictCheck = true
+            useDefaultMappings = true
+
+            header = licenseTemplateFile
+            encoding = 'UTF-8'
+            ext['today.year'] = Calendar.getInstance().get(Calendar.YEAR)
+        }
+
+        tasks.withType(License).configureEach {
+            dependsOn(prepareLicenseTemplate)
+
+            Path generatedSourcesPath = project.buildDir.toPath()
+            exclude { it.file.toPath().startsWith(generatedSourcesPath) }
+        }
+
+        pluginManager.withPlugin('java') {
+            sourceSets.all { SourceSet sourceSet ->
+                tasks.named(sourceSet.compileJavaTaskName).configure {
+                    dependsOn(sourceSet.getTaskName('license', null))
+                }
+                tasks.named(sourceSet.processResourcesTaskName).configure {
+                    dependsOn(sourceSet.getTaskName('license', null))
+                }
             }
         }
     }

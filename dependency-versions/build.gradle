@@ -1,6 +1,7 @@
 apply plugin: 'java-platform'
 
 String grpcVersion = '1.8.0'
+String jaegerVersion = '1.2.0'
 String jacocoVersion = '0.8.5'
 
 dependencies {
@@ -21,6 +22,7 @@ dependencies {
 
         // Compile
         api 'com.google.guava:guava:29.0-jre'
+        api 'io.jaegertracing:jaeger-client:1.2.0'
 
         // Jacoco
         api "org.jacoco:org.jacoco.agent:$jacocoVersion"
