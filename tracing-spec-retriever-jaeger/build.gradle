@@ -32,6 +32,9 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
             )
             content = content.replaceAll(/\[\s+\]/, '')
 
+            content = content.replaceAll(/option \w+_package\s*=\s*"[^"]*";/, '')
+            content = content + '\n\noption java_package = "name.remal.tracingspec.retriever.jaeger.internal.grpc";'
+
             file.setText(content, 'UTF-8')
         }
     }

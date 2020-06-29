@@ -14,6 +14,7 @@ import org.jdom2.input.SAXBuilder
 buildscript {
     dependencies {
         classpath 'name.remal:gradle-plugins:1.0.199'
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0"
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
         classpath 'org.jdom:jdom2:2.0.6'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7'
@@ -170,7 +171,7 @@ allprojects {
             doLast {
                 licenseTemplateFile.delete()
 
-                SAXBuilder saxBuilder = new SAXBuilder();
+                SAXBuilder saxBuilder = new SAXBuilder()
                 Document document = saxBuilder.build(ideaLicenseFile)
                 String licenseTemplate = document.rootElement
                     .getChildren('copyright')
@@ -191,11 +192,29 @@ allprojects {
 
         license {
             strictCheck = true
-            useDefaultMappings = true
 
             header = licenseTemplateFile
             encoding = 'UTF-8'
             ext['today.year'] = Calendar.getInstance().get(Calendar.YEAR)
+
+            useDefaultMappings = true
+            mapping {
+                java = 'IDEA_STYLE'
+            }
+            headerDefinitions {
+                IDEA_STYLE {
+                    firstLine = '/*'
+                    beforeEachLine = ' * '
+                    endLine = ' */\n'
+                    afterEachLine = ''
+                    skipLinePattern = null
+                    firstLineDetectionPattern = /\s*\/\*.*$/
+                    lastLineDetectionPattern = /.*\*\/\s*$/
+                    allowBlankLines = false
+                    isMultiline = true
+                    padLines = false
+                }
+            }
         }
 
         tasks.withType(License).configureEach {
@@ -225,6 +244,46 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
                 belongsTo("${id.group}:jacoco-bom:${id.version}")
             }
         }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+apply plugin: 'org.sonarqube'
+
+allprojects {
+    sonarqube {
+        properties {
+            property('sonar.verbose', 'true')
+            //property('sonar.branch', getenv('TRAVIS_PULL_REQUEST_BRANCH') ?: getenv('TRAVIS_BRANCH') ?: '')
+
+            pluginManager.withPlugin('java') {
+                property('sonar.tests', testSourceSets.collect { it.allSource.srcDirs }.flatten())
+                property('sonar.java.test.binaries', testSourceSets.collect { it.output.classesDirs }.flatten())
+                property('sonar.java.test.libraries', testSourceSets.collect { it.compileClasspath }.flatten())
+            }
+
+            property('sonar.junit.reportPaths', tasks.withType(Test).collect { it.reports.junitXml.destination })
+
+            property(
+                'sonar.coverage.jacoco.xmlReportPaths',
+                tasks.withType(JacocoReport).collect { it.reports.xml.destination }
+            )
+        }
+    }
+}
+
+tasks.named('sonarqube').configure {
+    dependsOn {
+        project.allprojects
+            .collect { it.tasks }.flatten()
+            .findAll {
+                (
+                    it.name == 'check'
+                        || it instanceof Test
+                        || it instanceof JacocoReport
+                )
+            }
     }
 }
 
@@ -300,8 +359,12 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-//*
+/*
 apply plugin: 'java-library'
+
+repositories {
+    gradlePluginPortal()
+}
 
 dependencies {
     runtimeOnly gradleApi()
