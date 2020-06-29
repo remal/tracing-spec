@@ -3,6 +3,12 @@
 version: 2
 
 updates:
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 1000
+
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
@@ -10,20 +16,7 @@ updates:
     open-pull-requests-limit: 1000
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/tracing-spec-retriever-jaeger/src/test/version"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 1000
-
-  - package-ecosystem: "gitsubmodule"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 1000
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 1000
-
