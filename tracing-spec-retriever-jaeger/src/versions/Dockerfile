@@ -1,0 +1,1 @@
+FROM jaegertracing/all-in-one:1.17.0@sha256:ab9f00b0151b3d359da078fd7c004006fcaac15881e0a981a823eeb407568cd7

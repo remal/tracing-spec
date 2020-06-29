@@ -16,7 +16,7 @@ updates:
     open-pull-requests-limit: 1000
 
   - package-ecosystem: "docker"
-    directory: "/tracing-spec-retriever-jaeger/src/test/version"
+    directory: "/tracing-spec-retriever-jaeger/src/versions"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 1000
