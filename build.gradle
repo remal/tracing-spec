@@ -283,6 +283,10 @@ tasks.named('sonarqube').configure {
                 }
             }
 
+            properties[prefix + 'sonar.java.checkstyle.reportPaths'] =
+                tasks.withType(Checkstyle).collect { it.reports.xml.destination }
+                    .unique().findAll { it.exists() }.join(",")
+
             properties[prefix + 'sonar.junit.reportPaths'] =
                 tasks.withType(Test).collect { it.reports.junitXml.destination }
                     .unique().findAll { it.exists() }.join(",")
@@ -301,6 +305,7 @@ tasks.named('sonarqube').configure {
             .findAll {
                 (
                     it.name == 'check'
+                        || it instanceof Checkstyle
                         || it instanceof Test
                         || it instanceof JacocoReport
                 )
