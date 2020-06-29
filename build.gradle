@@ -1,3 +1,5 @@
+import static java.lang.System.getenv
+
 import groovy.json.JsonSlurper
 import java.nio.file.Path
 import java.time.ZonedDateTime
