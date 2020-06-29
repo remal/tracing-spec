@@ -2,26 +2,35 @@
   extends: ["config:base"],
   stabilityDays: 1,
   labels: [
-    "dependencies"
+    "dependencies",
   ],
-  vulnerabilityAlerts: {
-    labels: ["security"],
-  },
   packageRules: [
     {
       datasources: ["maven"],
-      labels: ["java"],
+      labels: [
+        "dependencies",
+        "java",
+      ],
     },
     {
       datasources: ["gradle-version"],
-      labels: ["gradle"],
+      labels: [
+        "dependencies",
+        "gradle",
+      ],
     },
     {
       datasources: ["docker"],
-      labels: ["docker"],
+      labels: [
+        "dependencies",
+        "docker",
+      ],
     },
   ],
   "git-submodules": {
-    labels: ["submodules"],
+    labels: [
+      "dependencies",
+      "submodules",
+    ],
   },
 }
