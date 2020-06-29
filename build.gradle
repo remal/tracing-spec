@@ -292,8 +292,6 @@ tasks.named('sonarqube').configure {
                     .unique().findAll { it.exists() }.join(",")
         }
 
-        new TreeMap(properties).forEach { key, value -> println "$key = $value" }
-
         return true
     }
 
