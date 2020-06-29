@@ -32,6 +32,9 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
             )
             content = content.replaceAll(/\[\s+\]/, '')
 
+            content = content.replaceAll(/option \w+_package\s*=\s*"[^"]*";/, '')
+            content = content + '\n\noption java_package = "name.remal.tracingspec.retriever.jaeger.internal.grpc";'
+
             file.setText(content, 'UTF-8')
         }
     }
@@ -94,8 +97,8 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
 dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
     if (!tagName.matches(/\d+\.\d+/)) return
 
-    SourceSet testSourceSet = sourceSets.test
-    TaskProvider<Task> testVersionTask = tasks.register("test-$tagName", Test) {
+    SourceSet testSourceSet = sourceSets.integration
+    TaskProvider<Task> testVersionTask = tasks.register("testIntegration-$tagName", Test) {
         dependsOn(testSourceSet.classesTaskName)
 
         systemProperty('docker-image-tag', tagName)
