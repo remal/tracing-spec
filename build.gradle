@@ -256,24 +256,47 @@ allprojects {
         properties {
             property('sonar.verbose', 'true')
             //property('sonar.branch', getenv('TRAVIS_PULL_REQUEST_BRANCH') ?: getenv('TRAVIS_BRANCH') ?: '')
-
-            pluginManager.withPlugin('java') {
-                property('sonar.tests', testSourceSets.collect { it.allSource.srcDirs }.flatten())
-                property('sonar.java.test.binaries', testSourceSets.collect { it.output.classesDirs }.flatten())
-                property('sonar.java.test.libraries', testSourceSets.collect { it.compileClasspath }.flatten())
-            }
-
-            property('sonar.junit.reportPaths', tasks.withType(Test).collect { it.reports.junitXml.destination })
-
-            property(
-                'sonar.coverage.jacoco.xmlReportPaths',
-                tasks.withType(JacocoReport).collect { it.reports.xml.destination }
-            )
         }
     }
 }
 
 tasks.named('sonarqube').configure {
+    onlyIf {
+        List<String> modules = properties['sonar.modules']?.split(/\s*,\s*/) ?: []
+        List<String> propertyPrefixes = ['', modules.collect { "$it." }].flatten()
+        propertyPrefixes.forEach { prefix ->
+            if (properties[prefix + 'sonar.projectName'] == null) {
+                throw new GradleScriptException("SonarQube property isn't set: " + prefix + 'sonar.projectName')
+            }
+
+            project.pluginManager.withPlugin('java') {
+                project.pluginManager.withPlugin('name.remal.test-source-sets') {
+                    properties[prefix + 'sonar.tests'] =
+                        testSourceSets.collect { it.allSource.srcDirs }.flatten()
+                            .unique().findAll { it.exists() }.join(",")
+                    properties[prefix + 'sonar.java.test.binaries'] =
+                        testSourceSets.collect { it.output.classesDirs }.flatten()
+                            .unique().findAll { it.exists() }.join(",")
+                    properties[prefix + 'sonar.java.test.libraries'] =
+                        testSourceSets.collect { it.compileClasspath }.flatten()
+                            .unique().findAll { it.exists() }.join(",")
+                }
+            }
+
+            properties[prefix + 'sonar.junit.reportPaths'] =
+                tasks.withType(Test).collect { it.reports.junitXml.destination }
+                    .unique().findAll { it.exists() }.join(",")
+
+            properties[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
+                tasks.withType(JacocoReport).collect { it.reports.xml.destination }
+                    .unique().findAll { it.exists() }.join(",")
+        }
+
+        new TreeMap(properties).forEach { key, value -> println "$key = $value" }
+
+        return true
+    }
+
     dependsOn {
         project.allprojects
             .collect { it.tasks }.flatten()
