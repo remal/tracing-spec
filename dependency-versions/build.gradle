@@ -20,8 +20,11 @@ dependencies {
 
         // Compile
         api 'com.google.guava:guava:29.0-jre'
-        api 'io.jaegertracing:jaeger-thrift:1.2.0'
+        api 'org.apache.thrift:libthrift:0.13.0'
         api 'io.jaegertracing:jaeger-proto:0.4.0'
+
+        // Test
+        api 'io.jaegertracing:jaeger-thrift:1.2.0'
 
         // Jacoco
         api "org.jacoco:org.jacoco.agent:$jacocoVersion"

@@ -2,12 +2,10 @@ apply plugin: 'java-library'
 
 dependencies {
     api project(':tracing-spec-model')
-    api 'io.grpc:grpc-protobuf'
-    api 'io.grpc:grpc-stub'
+    api 'io.jaegertracing:jaeger-proto'
 
     integrationImplementation 'org.testcontainers:testcontainers'
     integrationImplementation 'io.jaegertracing:jaeger-thrift'
-    integrationImplementation 'io.jaegertracing:jaeger-proto'
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
