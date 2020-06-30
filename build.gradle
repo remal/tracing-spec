@@ -1,5 +1,3 @@
-import static java.lang.System.getenv
-
 import groovy.json.JsonSlurper
 import java.nio.file.Path
 import java.time.ZonedDateTime
@@ -252,15 +250,6 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 apply plugin: 'org.sonarqube'
-
-allprojects {
-    sonarqube {
-        properties {
-            property('sonar.verbose', 'true')
-            property('sonar.branch', getenv('TRAVIS_PULL_REQUEST_BRANCH') ?: getenv('TRAVIS_BRANCH') ?: '')
-        }
-    }
-}
 
 tasks.named('sonarqube').configure {
     onlyIf {
