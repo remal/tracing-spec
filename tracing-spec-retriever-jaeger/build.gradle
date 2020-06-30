@@ -6,7 +6,8 @@ dependencies {
     api 'io.grpc:grpc-stub'
 
     integrationImplementation 'org.testcontainers:testcontainers'
-    integrationImplementation 'io.jaegertracing:jaeger-client'
+    integrationImplementation 'io.jaegertracing:jaeger-thrift'
+    integrationImplementation 'io.jaegertracing:jaeger-proto'
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
