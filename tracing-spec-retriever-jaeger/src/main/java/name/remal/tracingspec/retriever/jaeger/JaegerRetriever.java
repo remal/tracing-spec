@@ -16,22 +16,24 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
-import static java.util.Spliterator.ORDERED;
-import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.Collectors.toList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.encodeJaegerId;
+import static name.remal.tracingspec.retriever.jaeger.JaegerSpanConverter.convertJaegerSpanToSpecSpan;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannelBuilder;
 import java.net.InetSocketAddress;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.StreamSupport;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.GetTraceRequest;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.QueryServiceGrpc;
 
 public class JaegerRetriever {
+
+    private static final Duration QUERY_TIMEOUT = Duration.ofMinutes(5);
 
     private final InetSocketAddress queryServiceAddress;
 
@@ -52,11 +54,19 @@ public class JaegerRetriever {
             val request = GetTraceRequest.newBuilder()
                 .setTraceId(ByteString.copyFrom(traceIdBytes))
                 .build();
-            val jaegerSpansChunks = queryStub.getTrace(request);
-            return StreamSupport.stream(spliteratorUnknownSize(jaegerSpansChunks, ORDERED), false)
-                .flatMap(chunk -> chunk.getSpansList().stream())
-                .map(JaegerSpanConverter::convertJaegerSpanToSpecSpan)
-                .collect(toList());
+            val jaegerSpansChunks = queryStub
+                .withDeadlineAfter(QUERY_TIMEOUT.toMillis(), MILLISECONDS)
+                .getTrace(request);
+
+            List<SpecSpan> result = new ArrayList<>();
+            while (jaegerSpansChunks.hasNext()) {
+                val chunk = jaegerSpansChunks.next();
+                for (val jaegerSpan : chunk.getSpansList()) {
+                    val specSpan = convertJaegerSpanToSpecSpan(jaegerSpan);
+                    result.add(specSpan);
+                }
+            }
+            return result;
 
         } finally {
             channel.shutdownNow();

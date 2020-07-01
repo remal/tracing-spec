@@ -66,9 +66,6 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
         doFirst {
             outputDir.deleteDir()
             outputDir.mkdirs()
-            outputDir.setExecutable(true, false)
-            outputDir.setReadable(true, false)
-            outputDir.setWritable(true, false)
         }
 
         /*

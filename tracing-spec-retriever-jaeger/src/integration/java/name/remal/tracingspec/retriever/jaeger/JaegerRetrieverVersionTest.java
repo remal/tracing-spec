@@ -28,6 +28,7 @@ import io.jaegertracing.internal.reporters.RemoteReporter;
 import io.jaegertracing.internal.samplers.ConstSampler;
 import io.jaegertracing.thrift.internal.senders.HttpSender;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpanKey;
@@ -83,7 +84,7 @@ public class JaegerRetrieverVersionTest {
         rootSpan.finish();
 
         val traceId = rootSpan.context().getTraceId();
-        await().until(() -> retriever.retrieveSpansForTrace(traceId), containsInAnyOrder(
+        await().atMost(Duration.ofDays(1)).until(() -> retriever.retrieveSpansForTrace(traceId), containsInAnyOrder(
             allOf(
                 hasProperty("spanKey", equalTo(SpecSpanKey.builder()
                     .traceId(traceId)

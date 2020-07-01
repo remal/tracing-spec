@@ -27,7 +27,6 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
 
     public static final int JAEGER_QUERY_PORT = 16686;
     public static final int JAEGER_COLLECTOR_THRIFT_PORT = 14268;
-    public static final int JAEGER_COLLECTOR_GRPC_PORT = 14250;
     public static final int ZIPKIN_PORT = 9411;
 
     public JaegerAllInOneContainer() {
@@ -41,12 +40,12 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
     @Override
     @SuppressWarnings("java:S109")
     protected void configure() {
-        withEnv("COLLECTOR_ZIPKIN_HTTP_PORT", String.valueOf(ZIPKIN_PORT));
+        withEnv("COLLECTOR_ZIPKIN_HTTP_PORT", ZIPKIN_PORT + "");
+        withEnv("LOG_LEVEL", "debug");
 
         withExposedPorts(
             JAEGER_QUERY_PORT,
             JAEGER_COLLECTOR_THRIFT_PORT,
-            JAEGER_COLLECTOR_GRPC_PORT,
             ZIPKIN_PORT
         );
 
@@ -68,10 +67,6 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
 
     public int getCollectorThriftPort() {
         return getMappedPort(JAEGER_COLLECTOR_THRIFT_PORT);
-    }
-
-    public int getCollectorGrpcPort() {
-        return getMappedPort(JAEGER_COLLECTOR_GRPC_PORT);
     }
 
     public int getZipkinPort() {
