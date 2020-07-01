@@ -116,7 +116,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
                     )
 
                 StringBuilder sb = new StringBuilder()
-                Process proc = Runtime.runtime.exec("ls", "-l", "-R", outputDir.absolutePath)
+                Process proc = Runtime.runtime.exec("ls -l -R " + outputDir.absolutePath)
                 proc.consumeProcessOutput(sb, sb)
                 proc.waitFor()
                 println sb.toString()
