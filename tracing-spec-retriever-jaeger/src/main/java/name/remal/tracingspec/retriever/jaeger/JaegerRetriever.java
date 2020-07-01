@@ -33,7 +33,7 @@ import name.remal.tracingspec.retriever.jaeger.internal.grpc.QueryServiceGrpc;
 
 public class JaegerRetriever {
 
-    private static final Duration QUERY_TIMEOUT = Duration.ofMinutes(5);
+    private static final Duration QUERY_TIMEOUT = Duration.ofMinutes(1);
 
     private final InetSocketAddress queryServiceAddress;
 

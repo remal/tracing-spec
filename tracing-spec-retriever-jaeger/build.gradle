@@ -7,7 +7,7 @@ dependencies {
     api project(':tracing-spec-model')
     api 'io.grpc:grpc-protobuf'
     api 'io.grpc:grpc-stub'
-    api 'io.grpc:grpc-netty-shaded'
+    api 'io.grpc:grpc-okhttp'
     api 'org.apache.logging.log4j:log4j-api'
 
     integrationImplementation 'org.testcontainers:testcontainers'
@@ -76,7 +76,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
         String hostPath = project.projectDir.absolutePath.replace(File.separator, '/')
         String containerPath = hostPath.replaceFirst(/^[a-zA-Z]:/, '')
 
-        String outputDirRelativePath = project.relativePath(rawOutputDir).replace(File.separator, '/')
+        String rawOutputDirRelativePath = project.relativePath(rawOutputDir).replace(File.separator, '/')
         String protoFilesDirRelativePath = project.relativePath(protoFilesDir).replace(File.separator, '/')
 
         setCommandLine(
@@ -93,8 +93,8 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
             "--proto_path=$containerPath",
             '-I/usr/include/github.com/gogo/protobuf',
             '--java_opt=annotate_code',
-            "--java_out=$outputDirRelativePath",
-            "--grpc-java_out=$outputDirRelativePath",
+            "--java_out=$rawOutputDirRelativePath",
+            "--grpc-java_out=$rawOutputDirRelativePath",
             "-I$protoFilesDirRelativePath",
             "$protoFilesDirRelativePath/$protoFileName"
         )
@@ -151,8 +151,8 @@ dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
 
     int versionMajor = tagName.split(/\./)[0].toInteger()
     int versionMinor = tagName.split(/\./)[1].toInteger()
-    if (versionMajor <= 0) return
-    if (versionMajor == 1 && versionMinor <= 12) return
+    if (versionMajor <= 0) return // We're not going to support 0.+ versions
+    if (versionMajor == 1 && versionMinor <= 13) return // TODO
 
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
