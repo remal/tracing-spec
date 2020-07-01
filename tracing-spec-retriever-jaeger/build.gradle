@@ -115,9 +115,11 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
                         '@javax.annotation.Generated($1)'
                     )
 
-                ProcessBuilder pb = new ProcessBuilder()
-                    .command("ls", "-l", "-R", outputDir.absolutePath)
-                pb.start().waitFor()
+                StringBuffer buffer = new StringBuffer()
+                Process proc = Runtime.runtime.exec("ls", "-l", "-R", outputDir.absolutePath)
+                proc.consumeProcessOutput(buffer)
+                proc.waitFor()
+                println buffer.toString()
 
                 file.setText(content, 'UTF-8')
             }
