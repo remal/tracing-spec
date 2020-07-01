@@ -118,6 +118,13 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
                     )
 
                 println Files.getPosixFilePermissions(file.toPath())
+
+                ProcessBuilder pb = new ProcessBuilder()
+                    .command("ls", "-l", "-R", outputDir.absolutePath)
+                pb.redirectError('PIPE')
+                pb.redirectOutput('PIPE')
+                pb.start().waitFor()
+
                 file.setText(content, 'UTF-8')
             }
         }
