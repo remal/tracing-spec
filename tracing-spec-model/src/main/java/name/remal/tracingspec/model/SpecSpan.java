@@ -17,11 +17,18 @@
 package name.remal.tracingspec.model;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
+import static java.lang.Boolean.parseBoolean;
+import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
 import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Default;
 
 @Value.Immutable
 @JsonDeserialize(builder = SpecSpanBuilder.class)
@@ -32,8 +39,29 @@ public interface SpecSpan {
         return ImmutableSpecSpan.builder();
     }
 
-    String getTraceId();
 
-    String getSpanId();
+    SpecSpanKey getSpanKey();
+
+    Optional<SpecSpanKey> getParentSpanKey();
+
+    Optional<SpecSpanKey> getLeadingSpanKey();
+
+    Optional<String> getName();
+
+    Optional<String> getServiceName();
+
+    Optional<Instant> getStartedAt();
+
+    Optional<Duration> getDuration();
+
+    @Default
+    default Map<String, String> getTags() {
+        return emptyMap();
+    }
+
+    @Default
+    default boolean isAsync() {
+        return parseBoolean(getTags().get(SpecSpanTag.ASYNC.getTagName()));
+    }
 
 }

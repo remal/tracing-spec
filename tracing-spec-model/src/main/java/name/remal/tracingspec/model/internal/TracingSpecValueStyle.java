@@ -51,7 +51,10 @@ import org.jetbrains.annotations.ApiStatus.Internal;
         ThreadSafe.class,
         NotThreadSafe.class,
     },
-    depluralize = true
+    depluralize = true,
+    depluralizeDictionary = {
+        "child:children",
+    }
 )
 @Internal
 public @interface TracingSpecValueStyle {

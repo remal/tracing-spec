@@ -1,8 +1,14 @@
 apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
 
 dependencies {
+    relocateClasses 'commons-codec:commons-codec'
+
     api project(':tracing-spec-model')
-    api 'io.jaegertracing:jaeger-proto'
+    api 'io.grpc:grpc-protobuf'
+    api 'io.grpc:grpc-stub'
+    api 'io.grpc:grpc-netty-shaded'
+    api 'org.apache.logging.log4j:log4j-api'
 
     integrationImplementation 'org.testcontainers:testcontainers'
     integrationImplementation 'io.jaegertracing:jaeger-thrift'
@@ -10,25 +16,153 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
-    if (!tagName.matches(/\d+\.\d+/)) return
+File protoFilesDir = file('build/proto')
+TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
+    from('jaeger-idl/proto/api_v2')
+    into(protoFilesDir)
 
-    SourceSet testSourceSet = sourceSets.integration
-    TaskProvider<Task> testVersionTask = tasks.register("testIntegration-$tagName", Test) {
-        dependsOn(testSourceSet.classesTaskName)
+    doFirst { protoFilesDir.deleteDir() }
 
-        systemProperty('docker-image-tag', tagName)
+    doLast {
+        protoFilesDir.traverse { File file ->
+            if (!file.file) return
 
-        Test testTask = tasks.test
-        group = testTask.group
-        testClassesDirs = testTask.testClassesDirs
-        classpath = testTask.classpath
+            String content = file.getText('UTF-8')
 
-        filter {
-            includeTestsMatching('*VersionTest')
-            failOnNoMatchingTests = true
+            content = content.replaceAll(/import "(gogoproto|protoc-gen-swagger)\/[^"]+"\s*;/, '')
+            content = content.replaceAll(
+                /(option\s*)?\((gogoproto|grpc)\.[^)]+\)\s*=\s*(true|false|"[^"]*"/
+                    + /|\{[^}]*?(info:[^}]+}|external_docs:[^}]+}|[^}]*?)*})[,;]?/,
+                ''
+            )
+            content = content.replaceAll(/\[\s+\]/, '')
+
+            content = content.replaceAll(/option \w+_package\s*=\s*"[^"]*";/, '')
+            content = content.replaceAll(/option java_\w+\s*=\s*"[^"]*";/, '')
+            content = content.replaceAll(/option optimize_for\s*=\s*"[^"]*";/, '')
+            content = content + '\n' + [
+                'option java_package = "name.remal.tracingspec.retriever.jaeger.internal.grpc";',
+                'option java_multiple_files = true;',
+                'option optimize_for = SPEED;',
+            ].join('\n') + '\n'
+
+            file.setText(content, 'UTF-8')
+        }
+    }
+}
+
+[
+    'model.proto',
+    'query.proto',
+].forEach { protoFileName ->
+    String taskName = 'generateFrom' + protoFileName.split('\\.')
+        .collect { it.capitalize() }
+        .join('')
+    File outputDir = file("build/generated/$taskName")
+    TaskProvider<Task> generateModelProto = tasks.register(taskName, Exec) {
+        dependsOn(copyProtoFiles)
+
+        outputs.dir(outputDir)
+        doFirst {
+            outputDir.deleteDir()
+            outputDir.mkdirs()
+        }
+
+        /*
+         * If you use Docker for Windows, don't forget to go to Settings -> Resource -> File share and add project
+         * directory (or one of its parents) to the list there.
+         */
+        String hostPath = project.projectDir.absolutePath.replace(File.separator, '/')
+        String containerPath = hostPath.replaceFirst(/^[a-zA-Z]:/, '')
+
+        String outputDirRelativePath = project.relativePath(outputDir).replace(File.separator, '/')
+        String protoFilesDirRelativePath = project.relativePath(protoFilesDir).replace(File.separator, '/')
+
+        setCommandLine(
+            'docker',
+            'run',
+            '--rm',
+            '-v',
+            "$hostPath:$containerPath",
+            '-w',
+            "$containerPath",
+
+            'jaegertracing/protobuf:latest',
+
+            "--proto_path=$containerPath",
+            '-I/usr/include/github.com/gogo/protobuf',
+            '--java_opt=annotate_code',
+            "--java_out=$outputDirRelativePath",
+            "--grpc-java_out=$outputDirRelativePath",
+            "-I$protoFilesDirRelativePath",
+            "$protoFilesDirRelativePath/$protoFileName"
+        )
+
+        doLast {
+            outputDir.traverse { File file ->
+                if (!file.file) return
+
+                if (!file.name.endsWith('.java')) {
+                    file.delete()
+                    return
+                }
+
+                String content = file.getText('UTF-8')
+
+                content = content.
+                    replaceAll(
+                        /@(?:javax\.annotation\.)?Generated\(\s*value\s*=\s*("[^"]*")[^)]*\)/,
+                        '@javax.annotation.Generated($1)'
+                    )
+
+                file.setText(content, 'UTF-8')
+            }
         }
     }
 
-    tasks.named('check').configure { dependsOn(testVersionTask) }
+    SourceSet sourceSet = sourceSets.main
+    sourceSet.java.srcDir(outputDir)
+    tasks.named(sourceSet.compileJavaTaskName).configure { dependsOn(generateModelProto) }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+SourceSet versionTestSourceSet = sourceSets.integration
+String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
+
+Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") {
+    group = 'verification'
+    tasks.runAllTests.dependsOn(it)
+}
+
+dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
+    if (!tagName.matches(/\d+\.\d+/)) return
+
+    int versionMajor = tagName.split(/\./)[0].toInteger()
+    int versionMinor = tagName.split(/\./)[1].toInteger()
+    if (versionMajor <= 0) return
+    if (versionMajor == 1 && versionMinor <= 13) return
+
+    TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
+        dependsOn(versionTestSourceSet.classesTaskName)
+
+        systemProperty('docker-image-tag', tagName)
+
+        Test baseTestTask = tasks[baseVersionTestTaskName]
+        group = baseTestTask.group
+
+        onlyIf {
+            testClassesDirs = baseTestTask.testClassesDirs
+            classpath = baseTestTask.classpath
+
+            filter {
+                includeTestsMatching('*VersionTest')
+                failOnNoMatchingTests = true
+            }
+
+            return true
+        }
+    }
+
+    allTestVersionTask.dependsOn(testVersionTask)
 }
