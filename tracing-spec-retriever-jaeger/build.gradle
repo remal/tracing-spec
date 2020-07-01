@@ -1,4 +1,4 @@
-import java.nio.file.Files
+import java.lang.ProcessBuilder.Redirect
 
 apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
@@ -117,12 +117,10 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
                         '@javax.annotation.Generated($1)'
                     )
 
-                println Files.getPosixFilePermissions(file.toPath())
-
                 ProcessBuilder pb = new ProcessBuilder()
                     .command("ls", "-l", "-R", outputDir.absolutePath)
-                pb.redirectError('PIPE')
-                pb.redirectOutput('PIPE')
+                pb.redirectError(Redirect.PIPE)
+                pb.redirectOutput(Redirect.PIPE)
                 pb.start().waitFor()
 
                 file.setText(content, 'UTF-8')
