@@ -55,17 +55,18 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
     'model.proto',
     'query.proto',
 ].forEach { protoFileName ->
-    String taskName = 'generateFrom' + protoFileName.split('\\.')
+    String taskNameSuffix = protoFileName.split('\\.')
         .collect { it.capitalize() }
         .join('')
-    File outputDir = file("build/generated/$taskName")
-    TaskProvider<Task> generateModelProto = tasks.register(taskName, Exec) {
+    String rawTaskName = "generateFrom${taskNameSuffix}Raw"
+    File rawOutputDir = file("build/generated/$rawTaskName")
+    TaskProvider<Task> generateRawModelProto = tasks.register(rawTaskName, Exec) {
         dependsOn(copyProtoFiles)
 
-        outputs.dir(outputDir)
+        outputs.dir(rawOutputDir)
         doFirst {
-            outputDir.deleteDir()
-            outputDir.mkdirs()
+            rawOutputDir.deleteDir()
+            rawOutputDir.mkdirs()
         }
 
         /*
@@ -75,7 +76,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
         String hostPath = project.projectDir.absolutePath.replace(File.separator, '/')
         String containerPath = hostPath.replaceFirst(/^[a-zA-Z]:/, '')
 
-        String outputDirRelativePath = project.relativePath(outputDir).replace(File.separator, '/')
+        String outputDirRelativePath = project.relativePath(rawOutputDir).replace(File.separator, '/')
         String protoFilesDirRelativePath = project.relativePath(protoFilesDir).replace(File.separator, '/')
 
         setCommandLine(
@@ -97,15 +98,25 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
             "-I$protoFilesDirRelativePath",
             "$protoFilesDirRelativePath/$protoFileName"
         )
+    }
+
+    String taskName = "generateFrom${taskNameSuffix}"
+    File outputDir = file("build/generated/$taskName")
+    TaskProvider<Task> generateModelProto = tasks.register(taskName, Copy) {
+        dependsOn(generateRawModelProto)
+
+        from(rawOutputDir)
+        into(outputDir)
+        include('**/*.java')
+
+        doFirst {
+            outputDir.deleteDir()
+            outputDir.mkdirs()
+        }
 
         doLast {
             outputDir.traverse { File file ->
                 if (!file.file) return
-
-                if (!file.name.endsWith('.java')) {
-                    file.delete()
-                    return
-                }
 
                 String content = file.getText('UTF-8')
 
@@ -114,12 +125,6 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
                         /@(?:javax\.annotation\.)?Generated\(\s*value\s*=\s*("[^"]*")[^)]*\)/,
                         '@javax.annotation.Generated($1)'
                     )
-
-                StringBuilder sb = new StringBuilder()
-                Process proc = Runtime.runtime.exec(new String[]{"ls", "-l", "-R", outputDir.absolutePath})
-                proc.consumeProcessOutput(sb, sb)
-                proc.waitFor()
-                println sb.toString()
 
                 file.setText(content, 'UTF-8')
             }
