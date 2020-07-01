@@ -66,6 +66,9 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
         doFirst {
             outputDir.deleteDir()
             outputDir.mkdirs()
+            outputDir.setExecutable(true, false)
+            outputDir.setReadable(true, false)
+            outputDir.setWritable(true, false)
         }
 
         /*
@@ -141,7 +144,7 @@ dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
     int versionMajor = tagName.split(/\./)[0].toInteger()
     int versionMinor = tagName.split(/\./)[1].toInteger()
     if (versionMajor <= 0) return
-    if (versionMajor == 1 && versionMinor <= 13) return
+    if (versionMajor == 1 && versionMinor <= 12) return
 
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
