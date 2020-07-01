@@ -1,3 +1,5 @@
+import java.nio.file.Files
+
 apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
 
@@ -115,7 +117,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
                         '@javax.annotation.Generated($1)'
                     )
 
-                file.setWritable(true, false)
+                println Files.getPosixFilePermissions(file.toPath())
                 file.setText(content, 'UTF-8')
             }
         }
