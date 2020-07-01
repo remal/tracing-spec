@@ -1,5 +1,3 @@
-import java.lang.ProcessBuilder.Redirect
-
 apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
 
@@ -119,8 +117,6 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
 
                 ProcessBuilder pb = new ProcessBuilder()
                     .command("ls", "-l", "-R", outputDir.absolutePath)
-                pb.redirectError(Redirect.PIPE)
-                pb.redirectOutput(Redirect.PIPE)
                 pb.start().waitFor()
 
                 file.setText(content, 'UTF-8')
