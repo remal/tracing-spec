@@ -115,6 +115,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
                         '@javax.annotation.Generated($1)'
                     )
 
+                file.setWritable(true, false)
                 file.setText(content, 'UTF-8')
             }
         }
