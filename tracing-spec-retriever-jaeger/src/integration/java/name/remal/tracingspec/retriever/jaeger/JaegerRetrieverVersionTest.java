@@ -77,7 +77,7 @@ public class JaegerRetrieverVersionTest {
                 "localhost",
                 jaegerContainer.getQueryPort()
             ),
-            Duration.ofSeconds(1)
+            Duration.ofSeconds(5)
         );
     }
 
@@ -101,7 +101,7 @@ public class JaegerRetrieverVersionTest {
 
         val traceId = rootSpan.context().getTraceId();
         List<SpecSpan> specSpans = new ArrayList<>();
-        await().until(
+        await().atMost(Duration.ofSeconds(30)).until(
             () -> {
                 specSpans.clear();
                 specSpans.addAll(retriever.retrieveSpansForTrace(traceId));
