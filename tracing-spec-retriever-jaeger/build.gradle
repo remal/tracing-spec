@@ -1,12 +1,19 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
 
 dependencies {
+    relocateClasses 'commons-codec:commons-codec'
+
     api project(':tracing-spec-model')
     api 'io.grpc:grpc-protobuf'
     api 'io.grpc:grpc-stub'
+    api 'io.grpc:grpc-netty-shaded'
+    api 'org.apache.logging.log4j:log4j-api'
 
     integrationImplementation 'org.testcontainers:testcontainers'
-    integrationImplementation 'io.jaegertracing:jaeger-client'
+    integrationImplementation 'io.jaegertracing:jaeger-thrift'
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -33,7 +40,13 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
             content = content.replaceAll(/\[\s+\]/, '')
 
             content = content.replaceAll(/option \w+_package\s*=\s*"[^"]*";/, '')
-            content = content + '\n\noption java_package = "name.remal.tracingspec.retriever.jaeger.internal.grpc";'
+            content = content.replaceAll(/option java_\w+\s*=\s*"[^"]*";/, '')
+            content = content.replaceAll(/option optimize_for\s*=\s*"[^"]*";/, '')
+            content = content + '\n' + [
+                'option java_package = "name.remal.tracingspec.retriever.jaeger.internal.grpc";',
+                'option java_multiple_files = true;',
+                'option optimize_for = SPEED;',
+            ].join('\n') + '\n'
 
             file.setText(content, 'UTF-8')
         }
@@ -44,17 +57,24 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
     'model.proto',
     'query.proto',
 ].forEach { protoFileName ->
-    String taskName = 'generateFrom' + protoFileName.split('\\.')
+    String taskNameSuffix = protoFileName.split('\\.')
         .collect { it.capitalize() }
         .join('')
-    File outputDir = file("build/generated/$taskName")
-    TaskProvider<Task> generateModelProto = tasks.register(taskName, Exec) {
+    String rawTaskName = "generateFrom${taskNameSuffix}Raw"
+    File rawOutputDir = file("build/generated/$rawTaskName")
+    TaskProvider<Task> generateRawModelProto = tasks.register(rawTaskName, Exec) {
         dependsOn(copyProtoFiles)
 
-        outputs.dir(outputDir)
+        outputs.dir(rawOutputDir)
         doFirst {
-            outputDir.deleteDir()
-            outputDir.mkdirs()
+            rawOutputDir.deleteDir()
+            if (!rawOutputDir.mkdirs()) {
+                logger.warn('Retry creating dir: {}', rawOutputDir)
+                Thread.sleep(1000)
+                if (!rawOutputDir.mkdirs()) {
+                    throw new GradleScriptException("DIr can't be created: $rawOutputDir")
+                }
+            }
         }
 
         /*
@@ -64,7 +84,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
         String hostPath = project.projectDir.absolutePath.replace(File.separator, '/')
         String containerPath = hostPath.replaceFirst(/^[a-zA-Z]:/, '')
 
-        String outputDirRelativePath = project.relativePath(outputDir).replace(File.separator, '/')
+        String rawOutputDirRelativePath = project.relativePath(rawOutputDir).replace(File.separator, '/')
         String protoFilesDirRelativePath = project.relativePath(protoFilesDir).replace(File.separator, '/')
 
         setCommandLine(
@@ -80,11 +100,40 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
 
             "--proto_path=$containerPath",
             '-I/usr/include/github.com/gogo/protobuf',
-            "--java_out=$outputDirRelativePath",
-            "--grpc-java_out=$outputDirRelativePath",
+            '--java_opt=annotate_code',
+            "--java_out=$rawOutputDirRelativePath",
+            "--grpc-java_out=$rawOutputDirRelativePath",
             "-I$protoFilesDirRelativePath",
             "$protoFilesDirRelativePath/$protoFileName"
         )
+    }
+
+    String taskName = "generateFrom${taskNameSuffix}"
+    File outputDir = file("build/generated/$taskName")
+    TaskProvider<Task> generateModelProto = tasks.register(taskName, Copy) {
+        dependsOn(generateRawModelProto)
+
+        from(rawOutputDir)
+        into(outputDir)
+        include('**/*.java')
+
+        doFirst { outputDir.deleteDir() }
+
+        doLast {
+            outputDir.traverse { File file ->
+                if (!file.file) return
+
+                String content = file.getText('UTF-8')
+
+                content = content.
+                    replaceAll(
+                        /@(?:javax\.annotation\.)?Generated\(\s*value\s*=\s*("[^"]*")[^)]*\)/,
+                        '@javax.annotation.Generated($1)'
+                    )
+
+                file.setText(content, 'UTF-8')
+            }
+        }
     }
 
     SourceSet sourceSet = sourceSets.main
@@ -94,25 +143,44 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+SourceSet versionTestSourceSet = sourceSets.integration
+String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
+
+Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") {
+    group = 'verification'
+    tasks.runAllTests.dependsOn(it)
+}
+
 dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
     if (!tagName.matches(/\d+\.\d+/)) return
 
-    SourceSet testSourceSet = sourceSets.integration
-    TaskProvider<Task> testVersionTask = tasks.register("testIntegration-$tagName", Test) {
-        dependsOn(testSourceSet.classesTaskName)
+    int versionMajor = tagName.split(/\./)[0].toInteger()
+    int versionMinor = tagName.split(/\./)[1].toInteger()
+    if (versionMajor < 1 || (versionMajor == 1 && versionMinor < 14)) {
+        // https://github.com/remal/tracing-spec/issues/19
+        return
+    }
+
+    TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
+        dependsOn(versionTestSourceSet.classesTaskName)
 
         systemProperty('docker-image-tag', tagName)
 
-        Test testTask = tasks.test
-        group = testTask.group
-        testClassesDirs = testTask.testClassesDirs
-        classpath = testTask.classpath
+        Test baseTestTask = tasks[baseVersionTestTaskName]
+        group = baseTestTask.group
 
-        filter {
-            includeTestsMatching('*VersionTest')
-            failOnNoMatchingTests = true
+        onlyIf {
+            testClassesDirs = baseTestTask.testClassesDirs
+            classpath = baseTestTask.classpath
+
+            filter {
+                includeTestsMatching('*VersionTest')
+                failOnNoMatchingTests = true
+            }
+
+            return true
         }
     }
 
-    tasks.named('check').configure { dependsOn(testVersionTask) }
+    allTestVersionTask.dependsOn(testVersionTask)
 }

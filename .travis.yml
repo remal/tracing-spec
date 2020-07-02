@@ -28,7 +28,8 @@ before_script:
 - sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
 
 script:
-- ./gradlew build sonarqube
+- chmod -R 0777 .
+- ./gradlew build runAllTests sonarqube
 
 after_script:
 - 'bash <(curl -s https://codecov.io/bash)'

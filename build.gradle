@@ -1,4 +1,4 @@
-import static java.lang.System.getenv
+import static java.util.Collections.newSetFromMap
 
 import groovy.json.JsonSlurper
 import java.nio.file.Path
@@ -39,13 +39,14 @@ allprojects {
         jcenter()
     }
 
-    if (path != ':dependency-versions') {
+    if (project.path != ':dependency-versions') {
         dependencies {
-            allResolvable platform(project(':dependency-versions'))
-            allResolvable platform('org.springframework.boot:spring-boot-dependencies')
+            allResolvable enforcedPlatform(project(':dependency-versions'))
+            allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies')
             allResolvable platform('io.grpc:grpc-bom')
             allResolvable platform('com.google.protobuf:protobuf-bom')
             allResolvable platform('org.testcontainers:testcontainers-bom')
+            allResolvable platform('io.opentracing:parent')
         }
     }
 
@@ -93,23 +94,29 @@ allprojects {
             staticAnalysis 'com.google.errorprone:error_prone_annotations'
             staticAnalysis 'org.jetbrains:annotations'
 
+            annotationProcessing 'name.remal:gradle-plugins-api'
             annotationProcessing 'org.projectlombok:lombok'
             annotationProcessing 'org.immutables:value'
+            annotationProcessing 'org.immutables:metainf'
 
+            apt 'org.springframework.boot:spring-boot-configuration-processor'
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
 
-            compileOnly 'org.hibernate.validator:hibernate-validator'
-            compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+            optional 'com.fasterxml.jackson.core:jackson-databind'
 
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
+            testImplementation 'org.awaitility:awaitility'
             testImplementation 'org.hamcrest:hamcrest'
             testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.mockito:mockito-inline'
+            testImplementation 'com.google.guava:guava'
+            testImplementation 'org.apache.commons:commons-lang3'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
+            testRuntimeOnly 'org.apache.logging.log4j:log4j-jcl'
         }
 
         transitiveDependencies {
@@ -141,6 +148,31 @@ allprojects {
 
         tasks.withType(Test) {
             useJUnitPlatform()
+
+            testLogging {
+                events('FAILED')
+            }
+
+            Set<Object> testsWithStdErr = newSetFromMap(new ConcurrentHashMap<>())
+            ConcurrentMap<Object, List<String>> testsMessages = new ConcurrentHashMap<>()
+            onOutput { TestDescriptor descr, TestOutputEvent event ->
+                if (event.destination.name() == 'StdErr') {
+                    testsWithStdErr.add(descr.id)
+                }
+
+                List<String> testMessages = testsMessages.computeIfAbsent(descr.id, { new ArrayList<>() })
+                testMessages.add(event.getMessage())
+            }
+            afterTest { TestDescriptor descr, TestResult result ->
+                if (result.resultType.name() == 'FAILURE' || testsWithStdErr.contains(descr.id)) {
+                    List<String> testMessages = testsMessages.get(descr.id)
+                    if (testMessages != null) {
+                        println()
+                        println("Output of $descr.className > $descr.displayName:")
+                        testMessages.forEach { print(" > $it") }
+                    }
+                }
+            }
         }
     }
 
@@ -148,12 +180,14 @@ allprojects {
         configurations.excludeFromForcedClassesRelocation.extendsFrom(configurations.staticAnalysis)
 
         classesRelocation {
-            relocatedClassesPackageName = project.group
+            relocatedClassesPackageName = project.group.replaceAll(/[^\w.]/, '')
             if (project.path != ':') {
-                relocatedClassesPackageName += project.path.replace(':', '.').replace("${rootProject.name}-", '')
+                relocatedClassesPackageName += project.path
+                    .replace(':', '.')
+                    .replace("${rootProject.name}-", '')
+                    .replaceAll(/[^\w.]/, '.')
             }
             relocatedClassesPackageName += '.internal._relocated'
-            relocatedClassesPackageName = relocatedClassesPackageName.replaceAll(/[^\w.]/, '')
         }
     }
 
@@ -222,6 +256,8 @@ allprojects {
         tasks.withType(License).configureEach {
             dependsOn(prepareLicenseTemplate)
 
+            include('**/*.java')
+
             Path generatedSourcesPath = project.buildDir.toPath()
             exclude { it.file.toPath().startsWith(generatedSourcesPath) }
         }
@@ -252,15 +288,6 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 apply plugin: 'org.sonarqube'
-
-allprojects {
-    sonarqube {
-        properties {
-            property('sonar.verbose', 'true')
-            property('sonar.branch', getenv('TRAVIS_PULL_REQUEST_BRANCH') ?: getenv('TRAVIS_BRANCH') ?: '')
-        }
-    }
-}
 
 tasks.named('sonarqube').configure {
     onlyIf {
