@@ -85,8 +85,8 @@ public class JaegerRetriever {
 
         } catch (StatusRuntimeException e) {
             if (e.getStatus() == DEADLINE_EXCEEDED) {
-                logger.warn("gRPC DEADLINE_EXCEEDED error occurred. It can happen if you use Jaeger <= 1.13. Only "
-                    + "Jaeger >= 1.14 is supported now: https://github.com/remal/tracing-spec/issues/19");
+                logger.warn("DEADLINE_EXCEEDED gRPC error occurred. It can happen if you use Jaeger <=1.13. Only "
+                    + "Jaeger >=1.14 is supported now: https://github.com/remal/tracing-spec/issues/19");
             }
             throw e;
 

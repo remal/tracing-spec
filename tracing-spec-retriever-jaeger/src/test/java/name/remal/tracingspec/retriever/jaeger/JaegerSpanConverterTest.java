@@ -53,7 +53,7 @@ class JaegerSpanConverterTest {
                     .build()
             ),
             hasProperty("spanKey", equalTo(SpecSpanKey.builder()
-                .traceId("000000000001ff09")
+                .traceId("1ff09")
                 .spanId("1ff09")
                 .build()
             ))
@@ -216,7 +216,7 @@ class JaegerSpanConverterTest {
                     .build()
             ),
             hasProperty("parentSpanKey", equalTo(Optional.of(
-                SpecSpanKey.builder().traceId("000000000001ff09").spanId("1ff09").build()
+                SpecSpanKey.builder().traceId("1ff09").spanId("1ff09").build()
             )))
         );
     }
@@ -244,7 +244,7 @@ class JaegerSpanConverterTest {
                     .build()
             ),
             hasProperty("leadingSpanKey", equalTo(Optional.of(
-                SpecSpanKey.builder().traceId("000000000001ff09").spanId("1ff09").build()
+                SpecSpanKey.builder().traceId("1ff09").spanId("1ff09").build()
             )))
         );
     }

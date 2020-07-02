@@ -16,8 +16,7 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
-import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerSpanId;
-import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerTraceId;
+import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerId;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -38,8 +37,8 @@ interface JaegerSpanConverter {
         val builder = SpecSpan.builder();
 
         val spanKey = SpecSpanKey.builder()
-            .traceId(decodeJaegerTraceId(jaegerSpan.getTraceId().toByteArray()))
-            .spanId(decodeJaegerSpanId(jaegerSpan.getSpanId().toByteArray()))
+            .traceId(decodeJaegerId(jaegerSpan.getTraceId().toByteArray()))
+            .spanId(decodeJaegerId(jaegerSpan.getSpanId().toByteArray()))
             .build();
         builder.spanKey(spanKey);
 
@@ -99,8 +98,8 @@ interface JaegerSpanConverter {
 
         jaegerSpan.getReferencesList().forEach(ref -> {
             val refSpanKey = SpecSpanKey.builder()
-                .traceId(decodeJaegerTraceId(ref.getTraceId().toByteArray()))
-                .spanId(decodeJaegerSpanId(ref.getSpanId().toByteArray()))
+                .traceId(decodeJaegerId(ref.getTraceId().toByteArray()))
+                .spanId(decodeJaegerId(ref.getSpanId().toByteArray()))
                 .build();
 
             val refType = ref.getRefType();

@@ -37,19 +37,7 @@ interface JaegerIdUtils {
     }
 
     @SneakyThrows
-    static String decodeJaegerTraceId(byte[] jaegerId) {
-        var string = encodeHexString(jaegerId, true);
-        if (string.length() < 16) {
-            string = "0000000000000000".substring(string.length()) + string;
-        }
-        while (string.length() > 16 && string.charAt(0) == '0') {
-            string = string.substring(1);
-        }
-        return string;
-    }
-
-    @SneakyThrows
-    static String decodeJaegerSpanId(byte[] jaegerId) {
+    static String decodeJaegerId(byte[] jaegerId) {
         var string = encodeHexString(jaegerId, true);
         while (string.length() >= 2 && string.charAt(0) == '0') {
             string = string.substring(1);

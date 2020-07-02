@@ -41,32 +41,25 @@ class JaegerIdUtilsTest {
 
 
     @Test
-    void decodeJaegerTraceId() {
-        assertThat(JaegerIdUtils.decodeJaegerTraceId(new byte[]{1, -1, 9}), equalTo("000000000001ff09"));
+    void decodeJaegerId() {
+        assertThat(JaegerIdUtils.decodeJaegerId(new byte[]{1, -1, 9}), equalTo("1ff09"));
     }
 
     @Test
-    void decodeJaegerTraceId_redundant_leading_zero_bytes() {
+    void decodeJaegerId_redundant_leading_zero_bytes() {
         assertThat(
-            JaegerIdUtils.decodeJaegerTraceId(new byte[]{
+            JaegerIdUtils.decodeJaegerId(new byte[]{
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1, 9
             }),
-            equalTo("000000000001ff09")
+            equalTo("1ff09")
         );
     }
 
-
     @Test
-    void decodeJaegerSpanId() {
-        assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{1, -1, 9}), equalTo("1ff09"));
-    }
-
-    @Test
-    void decodeJaegerSpanId_extra_short() {
-        assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{}), equalTo(""));
-        assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{0}), equalTo("0"));
-        assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{1}), equalTo("1"));
-        assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{0, 1}), equalTo("1"));
+    void decodeJaegerId_extra_short() {
+        assertThat(JaegerIdUtils.decodeJaegerId(new byte[]{}), equalTo(""));
+        assertThat(JaegerIdUtils.decodeJaegerId(new byte[]{0}), equalTo("0"));
+        assertThat(JaegerIdUtils.decodeJaegerId(new byte[]{1}), equalTo("1"));
     }
 
 }
