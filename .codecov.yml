@@ -21,3 +21,6 @@ coverage:
 
 comment:
   behavior: new
+  require_changes: false
+  require_base: false
+  require_head: false
