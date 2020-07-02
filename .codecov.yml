@@ -18,3 +18,6 @@ coverage:
         enabled: yes
         target: 60%
         if_not_found: failure
+
+comment:
+  behavior: new
