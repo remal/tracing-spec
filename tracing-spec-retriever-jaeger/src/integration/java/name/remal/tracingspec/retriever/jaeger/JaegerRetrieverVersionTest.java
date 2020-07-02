@@ -17,11 +17,16 @@
 package name.remal.tracingspec.retriever.jaeger;
 
 import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 
 import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.reporters.RemoteReporter;
@@ -29,14 +34,18 @@ import io.jaegertracing.internal.samplers.ConstSampler;
 import io.jaegertracing.thrift.internal.senders.HttpSender;
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.model.SpecSpanKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("java:S1450")
+@SuppressWarnings({"java:S1450", "java:S109"})
 public class JaegerRetrieverVersionTest {
 
     private static final String SERVICE_NAME = "service-name";
@@ -63,10 +72,13 @@ public class JaegerRetrieverVersionTest {
             .withReporter(reporter)
             .build();
 
-        retriever = new JaegerRetriever(InetSocketAddress.createUnresolved(
-            "localhost",
-            jaegerContainer.getQueryPort()
-        ));
+        retriever = new JaegerRetriever(
+            InetSocketAddress.createUnresolved(
+                "localhost",
+                jaegerContainer.getQueryPort()
+            ),
+            Duration.ofSeconds(1)
+        );
     }
 
     @AfterEach
@@ -79,12 +91,26 @@ public class JaegerRetrieverVersionTest {
     @Test
     void test() {
         val rootSpan = tracer.buildSpan("root").start();
-        val childSpan = tracer.buildSpan("child").asChildOf(rootSpan).start();
+        val childSpan = tracer.buildSpan("child").asChildOf(rootSpan)
+            .withTag("string-tag", "string")
+            .withTag("number-tag", 47)
+            .withTag("boolean-tag", true)
+            .start();
         childSpan.finish();
         rootSpan.finish();
 
         val traceId = rootSpan.context().getTraceId();
-        await().atMost(Duration.ofDays(1)).until(() -> retriever.retrieveSpansForTrace(traceId), containsInAnyOrder(
+        List<SpecSpan> specSpans = new ArrayList<>();
+        await().until(
+            () -> {
+                specSpans.clear();
+                specSpans.addAll(retriever.retrieveSpansForTrace(traceId));
+                return specSpans;
+            },
+            hasSize(2)
+        );
+
+        assertThat(specSpans, containsInAnyOrder(
             allOf(
                 hasProperty("spanKey", equalTo(SpecSpanKey.builder()
                     .traceId(traceId)
@@ -93,7 +119,15 @@ public class JaegerRetrieverVersionTest {
                 )),
                 hasProperty("name", equalTo(Optional.of("root"))),
                 hasProperty("serviceName", equalTo(Optional.of(SERVICE_NAME))),
-                hasProperty("parentSpanKey", equalTo(Optional.empty()))
+                hasProperty("parentSpanKey", equalTo(Optional.empty())),
+                hasProperty("startedAt", equalTo(Optional.of(Instant.ofEpochSecond(
+                    0,
+                    NANOSECONDS.convert(rootSpan.getStart(), MICROSECONDS)
+                )))),
+                hasProperty("duration", equalTo(Optional.of(Duration.ofSeconds(
+                    0,
+                    NANOSECONDS.convert(rootSpan.getDuration(), MICROSECONDS)
+                ))))
             ),
 
             allOf(
@@ -108,7 +142,20 @@ public class JaegerRetrieverVersionTest {
                     .traceId(traceId)
                     .spanId(rootSpan.context().toSpanId())
                     .build()
-                )))
+                ))),
+                hasProperty("startedAt", equalTo(Optional.of(Instant.ofEpochSecond(
+                    0,
+                    NANOSECONDS.convert(childSpan.getStart(), MICROSECONDS)
+                )))),
+                hasProperty("duration", equalTo(Optional.of(Duration.ofSeconds(
+                    0,
+                    NANOSECONDS.convert(childSpan.getDuration(), MICROSECONDS)
+                )))),
+                hasProperty("tags", allOf(
+                    hasEntry("string-tag", "string"),
+                    hasEntry("number-tag", "47"),
+                    hasEntry("boolean-tag", "true")
+                ))
             )
         ));
     }

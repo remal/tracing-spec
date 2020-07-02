@@ -64,7 +64,9 @@ class JaegerIdUtilsTest {
     @Test
     void decodeJaegerSpanId_extra_short() {
         assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{}), equalTo(""));
+        assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{0}), equalTo("0"));
         assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{1}), equalTo("1"));
+        assertThat(JaegerIdUtils.decodeJaegerSpanId(new byte[]{0, 1}), equalTo("1"));
     }
 
 }

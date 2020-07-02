@@ -51,7 +51,7 @@ interface JaegerIdUtils {
     @SneakyThrows
     static String decodeJaegerSpanId(byte[] jaegerId) {
         var string = encodeHexString(jaegerId, true);
-        if (string.length() >= 2 && string.startsWith("0")) {
+        while (string.length() >= 2 && string.charAt(0) == '0') {
             string = string.substring(1);
         }
         return string;

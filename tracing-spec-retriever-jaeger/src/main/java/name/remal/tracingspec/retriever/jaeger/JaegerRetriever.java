@@ -16,12 +16,15 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
+import static io.grpc.Status.DEADLINE_EXCEEDED;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.encodeJaegerId;
 import static name.remal.tracingspec.retriever.jaeger.JaegerSpanConverter.convertJaegerSpanToSpecSpan;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -30,15 +33,27 @@ import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.GetTraceRequest;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.QueryServiceGrpc;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class JaegerRetriever {
 
-    private static final Duration QUERY_TIMEOUT = Duration.ofMinutes(1);
+    private static final Duration DEFAULT_QUERY_TIMEOUT = Duration.ofMinutes(1);
+
+    private static final Logger logger = LogManager.getLogger(JaegerRetriever.class);
 
     private final InetSocketAddress queryServiceAddress;
 
-    public JaegerRetriever(InetSocketAddress queryServiceAddress) {
+    private final Duration queryTimeout;
+
+    @VisibleForTesting
+    JaegerRetriever(InetSocketAddress queryServiceAddress, Duration queryTimeout) {
         this.queryServiceAddress = queryServiceAddress;
+        this.queryTimeout = queryTimeout;
+    }
+
+    public JaegerRetriever(InetSocketAddress queryServiceAddress) {
+        this(queryServiceAddress, DEFAULT_QUERY_TIMEOUT);
     }
 
     public List<SpecSpan> retrieveSpansForTrace(String traceId) {
@@ -55,7 +70,7 @@ public class JaegerRetriever {
                 .setTraceId(ByteString.copyFrom(traceIdBytes))
                 .build();
             val jaegerSpansChunks = queryStub
-                .withDeadlineAfter(QUERY_TIMEOUT.toMillis(), MILLISECONDS)
+                .withDeadlineAfter(queryTimeout.toMillis(), MILLISECONDS)
                 .getTrace(request);
 
             List<SpecSpan> result = new ArrayList<>();
@@ -67,6 +82,13 @@ public class JaegerRetriever {
                 }
             }
             return result;
+
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus() == DEADLINE_EXCEEDED) {
+                logger.warn("gRPC DEADLINE_EXCEEDED error occurred. It can happen if you use Jaeger <= 1.13. Only "
+                    + "Jaeger >= 1.14 is supported now: https://github.com/remal/tracing-spec/issues/19");
+            }
+            throw e;
 
         } finally {
             channel.shutdownNow();

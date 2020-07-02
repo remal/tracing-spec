@@ -1,3 +1,5 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
 
@@ -7,7 +9,7 @@ dependencies {
     api project(':tracing-spec-model')
     api 'io.grpc:grpc-protobuf'
     api 'io.grpc:grpc-stub'
-    api 'io.grpc:grpc-okhttp'
+    api 'io.grpc:grpc-netty-shaded'
     api 'org.apache.logging.log4j:log4j-api'
 
     integrationImplementation 'org.testcontainers:testcontainers'
@@ -66,7 +68,13 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
         outputs.dir(rawOutputDir)
         doFirst {
             rawOutputDir.deleteDir()
-            rawOutputDir.mkdirs()
+            if (!rawOutputDir.mkdirs()) {
+                logger.warn('Retry creating dir: {}', rawOutputDir)
+                Thread.sleep(1000)
+                if (!rawOutputDir.mkdirs()) {
+                    throw new GradleScriptException("DIr can't be created: $rawOutputDir")
+                }
+            }
         }
 
         /*
@@ -109,10 +117,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
         into(outputDir)
         include('**/*.java')
 
-        doFirst {
-            outputDir.deleteDir()
-            outputDir.mkdirs()
-        }
+        doFirst { outputDir.deleteDir() }
 
         doLast {
             outputDir.traverse { File file ->
@@ -151,8 +156,10 @@ dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
 
     int versionMajor = tagName.split(/\./)[0].toInteger()
     int versionMinor = tagName.split(/\./)[1].toInteger()
-    if (versionMajor <= 0) return // We're not going to support 0.+ versions
-    if (versionMajor == 1 && versionMinor <= 13) return // TODO
+    if (versionMajor < 1 || (versionMajor == 1 && versionMinor < 14)) {
+        // https://github.com/remal/tracing-spec/issues/19
+        return
+    }
 
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
