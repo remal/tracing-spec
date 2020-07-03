@@ -32,7 +32,6 @@ import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.reporters.RemoteReporter;
 import io.jaegertracing.internal.samplers.ConstSampler;
 import io.jaegertracing.thrift.internal.senders.HttpSender;
-import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -72,13 +71,11 @@ public class JaegerRetrieverVersionTest {
             .withReporter(reporter)
             .build();
 
-        retriever = new JaegerRetriever(
-            InetSocketAddress.createUnresolved(
-                "localhost",
-                jaegerContainer.getQueryPort()
-            ),
-            Duration.ofSeconds(5)
-        );
+        val retrieverProperties = new JaegerRetrieverProperties();
+        retrieverProperties.setHost("localhost");
+        retrieverProperties.setPort(jaegerContainer.getQueryPort());
+        retrieverProperties.setTimeoutMillis(5_000);
+        retriever = new JaegerRetriever(retrieverProperties);
     }
 
     @AfterEach

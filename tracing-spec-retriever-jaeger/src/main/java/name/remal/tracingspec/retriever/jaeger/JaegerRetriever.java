@@ -21,14 +21,12 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.encodeJaegerId;
 import static name.remal.tracingspec.retriever.jaeger.JaegerSpanConverter.convertJaegerSpanToSpecSpan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import java.net.InetSocketAddress;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.ToString;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.GetTraceRequest;
@@ -36,41 +34,34 @@ import name.remal.tracingspec.retriever.jaeger.internal.grpc.QueryServiceGrpc;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+@ToString
 public class JaegerRetriever {
-
-    private static final Duration DEFAULT_QUERY_TIMEOUT = Duration.ofMinutes(1);
 
     private static final Logger logger = LogManager.getLogger(JaegerRetriever.class);
 
-    private final InetSocketAddress queryServiceAddress;
+    private final JaegerRetrieverProperties properties;
 
-    private final Duration queryTimeout;
-
-    @VisibleForTesting
-    JaegerRetriever(InetSocketAddress queryServiceAddress, Duration queryTimeout) {
-        this.queryServiceAddress = queryServiceAddress;
-        this.queryTimeout = queryTimeout;
-    }
-
-    public JaegerRetriever(InetSocketAddress queryServiceAddress) {
-        this(queryServiceAddress, DEFAULT_QUERY_TIMEOUT);
+    public JaegerRetriever(JaegerRetrieverProperties properties) {
+        this.properties = properties;
     }
 
     public List<SpecSpan> retrieveSpansForTrace(String traceId) {
-        val traceIdBytes = encodeJaegerId(traceId);
+        val host = properties.getHost();
+        if (host == null) {
+            throw new IllegalStateException("properties.host must not be null");
+        }
 
-        val channel = ManagedChannelBuilder.forAddress(
-            queryServiceAddress.getHostString(),
-            queryServiceAddress.getPort()
-        ).usePlaintext().build();
+        val channel = ManagedChannelBuilder.forAddress(host, properties.getPort())
+            .usePlaintext()
+            .build();
         try {
-
+            val traceIdBytes = encodeJaegerId(traceId);
             val queryStub = QueryServiceGrpc.newBlockingStub(channel);
             val request = GetTraceRequest.newBuilder()
                 .setTraceId(ByteString.copyFrom(traceIdBytes))
                 .build();
             val jaegerSpansChunks = queryStub
-                .withDeadlineAfter(queryTimeout.toMillis(), MILLISECONDS)
+                .withDeadlineAfter(properties.getTimeoutMillis(), MILLISECONDS)
                 .getTrace(request);
 
             List<SpecSpan> result = new ArrayList<>();

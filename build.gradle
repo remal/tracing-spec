@@ -103,6 +103,10 @@ allprojects {
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
 
             optional 'com.fasterxml.jackson.core:jackson-databind'
+            optional 'org.hibernate.validator:hibernate-validator'
+            optional('org.springframework.boot:spring-boot') { transitive = false }
+            optional('org.springframework:spring-core') { transitive = false }
+            optional('org.springframework:spring-context') { transitive = false }
 
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
