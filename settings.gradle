@@ -3,6 +3,7 @@ rootProject.name = 'tracing-spec'
 include(
     ':dependency-versions',
     ':tracing-spec-model',
+    ':tracing-spec-retriever',
     ':tracing-spec-retriever-jaeger',
     ':tracing-spec-retriever-zipkin',
 )
