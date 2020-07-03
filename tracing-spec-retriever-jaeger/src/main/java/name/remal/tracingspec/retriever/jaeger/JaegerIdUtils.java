@@ -16,10 +16,12 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
+import static java.lang.System.arraycopy;
 import static org.apache.commons.codec.binary.Hex.decodeHex;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
 import lombok.SneakyThrows;
+import lombok.val;
 import lombok.var;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
@@ -29,19 +31,35 @@ interface JaegerIdUtils {
 
     @SneakyThrows
     static byte[] encodeJaegerId(String jaegerStringId) {
+        byte[] bytes;
         if ((jaegerStringId.length() % 2) == 0) {
-            return decodeHex(jaegerStringId);
+            bytes = decodeHex(jaegerStringId);
         } else {
-            return decodeHex('0' + jaegerStringId);
+            bytes = decodeHex('0' + jaegerStringId);
         }
+
+        if ((bytes.length % 8) != 0) {
+            val newLength = ((bytes.length / 8) + 1) * 8;
+            val newBytes = new byte[newLength];
+            arraycopy(bytes, 0, newBytes, newLength - bytes.length, bytes.length);
+            bytes = newBytes;
+        }
+
+        return bytes;
     }
 
     @SneakyThrows
     static String decodeJaegerId(byte[] jaegerId) {
         var string = encodeHexString(jaegerId, true);
-        while (string.length() >= 2 && string.charAt(0) == '0') {
-            string = string.substring(1);
+
+        int notZeroCharIndex = 0;
+        while (notZeroCharIndex < string.length() - 1 && string.charAt(notZeroCharIndex) == '0') {
+            ++notZeroCharIndex;
         }
+        if (notZeroCharIndex > 0) {
+            string = string.substring(notZeroCharIndex);
+        }
+
         return string;
     }
 

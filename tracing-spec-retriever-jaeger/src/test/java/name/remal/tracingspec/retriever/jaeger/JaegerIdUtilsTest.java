@@ -26,17 +26,25 @@ class JaegerIdUtilsTest {
 
     @Test
     void encodeJaegerId() {
-        assertThat(JaegerIdUtils.encodeJaegerId("01ff09"), equalTo(new byte[]{1, -1, 9}));
+        assertThat(JaegerIdUtils.encodeJaegerId("01ff09"), equalTo(new byte[]{0, 0, 0, 0, 0, 1, -1, 9}));
     }
 
     @Test
     void encodeJaegerId_upper_case() {
-        assertThat(JaegerIdUtils.encodeJaegerId("01FF09"), equalTo(new byte[]{1, -1, 9}));
+        assertThat(JaegerIdUtils.encodeJaegerId("01FF09"), equalTo(new byte[]{0, 0, 0, 0, 0, 1, -1, 9}));
     }
 
     @Test
     void encodeJaegerId_odd_length() {
-        assertThat(JaegerIdUtils.encodeJaegerId("1ff09"), equalTo(new byte[]{1, -1, 9}));
+        assertThat(JaegerIdUtils.encodeJaegerId("1ff09"), equalTo(new byte[]{0, 0, 0, 0, 0, 1, -1, 9}));
+    }
+
+    @Test
+    void encodeJaegerId_long() {
+        assertThat(
+            JaegerIdUtils.encodeJaegerId("1000000000001ff09"),
+            equalTo(new byte[]{0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, -1, 9})
+        );
     }
 
 
