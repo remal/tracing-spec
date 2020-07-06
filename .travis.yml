@@ -14,6 +14,10 @@ addons:
 git:
   depth: false
 
+env:
+  global:
+  - GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=5 -Dorg.gradle.warning.mode=all -Dsun.net.client.defaultConnectTimeout=15000 -Dsun.net.client.defaultReadTimeout=600000 -Dsun.io.useCanonCaches=false -Djava.awt.headless=true"
+
 before_cache:
 - rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
 - find $HOME/.gradle -name '*.lock' -type f -delete
@@ -24,7 +28,6 @@ cache:
   - $HOME/.sonar/cache
 
 before_script:
-- export GRADLE_OPTS="-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.warning.mode=all -Dsun.net.client.defaultConnectTimeout=15000 -Dsun.net.client.defaultReadTimeout=600000 -Dsun.io.useCanonCaches=false -Djava.awt.headless=true"
 - sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
 
 script:
