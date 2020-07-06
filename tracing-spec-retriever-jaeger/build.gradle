@@ -55,13 +55,15 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
     'model.proto',
     'query.proto',
 ].forEach { protoFileName ->
-    String taskNameSuffix = protoFileName.split('\\.')
+    File protoFile = file("$protoFilesDir/$protoFileName")
+    String taskNameSuffix = protoFileName.split(/\W+/)
         .collect { it.capitalize() }
         .join('')
     String rawTaskName = "generateFrom${taskNameSuffix}Raw"
     File rawOutputDir = file("build/generated/$rawTaskName")
-    TaskProvider<Task> generateRawModelProto = tasks.register(rawTaskName, Exec) {
+    TaskProvider<Task> generateFromProtoRaw = tasks.register(rawTaskName, Exec) {
         dependsOn(copyProtoFiles)
+        inputs.file(protoFile)
 
         outputs.dir(rawOutputDir)
         doFirst {
@@ -108,12 +110,13 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
 
     String taskName = "generateFrom${taskNameSuffix}"
     File outputDir = file("build/generated/$taskName")
-    TaskProvider<Task> generateModelProto = tasks.register(taskName, Copy) {
-        dependsOn(generateRawModelProto)
+    TaskProvider<Task> generateFromProto = tasks.register(taskName, Copy) {
+        dependsOn(generateFromProtoRaw)
 
-        from(rawOutputDir)
+        from(rawOutputDir) {
+            include('**/*.java')
+        }
         into(outputDir)
-        include('**/*.java')
 
         doFirst { outputDir.deleteDir() }
 
@@ -136,7 +139,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
 
     SourceSet sourceSet = sourceSets.main
     sourceSet.java.srcDir(outputDir)
-    tasks.named(sourceSet.compileJavaTaskName).configure { dependsOn(generateModelProto) }
+    tasks.named(sourceSet.compileJavaTaskName).configure { dependsOn(generateFromProto) }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

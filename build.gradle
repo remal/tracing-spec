@@ -16,8 +16,8 @@ import org.jdom2.input.SAXBuilder
 buildscript {
     dependencies {
         classpath 'name.remal:gradle-plugins:1.0.200'
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0"
-        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
+        classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7'
     }
@@ -131,7 +131,7 @@ allprojects {
             resolutionStrategy {
                 eachDependency { DependencyResolveDetails details ->
                     String groupModule = "${details.target.group}:${details.target.name}"
-                    if ("$groupModule" == 'org.hamcrest:hamcrest-core') {
+                    if (groupModule == 'org.hamcrest:hamcrest-core') {
                         details.useTarget("org.hamcrest:hamcrest:${details.target.version}")
                     }
                 }
@@ -219,7 +219,7 @@ allprojects {
                     .find { it.getAttributeValue('name') == 'notice' }
                     ?.getAttributeValue('value')
                 if (licenseTemplate == null) {
-                    throw new GradleScriptException("IDEA license template can't be retrieved")
+                    throw new GradleScriptException('IDEA license template can\'t be retrieved ')
                 }
                 licenseTemplate = licenseTemplate.replaceAll(/(?:\$|&#36;)([\w.]+)/, '\\$\\{$1\\}')
 
@@ -299,34 +299,34 @@ tasks.named('sonarqube').configure {
         List<String> propertyPrefixes = ['', modules.collect { "$it." }].flatten()
         propertyPrefixes.forEach { prefix ->
             if (properties[prefix + 'sonar.projectName'] == null) {
-                throw new GradleScriptException("SonarQube property isn't set: " + prefix + 'sonar.projectName')
+                throw new GradleScriptException("SonarQube property isn't set: ${prefix}sonar.projectName")
             }
 
             project.pluginManager.withPlugin('java') {
                 project.pluginManager.withPlugin('name.remal.test-source-sets') {
                     properties[prefix + 'sonar.tests'] =
                         testSourceSets.collect { it.allSource.srcDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(",")
+                            .unique().findAll { it.exists() }.join(',')
                     properties[prefix + 'sonar.java.test.binaries'] =
                         testSourceSets.collect { it.output.classesDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(",")
+                            .unique().findAll { it.exists() }.join(',')
                     properties[prefix + 'sonar.java.test.libraries'] =
                         testSourceSets.collect { it.compileClasspath }.flatten()
-                            .unique().findAll { it.exists() }.join(",")
+                            .unique().findAll { it.exists() }.join(',')
                 }
             }
 
             properties[prefix + 'sonar.java.checkstyle.reportPaths'] =
                 tasks.withType(Checkstyle).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(",")
+                    .unique().findAll { it.exists() }.join(',')
 
             properties[prefix + 'sonar.junit.reportPaths'] =
                 tasks.withType(Test).collect { it.reports.junitXml.destination }
-                    .unique().findAll { it.exists() }.join(",")
+                    .unique().findAll { it.exists() }.join(',')
 
             properties[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
                 tasks.withType(JacocoReport).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(",")
+                    .unique().findAll { it.exists() }.join(',')
         }
 
         return true
@@ -413,7 +413,7 @@ class DockerImages {
 }
 
 allprojects {
-    extensions.create("dockerImages", DockerImages.class, project)
+    extensions.create('dockerImages', DockerImages.class, project)
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

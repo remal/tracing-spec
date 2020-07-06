@@ -8,6 +8,87 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+Configuration openapiGeneratorCliConfiguration = configurations.create('openapiGeneratorCli')
+
+dependencies {
+    openapiGeneratorCli 'org.openapitools:openapi-generator-cli'
+}
+
+File openapiFilesDir = file('build/openapi')
+TaskProvider<Task> copyOpenapiFiles = tasks.register('copyOpenapiFiles', Copy) {
+    from('zipkin-api') {
+        include('*.yaml')
+        include('*.yml')
+    }
+    into(openapiFilesDir)
+
+    doFirst { openapiFilesDir.deleteDir() }
+
+    doLast {
+        openapiFilesDir.traverse { File file ->
+            if (!file.file) return
+
+            String content = file.getText('UTF-8')
+            file.setText(content, 'UTF-8')
+        }
+    }
+}
+
+[
+    'zipkin2-api.yaml',
+].forEach { openapiFileName ->
+    File openapiFile = file("$openapiFilesDir/$openapiFileName")
+    String taskNameSuffix = openapiFileName.split(/\W+/)
+        .collect { it.capitalize() }
+        .join('')
+    TaskProvider<Task> validateOpenapi = tasks.register("validate${taskNameSuffix}", JavaExec) {
+        dependsOn(copyOpenapiFiles)
+        inputs.file(openapiFile)
+        outputs.file(openapiFile)
+    }
+
+    String generateTaskNameRaw = "generateFrom${taskNameSuffix}Raw"
+    File rawOutputDir = file("build/generated/$generateTaskNameRaw")
+    TaskProvider<Task> generateFromOpenapiRaw = tasks.register(generateTaskNameRaw, JavaExec) {
+        dependsOn(validateOpenapi)
+        inputs.file(openapiFile)
+
+        outputs.dir(rawOutputDir)
+        doFirst {
+            rawOutputDir.deleteDir()
+            rawOutputDir.mkdirs()
+        }
+    }
+
+    String generateTaskName = "generateFrom${taskNameSuffix}"
+    File outputDir = file("build/generated/$generateTaskName")
+    TaskProvider<Task> generateFromOpenapi = tasks.register(generateTaskName, Copy) {
+        dependsOn(generateFromOpenapiRaw)
+
+        from(rawOutputDir) {
+            include('**/*.java')
+        }
+        into(outputDir)
+
+        doFirst { outputDir.deleteDir() }
+
+        doLast {
+            outputDir.traverse { File file ->
+                if (!file.file) return
+
+                String content = file.getText('UTF-8')
+                file.setText(content, 'UTF-8')
+            }
+        }
+    }
+
+    SourceSet sourceSet = sourceSets.main
+    sourceSet.java.srcDir(outputDir)
+    tasks.named(sourceSet.compileJavaTaskName).configure { dependsOn(generateFromOpenapi) }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 SourceSet versionTestSourceSet = sourceSets.integration
 String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
 
