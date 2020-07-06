@@ -4,7 +4,7 @@ apply plugin: 'name.remal.classes-relocation'
 dependencies {
     relocateClasses 'commons-codec:commons-codec'
 
-    api project(':tracing-spec-model')
+    api project(':tracing-spec-retriever')
     api 'io.grpc:grpc-protobuf'
     api 'io.grpc:grpc-stub'
     api 'io.grpc:grpc-netty-shaded'

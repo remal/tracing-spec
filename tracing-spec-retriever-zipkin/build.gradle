@@ -1,1 +1,51 @@
 apply plugin: 'java-library'
+
+dependencies {
+    api project(':tracing-spec-retriever')
+
+    integrationImplementation 'org.testcontainers:testcontainers'
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+SourceSet versionTestSourceSet = sourceSets.integration
+String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
+
+Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") {
+    group = 'verification'
+    tasks.runAllTests.dependsOn(it)
+}
+
+dockerImages.getAllTags('openzipkin/zipkin').forEach { String tagName ->
+    if (!tagName.matches(/\d+\.\d+/)) return
+
+    int versionMajor = tagName.split(/\./)[0].toInteger()
+    int versionMinor = tagName.split(/\./)[1].toInteger()
+    if (versionMajor < 2) {
+        // https://github.com/remal/tracing-spec/issues/22
+        return
+    }
+
+    TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
+        dependsOn(versionTestSourceSet.classesTaskName)
+
+        systemProperty('docker-image-tag', tagName)
+
+        Test baseTestTask = tasks[baseVersionTestTaskName]
+        group = baseTestTask.group
+
+        onlyIf {
+            testClassesDirs = baseTestTask.testClassesDirs
+            classpath = baseTestTask.classpath
+
+            filter {
+                includeTestsMatching('*VersionTest')
+                failOnNoMatchingTests = false
+            }
+
+            return true
+        }
+    }
+
+    allTestVersionTask.dependsOn(testVersionTask)
+}

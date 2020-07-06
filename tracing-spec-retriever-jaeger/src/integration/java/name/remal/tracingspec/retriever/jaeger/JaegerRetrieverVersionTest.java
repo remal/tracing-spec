@@ -53,7 +53,7 @@ public class JaegerRetrieverVersionTest {
 
     private JaegerTracer tracer;
 
-    private JaegerRetriever retriever;
+    private JaegerSpecSpansRetriever retriever;
 
     @BeforeEach
     void beforeEach() {
@@ -71,11 +71,11 @@ public class JaegerRetrieverVersionTest {
             .withReporter(reporter)
             .build();
 
-        val retrieverProperties = new JaegerRetrieverProperties();
+        val retrieverProperties = new JaegerSpecSpansRetrieverProperties();
         retrieverProperties.setHost("localhost");
         retrieverProperties.setPort(jaegerContainer.getQueryPort());
         retrieverProperties.setTimeoutMillis(5_000);
-        retriever = new JaegerRetriever(retrieverProperties);
+        retriever = new JaegerSpecSpansRetriever(retrieverProperties);
     }
 
     @AfterEach
@@ -101,7 +101,7 @@ public class JaegerRetrieverVersionTest {
         await().atMost(Duration.ofSeconds(30)).until(
             () -> {
                 specSpans.clear();
-                specSpans.addAll(retriever.retrieveSpansForTrace(traceId));
+                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
                 return specSpans;
             },
             hasSize(2)

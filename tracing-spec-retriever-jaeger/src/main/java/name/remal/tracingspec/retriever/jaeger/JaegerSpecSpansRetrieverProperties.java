@@ -32,7 +32,7 @@ import org.springframework.validation.annotation.Validated;
 @ToString
 @Generated("")
 @SuppressWarnings("java:S109")
-public class JaegerRetrieverProperties {
+public class JaegerSpecSpansRetrieverProperties {
 
     /**
      * Jaeger Query service host
