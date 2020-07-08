@@ -15,7 +15,7 @@ import org.jdom2.input.SAXBuilder
 
 buildscript {
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.0.201'
+        classpath 'name.remal:gradle-plugins:1.0.202'
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0"
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
         classpath 'org.jdom:jdom2:2.0.6'
