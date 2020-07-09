@@ -27,7 +27,7 @@ cache:
 before_cache:
 - rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
 - find $HOME/.gradle -name '*.lock' -type f -delete
-- mkdir -p $HOME/docker-images && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}}' | xargs -I -t sh -c 'docker save $0 | gzip -9 > $HOME/docker-images/$0.tar.gz'
+- mkdir -p $HOME/docker-images && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}}' | xargs -t sh -c 'docker save $0 | gzip -9 > $HOME/docker-images/$0.tar.gz'
 
 before_script:
 - sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
