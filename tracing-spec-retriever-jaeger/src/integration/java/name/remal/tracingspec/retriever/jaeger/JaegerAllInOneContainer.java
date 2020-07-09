@@ -16,6 +16,7 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
+import java.time.Duration;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
@@ -54,10 +55,12 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
             .withStrategy(new HttpWaitStrategy()
                 .forPort(JAEGER_QUERY_PORT)
                 .forStatusCodeMatching(status -> 200 <= status && status < 500)
+                .withStartupTimeout(Duration.ofMinutes(2))
             )
             .withStrategy(new HttpWaitStrategy()
                 .forPort(JAEGER_COLLECTOR_THRIFT_PORT)
                 .forStatusCodeMatching(status -> 200 <= status && status < 500)
+                .withStartupTimeout(Duration.ofMinutes(2))
             )
         );
     }
