@@ -11,9 +11,8 @@ dependencies {
         api 'com.google.protobuf:protobuf-bom:3.12.2'
         api 'org.testcontainers:testcontainers-bom:1.14.3'
         api 'io.opentracing:parent:0.33.0'
-
-        // Code generation
-        api 'org.openapitools:openapi-generator-cli:4.3.1'
+        api 'io.zipkin.brave:brave-bom:5.12.3'
+        api 'io.zipkin.reporter2:zipkin-reporter-bom:2.15.0'
 
         // Static analysis annotations
         api 'com.google.code.findbugs:jsr305:3.0.2'
@@ -22,11 +21,12 @@ dependencies {
 
         // Annotation processors
         api "org.immutables:value:$immutablesVersion"
-        api "org.immutables:metainf:$immutablesVersion"
+        api "org.immutables:gson:$immutablesVersion"
 
         // Compile
         api 'com.google.guava:guava:29.0-jre'
-        api 'org.apache.thrift:libthrift:0.13.0'
+        api 'com.squareup.retrofit2:retrofit:2.9.0'
+        api 'com.google.code.gson:gson:2.8.6'
 
         // Test
         api 'org.awaitility:awaitility:4.0.3'

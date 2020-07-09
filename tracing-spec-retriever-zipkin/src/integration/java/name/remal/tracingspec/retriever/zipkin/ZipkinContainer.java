@@ -14,59 +14,42 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.jaeger;
+package name.remal.tracingspec.retriever.zipkin;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 
-public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneContainer> {
+public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
 
-    public static final String IMAGE = "jaegertracing/all-in-one";
+    public static final String IMAGE = "openzipkin/zipkin";
     public static final String DEFAULT_TAG = System.getProperty("docker-image-tag", "latest");
 
-    public static final int JAEGER_QUERY_PORT = 16686;
-    public static final int JAEGER_COLLECTOR_THRIFT_PORT = 14268;
     public static final int ZIPKIN_PORT = 9411;
 
-    public JaegerAllInOneContainer() {
+    public ZipkinContainer() {
         this(IMAGE + ":" + DEFAULT_TAG);
     }
 
-    public JaegerAllInOneContainer(String dockerImageName) {
+    public ZipkinContainer(String dockerImageName) {
         super(dockerImageName);
     }
 
     @Override
     @SuppressWarnings("java:S109")
     protected void configure() {
-        withEnv("LOG_LEVEL", "debug");
-        withEnv("COLLECTOR_ZIPKIN_HTTP_PORT", ZIPKIN_PORT + "");
+        withEnv("LOGGING_LEVEL_ROOT", "TRACE");
 
         withExposedPorts(
-            JAEGER_QUERY_PORT,
-            JAEGER_COLLECTOR_THRIFT_PORT,
             ZIPKIN_PORT
         );
 
         waitingFor(new WaitAllStrategy()
             .withStrategy(new HttpWaitStrategy()
-                .forPort(JAEGER_QUERY_PORT)
-                .forStatusCodeMatching(status -> 200 <= status && status < 500)
-            )
-            .withStrategy(new HttpWaitStrategy()
-                .forPort(JAEGER_COLLECTOR_THRIFT_PORT)
+                .forPort(ZIPKIN_PORT)
                 .forStatusCodeMatching(status -> 200 <= status && status < 500)
             )
         );
-    }
-
-    public int getQueryPort() {
-        return getMappedPort(JAEGER_QUERY_PORT);
-    }
-
-    public int getCollectorThriftPort() {
-        return getMappedPort(JAEGER_COLLECTOR_THRIFT_PORT);
     }
 
     public int getZipkinPort() {

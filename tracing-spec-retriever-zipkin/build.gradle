@@ -1,90 +1,23 @@
-apply plugin: 'java-library'
-
-dependencies {
-    api project(':tracing-spec-retriever')
-
-    integrationImplementation 'org.testcontainers:testcontainers'
-}
+import name.remal.version.Version
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Configuration openapiGeneratorCliConfiguration = configurations.create('openapiGeneratorCli')
+apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
 
 dependencies {
-    openapiGeneratorCli 'org.openapitools:openapi-generator-cli'
-}
+    api 'com.squareup.retrofit2:retrofit'
+    relocateClasses 'com.google.code.gson:gson'
+    relocateClasses 'org.apache.commons:commons-lang3'
 
-File openapiFilesDir = file('build/openapi')
-TaskProvider<Task> copyOpenapiFiles = tasks.register('copyOpenapiFiles', Copy) {
-    from('zipkin-api') {
-        include('*.yaml')
-        include('*.yml')
-    }
-    into(openapiFilesDir)
+    annotationProcessing('org.immutables:gson') { exclude group: 'com.google.code.gson' }
 
-    doFirst { openapiFilesDir.deleteDir() }
+    api project(':tracing-spec-retriever')
+    api 'org.apache.logging.log4j:log4j-api'
 
-    doLast {
-        openapiFilesDir.traverse { File file ->
-            if (!file.file) return
-
-            String content = file.getText('UTF-8')
-            file.setText(content, 'UTF-8')
-        }
-    }
-}
-
-[
-    'zipkin2-api.yaml',
-].forEach { openapiFileName ->
-    File openapiFile = file("$openapiFilesDir/$openapiFileName")
-    String taskNameSuffix = openapiFileName.split(/\W+/)
-        .collect { it.capitalize() }
-        .join('')
-    TaskProvider<Task> validateOpenapi = tasks.register("validate${taskNameSuffix}", JavaExec) {
-        dependsOn(copyOpenapiFiles)
-        inputs.file(openapiFile)
-        outputs.file(openapiFile)
-    }
-
-    String generateTaskNameRaw = "generateFrom${taskNameSuffix}Raw"
-    File rawOutputDir = file("build/generated/$generateTaskNameRaw")
-    TaskProvider<Task> generateFromOpenapiRaw = tasks.register(generateTaskNameRaw, JavaExec) {
-        dependsOn(validateOpenapi)
-        inputs.file(openapiFile)
-
-        outputs.dir(rawOutputDir)
-        doFirst {
-            rawOutputDir.deleteDir()
-            rawOutputDir.mkdirs()
-        }
-    }
-
-    String generateTaskName = "generateFrom${taskNameSuffix}"
-    File outputDir = file("build/generated/$generateTaskName")
-    TaskProvider<Task> generateFromOpenapi = tasks.register(generateTaskName, Copy) {
-        dependsOn(generateFromOpenapiRaw)
-
-        from(rawOutputDir) {
-            include('**/*.java')
-        }
-        into(outputDir)
-
-        doFirst { outputDir.deleteDir() }
-
-        doLast {
-            outputDir.traverse { File file ->
-                if (!file.file) return
-
-                String content = file.getText('UTF-8')
-                file.setText(content, 'UTF-8')
-            }
-        }
-    }
-
-    SourceSet sourceSet = sourceSets.main
-    sourceSet.java.srcDir(outputDir)
-    tasks.named(sourceSet.compileJavaTaskName).configure { dependsOn(generateFromOpenapi) }
+    integrationImplementation 'org.testcontainers:testcontainers'
+    integrationImplementation 'io.zipkin.brave:brave'
+    integrationImplementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -98,14 +31,12 @@ Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") 
 }
 
 dockerImages.getAllTags('openzipkin/zipkin').forEach { String tagName ->
-    if (!tagName.matches(/\d+\.\d+/)) return
+    Version version = Version.parseOrNull(tagName)
+    // Only versions of <major>.<minor> format
+    if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
 
-    int versionMajor = tagName.split(/\./)[0].toInteger()
-    int versionMinor = tagName.split(/\./)[1].toInteger()
-    if (versionMajor < 2) {
-        // https://github.com/remal/tracing-spec/issues/22
-        return
-    }
+    // https://github.com/remal/tracing-spec/issues/19
+    if (version < Version.create(2)) return
 
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
@@ -121,7 +52,7 @@ dockerImages.getAllTags('openzipkin/zipkin').forEach { String tagName ->
 
             filter {
                 includeTestsMatching('*VersionTest')
-                failOnNoMatchingTests = false
+                failOnNoMatchingTests = true
             }
 
             return true

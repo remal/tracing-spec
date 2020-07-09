@@ -16,10 +16,24 @@
 
 package name.remal.tracingspec.retriever.zipkin;
 
+import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import lombok.ToString;
+import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
+import name.remal.tracingspec.retriever.zipkin.internal.ZipkinApi;
+import name.remal.tracingspec.retriever.zipkin.internal.okhttp.AcceptJsonHeaderInterceptor;
+import name.remal.tracingspec.retriever.zipkin.internal.okhttp.ConnectionCloseHeaderInterceptor;
+import name.remal.tracingspec.retriever.zipkin.internal.okhttp.HttpLoggingInterceptor;
+import name.remal.tracingspec.retriever.zipkin.internal.retrofit.CommonCallAdapterFactory;
+import name.remal.tracingspec.retriever.zipkin.internal.retrofit.JsonBodyConverters;
+import name.remal.tracingspec.retriever.zipkin.internal.retrofit.OptionalCallAdapterFactory;
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
 
 @ToString
 public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
@@ -32,7 +46,33 @@ public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
 
     @Override
     public List<SpecSpan> retrieveSpecSpansForTrace(String traceId) {
-        throw new UnsupportedOperationException();
+        val zipkinUrl = properties.getUrl();
+        if (zipkinUrl == null) {
+            throw new IllegalStateException("properties.url must not be null");
+        }
+
+        val retrofit = new Retrofit.Builder()
+            .baseUrl(zipkinUrl)
+            .client(new OkHttpClient.Builder()
+                .connectTimeout(properties.getConnectTimeoutMillis(), MILLISECONDS)
+                .writeTimeout(properties.getWriteTimeoutMillis(), MILLISECONDS)
+                .readTimeout(properties.getReadTimeoutMillis(), MILLISECONDS)
+                .addInterceptor(new ConnectionCloseHeaderInterceptor())
+                .addInterceptor(new AcceptJsonHeaderInterceptor())
+                .addInterceptor(new HttpLoggingInterceptor())
+                .build()
+            )
+            .addConverterFactory(new JsonBodyConverters())
+            .addCallAdapterFactory(new OptionalCallAdapterFactory())
+            .addCallAdapterFactory(new CommonCallAdapterFactory())
+            .validateEagerly(true)
+            .build();
+
+        val zipkinApi = retrofit.create(ZipkinApi.class);
+
+        return zipkinApi.getTraceSpans(traceId).orElse(emptyList()).stream()
+            .map(ZipkinSpanConverter::convertZipkinSpanToSpecSpan)
+            .collect(toList());
     }
 
 }

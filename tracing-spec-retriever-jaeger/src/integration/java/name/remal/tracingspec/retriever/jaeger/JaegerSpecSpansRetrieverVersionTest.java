@@ -45,7 +45,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"java:S1450", "java:S109"})
-public class JaegerRetrieverVersionTest {
+public class JaegerSpecSpansRetrieverVersionTest {
 
     private static final String SERVICE_NAME = "service-name";
 

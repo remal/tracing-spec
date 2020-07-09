@@ -16,12 +16,12 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
-import javax.annotation.Generated;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import name.remal.tracingspec.model.internal.Generated;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +30,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("tracingspec.retriever.jaeger")
 @EqualsAndHashCode
 @ToString
-@Generated("")
+@Generated
 @SuppressWarnings("java:S109")
 public class JaegerSpecSpansRetrieverProperties {
 

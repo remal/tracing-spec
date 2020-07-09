@@ -1,3 +1,7 @@
+import name.remal.version.Version
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
 
@@ -153,14 +157,12 @@ Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") 
 }
 
 dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
-    if (!tagName.matches(/\d+\.\d+/)) return
+    Version version = Version.parseOrNull(tagName)
+    // Only versions of <major>.<minor> format
+    if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
 
-    int versionMajor = tagName.split(/\./)[0].toInteger()
-    int versionMinor = tagName.split(/\./)[1].toInteger()
-    if (versionMajor < 1 || (versionMajor == 1 && versionMinor < 14)) {
-        // https://github.com/remal/tracing-spec/issues/19
-        return
-    }
+    // https://github.com/remal/tracing-spec/issues/19
+    if (version < Version.create(1, 14)) return
 
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
