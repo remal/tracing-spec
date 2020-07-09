@@ -33,7 +33,6 @@ before_script:
 - sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
 
 before_install:
-- if [[ -d /var/lib/docker/tmp/ ]]; then echo true; else echo false; fi
 - if [[ -d $HOME/docker-images ]]; then ls $HOME/docker-images/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
 
 script:
