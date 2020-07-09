@@ -16,6 +16,8 @@
 
 package name.remal.tracingspec.retriever.zipkin;
 
+import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
+
 import java.time.Duration;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -45,7 +47,7 @@ public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
             ZIPKIN_PORT
         );
 
-        waitingFor(new WaitAllStrategy()
+        waitingFor(new WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
             .withStrategy(new HttpWaitStrategy()
                 .forPort(ZIPKIN_PORT)
                 .forStatusCodeMatching(status -> 200 <= status && status < 500)

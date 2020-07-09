@@ -16,6 +16,8 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
+import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
+
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
@@ -50,7 +52,7 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
             ZIPKIN_PORT
         );
 
-        waitingFor(new WaitAllStrategy()
+        waitingFor(new WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
             .withStrategy(new HttpWaitStrategy()
                 .forPort(JAEGER_QUERY_PORT)
                 .forStatusCodeMatching(status -> 200 <= status && status < 500)
