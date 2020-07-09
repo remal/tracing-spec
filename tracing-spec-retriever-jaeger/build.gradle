@@ -1,3 +1,4 @@
+import java.time.LocalDate
 import name.remal.version.Version
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -55,6 +56,17 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
     }
 }
 
+TaskProvider<Task> pullProtobufDockerImage = tasks.register('pullProtobufDockerImage', Exec) {
+    inputs.property('localDate', LocalDate.now())
+    outputs.upToDateWhen { true }
+
+    setCommandLine(
+        'docker',
+        'pull',
+        'jaegertracing/protobuf:latest'
+    )
+}
+
 [
     'model.proto',
     'query.proto',
@@ -67,6 +79,7 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
     File rawOutputDir = file("build/generated/$rawTaskName")
     TaskProvider<Task> generateFromProtoRaw = tasks.register(rawTaskName, Exec) {
         dependsOn(copyProtoFiles)
+        dependsOn(pullProtobufDockerImage)
         inputs.file(protoFile)
 
         outputs.dir(rawOutputDir)
