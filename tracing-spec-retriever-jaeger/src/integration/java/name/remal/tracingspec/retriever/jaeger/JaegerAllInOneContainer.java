@@ -23,7 +23,7 @@ import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneContainer> {
 
     public static final String IMAGE = "jaegertracing/all-in-one";
-    public static final String DEFAULT_TAG = System.getProperty("docker-image-tag", "latest");
+    public static final String DEFAULT_TAG = System.getProperty("jaeger-image-tag", "latest");
 
     public static final int JAEGER_QUERY_PORT = 16686;
     public static final int JAEGER_COLLECTOR_THRIFT_PORT = 14268;
@@ -40,7 +40,8 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
     @Override
     @SuppressWarnings("java:S109")
     protected void configure() {
-        withEnv("LOG_LEVEL", "debug");
+        withEnv("LOG_LEVEL", "info");
+
         withEnv("COLLECTOR_ZIPKIN_HTTP_PORT", ZIPKIN_PORT + "");
 
         withExposedPorts(

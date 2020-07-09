@@ -20,11 +20,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Optional;
 import javax.annotation.Nullable;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.CallAdapter;
 import retrofit2.Retrofit;
 
 @Internal
+@ExcludeFromCodeCoverage
 public class OptionalCallAdapterFactory extends CallAdapter.Factory {
 
     @Nullable

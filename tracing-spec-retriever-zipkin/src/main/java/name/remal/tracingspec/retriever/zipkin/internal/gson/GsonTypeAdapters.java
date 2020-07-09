@@ -34,9 +34,11 @@ import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import name.remal.gradle_plugins.api.AutoService;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
+@ExcludeFromCodeCoverage
 @SuppressWarnings({"unchecked", "rawtypes", "java:S2789"})
 abstract class GsonTypeAdapters {
 

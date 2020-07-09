@@ -95,10 +95,9 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
             'docker',
             'run',
             '--rm',
-            '-v',
-            "$hostPath:$containerPath",
-            '-w',
-            "$containerPath",
+            '--name', "${protoFileName}".replaceAll(/[^\w-]/, '-'),
+            '-v', "$hostPath:$containerPath",
+            '-w', "$containerPath",
 
             'jaegertracing/protobuf:latest',
 
@@ -167,7 +166,7 @@ dockerImages.getAllTags('jaegertracing/all-in-one').forEach { String tagName ->
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
 
-        systemProperty('docker-image-tag', tagName)
+        systemProperty('jaeger-image-tag', tagName)
 
         Test baseTestTask = tasks[baseVersionTestTaskName]
         group = baseTestTask.group

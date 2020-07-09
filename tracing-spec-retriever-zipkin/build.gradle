@@ -41,7 +41,7 @@ dockerImages.getAllTags('openzipkin/zipkin').forEach { String tagName ->
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
 
-        systemProperty('docker-image-tag', tagName)
+        systemProperty('zipkin-image-tag', tagName)
 
         Test baseTestTask = tasks[baseVersionTestTaskName]
         group = baseTestTask.group

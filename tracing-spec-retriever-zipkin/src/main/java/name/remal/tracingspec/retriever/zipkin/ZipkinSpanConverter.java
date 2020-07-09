@@ -25,8 +25,8 @@ import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.model.SpecSpanKey;
-import name.remal.tracingspec.retriever.zipkin.internal.ZipkinEndpoint;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
+import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
@@ -52,7 +52,7 @@ interface ZipkinSpanConverter {
         builder.name(zipkinSpan.getName());
 
         val endpoint = zipkinSpan.getRemoteEndpoint().orElseGet(() -> zipkinSpan.getLocalEndpoint().orElse(null));
-        builder.serviceName(Optional.ofNullable(endpoint).flatMap(ZipkinEndpoint::getServiceName));
+        builder.serviceName(Optional.ofNullable(endpoint).flatMap(ZipkinSpanEndpoint::getServiceName));
 
         zipkinSpan.getTimestamp().ifPresent(timestamp ->
             builder.startedAt(Instant.ofEpochSecond(

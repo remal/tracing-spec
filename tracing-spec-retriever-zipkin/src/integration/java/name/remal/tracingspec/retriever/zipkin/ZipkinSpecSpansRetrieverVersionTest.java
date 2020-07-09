@@ -53,7 +53,7 @@ public class ZipkinSpecSpansRetrieverVersionTest {
     private static final String SERVICE_NAME = "service-name";
 
     private final ZipkinContainer zipkinContainer = new ZipkinContainer()
-        .withImagePullPolicy(ageBased(Duration.ofDays(1)));
+        .withImagePullPolicy(ageBased(Duration.ofHours(1)));
 
     private Tracer tracer;
 

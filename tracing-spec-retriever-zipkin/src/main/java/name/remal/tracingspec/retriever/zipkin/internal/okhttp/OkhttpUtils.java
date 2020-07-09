@@ -23,11 +23,13 @@ import static java.lang.Math.min;
 import java.io.EOFException;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
+@ExcludeFromCodeCoverage
 public interface OkhttpUtils {
 
     @SuppressWarnings("java:S109")

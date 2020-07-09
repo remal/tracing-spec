@@ -61,8 +61,8 @@ public interface ZipkinSpan {
 
     Optional<ZipkinSpanKind> getKind();
 
-    Optional<ZipkinEndpoint> getLocalEndpoint();
+    Optional<ZipkinSpanEndpoint> getLocalEndpoint();
 
-    Optional<ZipkinEndpoint> getRemoteEndpoint();
+    Optional<ZipkinSpanEndpoint> getRemoteEndpoint();
 
 }

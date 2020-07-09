@@ -23,7 +23,7 @@ import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
 
     public static final String IMAGE = "openzipkin/zipkin";
-    public static final String DEFAULT_TAG = System.getProperty("docker-image-tag", "latest");
+    public static final String DEFAULT_TAG = System.getProperty("zipkin-image-tag", "latest");
 
     public static final int ZIPKIN_PORT = 9411;
 
@@ -38,7 +38,7 @@ public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
     @Override
     @SuppressWarnings("java:S109")
     protected void configure() {
-        //withEnv("LOGGING_LEVEL_ROOT", "DEBUG");
+        withEnv("LOGGING_LEVEL_ROOT", "INFO");
 
         withExposedPorts(
             ZIPKIN_PORT

@@ -20,10 +20,12 @@ import static java.util.Objects.requireNonNull;
 
 import java.lang.reflect.Type;
 import lombok.val;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.Call;
 
 @Internal
+@ExcludeFromCodeCoverage
 class CommonCallAdapter extends BaseCallAdapter {
 
     public CommonCallAdapter(Type responseType) {

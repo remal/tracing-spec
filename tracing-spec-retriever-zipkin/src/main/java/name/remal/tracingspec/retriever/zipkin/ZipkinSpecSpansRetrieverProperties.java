@@ -22,7 +22,7 @@ import javax.validation.constraints.Min;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.ToString;
-import name.remal.tracingspec.model.internal.Generated;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -30,7 +30,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("tracingspec.retriever.zipkin")
 @EqualsAndHashCode
 @ToString
-@Generated
+@ExcludeFromCodeCoverage
 @SuppressWarnings("java:S109")
 public class ZipkinSpecSpansRetrieverProperties {
 

@@ -51,7 +51,7 @@ public class JaegerSpecSpansRetrieverVersionTest {
     private static final String SERVICE_NAME = "service-name";
 
     private final JaegerAllInOneContainer jaegerContainer = new JaegerAllInOneContainer()
-        .withImagePullPolicy(ageBased(Duration.ofDays(1)));
+        .withImagePullPolicy(ageBased(Duration.ofHours(1)));
 
     private JaegerTracer tracer;
 

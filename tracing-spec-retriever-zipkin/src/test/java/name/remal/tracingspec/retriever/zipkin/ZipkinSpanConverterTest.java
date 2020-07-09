@@ -30,7 +30,7 @@ import java.time.LocalTime;
 import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpanKey;
-import name.remal.tracingspec.retriever.zipkin.internal.ZipkinEndpoint;
+import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
 import org.junit.jupiter.api.Test;
 
@@ -89,7 +89,7 @@ class ZipkinSpanConverterTest {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().traceId("0").id("0")
-                    .remoteEndpoint(ZipkinEndpoint.builder()
+                    .remoteEndpoint(ZipkinSpanEndpoint.builder()
                         .serviceName("remote service")
                         .build()
                     )
@@ -104,7 +104,7 @@ class ZipkinSpanConverterTest {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().traceId("0").id("0")
-                    .localEndpoint(ZipkinEndpoint.builder()
+                    .localEndpoint(ZipkinSpanEndpoint.builder()
                         .serviceName("local service")
                         .build()
                     )
@@ -119,11 +119,11 @@ class ZipkinSpanConverterTest {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().traceId("0").id("0")
-                    .remoteEndpoint(ZipkinEndpoint.builder()
+                    .remoteEndpoint(ZipkinSpanEndpoint.builder()
                         .serviceName("remote service")
                         .build()
                     )
-                    .localEndpoint(ZipkinEndpoint.builder()
+                    .localEndpoint(ZipkinSpanEndpoint.builder()
                         .serviceName("local service")
                         .build()
                     )

@@ -21,7 +21,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import name.remal.tracingspec.model.internal.Generated;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +30,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("tracingspec.retriever.jaeger")
 @EqualsAndHashCode
 @ToString
-@Generated
+@ExcludeFromCodeCoverage
 @SuppressWarnings("java:S109")
 public class JaegerSpecSpansRetrieverProperties {
 

@@ -16,9 +16,11 @@
 
 package name.remal.tracingspec.retriever.zipkin.internal.okhttp;
 
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
+@ExcludeFromCodeCoverage
 public class ConnectionCloseHeaderInterceptor extends AbstractHeaderInterceptor {
 
     public ConnectionCloseHeaderInterceptor() {

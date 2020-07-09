@@ -19,11 +19,13 @@ package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
 import java.lang.reflect.Type;
 import java.util.Optional;
 import lombok.val;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import okhttp3.ResponseBody;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.Call;
 
 @Internal
+@ExcludeFromCodeCoverage
 public class OptionalCallAdapter extends BaseCallAdapter {
 
     public OptionalCallAdapter(Type responseType) {

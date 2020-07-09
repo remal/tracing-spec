@@ -14,24 +14,35 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
+package name.remal.tracingspec.retriever.zipkin.internal.gson;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import javax.annotation.Nullable;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapterFactory;
+import java.util.ServiceLoader;
+import lombok.val;
 import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.jetbrains.annotations.ApiStatus.Internal;
-import retrofit2.CallAdapter;
-import retrofit2.Retrofit;
 
 @Internal
 @ExcludeFromCodeCoverage
-public class CommonCallAdapterFactory extends CallAdapter.Factory {
+public abstract class GsonFactory {
 
-    @Nullable
-    @Override
-    public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
-        return new CommonCallAdapter(returnType);
+    private static final Gson GSON;
+
+    static {
+        val builder = new GsonBuilder()
+            .disableHtmlEscaping();
+        ServiceLoader.load(TypeAdapterFactory.class).forEach(builder::registerTypeAdapterFactory);
+        GSON = builder.create();
+    }
+
+    public static Gson getGsonInstance() {
+        return GSON;
+    }
+
+
+    private GsonFactory() {
     }
 
 }

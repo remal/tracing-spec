@@ -21,7 +21,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Optional;
-import name.remal.tracingspec.retriever.zipkin.internal.ImmutableZipkinEndpoint.ZipkinEndpointBuilder;
+import name.remal.tracingspec.retriever.zipkin.internal.ImmutableZipkinSpanEndpoint.ZipkinSpanEndpointBuilder;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -29,12 +29,12 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 @Internal
 @Value.Immutable
 @Gson.TypeAdapters
-@JsonDeserialize(builder = ZipkinEndpointBuilder.class)
+@JsonDeserialize(builder = ZipkinSpanEndpointBuilder.class)
 @JsonInclude(NON_ABSENT)
-public interface ZipkinEndpoint {
+public interface ZipkinSpanEndpoint {
 
-    static ZipkinEndpointBuilder builder() {
-        return ImmutableZipkinEndpoint.builder();
+    static ZipkinSpanEndpointBuilder builder() {
+        return ImmutableZipkinSpanEndpoint.builder();
     }
 
 

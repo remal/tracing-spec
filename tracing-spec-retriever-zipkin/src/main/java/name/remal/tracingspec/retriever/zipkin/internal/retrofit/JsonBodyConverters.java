@@ -16,14 +16,13 @@
 
 package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapterFactory;
+import static name.remal.tracingspec.retriever.zipkin.internal.gson.GsonFactory.getGsonInstance;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.ServiceLoader;
 import javax.annotation.Nullable;
 import lombok.val;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -32,18 +31,10 @@ import retrofit2.Converter;
 import retrofit2.Retrofit;
 
 @Internal
+@ExcludeFromCodeCoverage
 public class JsonBodyConverters extends Converter.Factory {
 
     private static final MediaType MEDIA_TYPE = MediaType.get("application/json; charset=UTF-8");
-
-    private static final Gson GSON;
-
-    static {
-        val builder = new GsonBuilder()
-            .disableHtmlEscaping();
-        ServiceLoader.load(TypeAdapterFactory.class).forEach(builder::registerTypeAdapterFactory);
-        GSON = builder.create();
-    }
 
     @Nullable
     @Override
@@ -54,7 +45,7 @@ public class JsonBodyConverters extends Converter.Factory {
         Retrofit retrofit
     ) {
         return value -> {
-            val json = GSON.toJson(value);
+            val json = getGsonInstance().toJson(value);
             return RequestBody.create(MEDIA_TYPE, json);
         };
     }
@@ -64,7 +55,7 @@ public class JsonBodyConverters extends Converter.Factory {
     public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
         return responseBody -> {
             val json = responseBody.string();
-            return GSON.fromJson(json, type);
+            return getGsonInstance().fromJson(json, type);
         };
     }
 

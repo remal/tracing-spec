@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import lombok.SneakyThrows;
 import lombok.val;
 import lombok.var;
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -41,6 +42,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
+@ExcludeFromCodeCoverage
 public class HttpLoggingInterceptor implements Interceptor {
 
     private static final Level LOG_LEVEL = Level.DEBUG;
