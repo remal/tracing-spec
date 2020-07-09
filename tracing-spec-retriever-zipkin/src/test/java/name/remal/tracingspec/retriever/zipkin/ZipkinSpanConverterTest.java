@@ -30,8 +30,8 @@ import java.time.LocalTime;
 import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpanKey;
-import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
+import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("java:S109")
