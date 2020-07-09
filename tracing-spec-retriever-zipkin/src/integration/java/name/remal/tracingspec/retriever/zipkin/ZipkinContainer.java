@@ -49,7 +49,7 @@ public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
             .withStrategy(new HttpWaitStrategy()
                 .forPort(ZIPKIN_PORT)
                 .forStatusCodeMatching(status -> 200 <= status && status < 500)
-                .withStartupTimeout(Duration.ofMinutes(2))
+                .withStartupTimeout(Duration.ofMinutes(5))
             )
         );
     }
