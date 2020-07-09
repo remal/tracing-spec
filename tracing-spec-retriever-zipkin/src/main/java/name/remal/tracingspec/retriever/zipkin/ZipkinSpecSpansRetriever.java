@@ -26,7 +26,6 @@ import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinApi;
-import name.remal.tracingspec.retriever.zipkin.internal.okhttp.AcceptJsonHeaderInterceptor;
 import name.remal.tracingspec.retriever.zipkin.internal.okhttp.ConnectionCloseHeaderInterceptor;
 import name.remal.tracingspec.retriever.zipkin.internal.okhttp.HttpLoggingInterceptor;
 import name.remal.tracingspec.retriever.zipkin.internal.retrofit.CommonCallAdapterFactory;
@@ -58,7 +57,6 @@ public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
                 .writeTimeout(properties.getWriteTimeoutMillis(), MILLISECONDS)
                 .readTimeout(properties.getReadTimeoutMillis(), MILLISECONDS)
                 .addInterceptor(new ConnectionCloseHeaderInterceptor())
-                .addInterceptor(new AcceptJsonHeaderInterceptor())
                 .addInterceptor(new HttpLoggingInterceptor())
                 .build()
             )

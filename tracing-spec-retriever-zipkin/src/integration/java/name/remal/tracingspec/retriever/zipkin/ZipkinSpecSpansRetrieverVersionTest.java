@@ -108,7 +108,7 @@ public class ZipkinSpecSpansRetrieverVersionTest {
 
         val traceId = rootSpan.context().traceIdString();
         List<SpecSpan> specSpans = new ArrayList<>();
-        await().atMost(Duration.ofSeconds(30_000)).until(
+        await().atMost(Duration.ofSeconds(30)).until(
             () -> {
                 specSpans.clear();
                 specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
