@@ -38,7 +38,7 @@ public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
     @Override
     @SuppressWarnings("java:S109")
     protected void configure() {
-        withEnv("LOGGING_LEVEL_ROOT", "TRACE");
+        //withEnv("LOGGING_LEVEL_ROOT", "DEBUG");
 
         withExposedPorts(
             ZIPKIN_PORT

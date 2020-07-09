@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.testcontainers.images.PullPolicy.ageBased;
 
 import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.reporters.RemoteReporter;
@@ -49,7 +50,8 @@ public class JaegerSpecSpansRetrieverVersionTest {
 
     private static final String SERVICE_NAME = "service-name";
 
-    private final JaegerAllInOneContainer jaegerContainer = new JaegerAllInOneContainer();
+    private final JaegerAllInOneContainer jaegerContainer = new JaegerAllInOneContainer()
+        .withImagePullPolicy(ageBased(Duration.ofDays(1)));
 
     private JaegerTracer tracer;
 

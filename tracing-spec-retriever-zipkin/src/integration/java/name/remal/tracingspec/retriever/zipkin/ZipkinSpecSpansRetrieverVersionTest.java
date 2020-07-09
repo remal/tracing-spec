@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.testcontainers.images.PullPolicy.ageBased;
 
 import brave.Tracer;
 import brave.Tracing;
@@ -51,7 +52,8 @@ public class ZipkinSpecSpansRetrieverVersionTest {
 
     private static final String SERVICE_NAME = "service-name";
 
-    private final ZipkinContainer zipkinContainer = new ZipkinContainer();
+    private final ZipkinContainer zipkinContainer = new ZipkinContainer()
+        .withImagePullPolicy(ageBased(Duration.ofDays(1)));
 
     private Tracer tracer;
 
