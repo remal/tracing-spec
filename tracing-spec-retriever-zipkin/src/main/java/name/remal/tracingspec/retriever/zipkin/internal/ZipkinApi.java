@@ -17,13 +17,12 @@
 package name.remal.tracingspec.retriever.zipkin.internal;
 
 import java.util.List;
-import java.util.Optional;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 
 public interface ZipkinApi {
 
     @GET("api/v2/trace/{traceId}")
-    Optional<List<ZipkinSpan>> getTraceSpans(@Path("traceId") String traceId);
+    List<ZipkinSpan> getTraceSpans(@Path("traceId") String traceId);
 
 }

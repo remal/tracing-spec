@@ -16,7 +16,6 @@
 
 package name.remal.tracingspec.retriever.zipkin;
 
-import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
 
@@ -68,7 +67,7 @@ public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
 
         val zipkinApi = retrofit.create(ZipkinApi.class);
 
-        return zipkinApi.getTraceSpans(traceId).orElse(emptyList()).stream()
+        return zipkinApi.getTraceSpans(traceId).stream()
             .map(ZipkinSpanConverter::convertZipkinSpanToSpecSpan)
             .collect(toList());
     }
