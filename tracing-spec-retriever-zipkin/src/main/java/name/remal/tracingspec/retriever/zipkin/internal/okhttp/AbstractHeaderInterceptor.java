@@ -18,13 +18,11 @@ package name.remal.tracingspec.retriever.zipkin.internal.okhttp;
 
 import java.io.IOException;
 import lombok.val;
-import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import okhttp3.Interceptor;
 import okhttp3.Response;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
-@ExcludeFromCodeCoverage
 abstract class AbstractHeaderInterceptor implements Interceptor {
 
     protected abstract Object getValue();

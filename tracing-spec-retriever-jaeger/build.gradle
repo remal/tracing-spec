@@ -84,13 +84,9 @@ TaskProvider<Task> pullProtobufDockerImage = tasks.register('pullProtobufDockerI
 
         outputs.dir(rawOutputDir)
         doFirst {
-            rawOutputDir.deleteDir()
-            if (!rawOutputDir.mkdirs()) {
-                logger.warn('Retry creating dir: {}', rawOutputDir)
-                Thread.sleep(1000)
-                if (!rawOutputDir.mkdirs()) {
-                    throw new GradleScriptException("DIr can't be created: $rawOutputDir")
-                }
+            rawOutputDir.listFiles()?.collect()?.forEach {
+                it.delete()
+                it.deleteDir()
             }
         }
 

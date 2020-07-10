@@ -16,7 +16,9 @@
 
 @Internal
 @NonNullByDefault
+@ExcludeFromCodeCoverage
 package name.remal.tracingspec.retriever.zipkin.internal.gson;
 
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import name.remal.tracingspec.model.internal.NonNullByDefault;
 import org.jetbrains.annotations.ApiStatus.Internal;

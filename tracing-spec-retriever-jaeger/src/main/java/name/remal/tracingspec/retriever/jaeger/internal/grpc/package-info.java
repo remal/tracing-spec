@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.okhttp;
-
-import org.jetbrains.annotations.ApiStatus.Internal;
-
 @Internal
-public class ConnectionCloseHeaderInterceptor extends AbstractHeaderInterceptor {
+@ExcludeFromCodeCoverage
+package name.remal.tracingspec.retriever.jaeger.internal.grpc;
 
-    public ConnectionCloseHeaderInterceptor() {
-        super("Connection");
-    }
-
-    @Override
-    public String getValue() {
-        return "close";
-    }
-
-}
+import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
+import org.jetbrains.annotations.ApiStatus.Internal;

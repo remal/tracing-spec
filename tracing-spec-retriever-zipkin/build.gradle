@@ -6,7 +6,7 @@ apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
 
 dependencies {
-    api 'com.squareup.retrofit2:retrofit'
+    relocateClasses 'com.squareup.retrofit2:retrofit'
     relocateClasses 'com.google.code.gson:gson'
     relocateClasses 'org.apache.commons:commons-lang3'
 

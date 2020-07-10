@@ -23,13 +23,11 @@ import java.lang.reflect.Type;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 
 @Internal
-@ExcludeFromCodeCoverage
 @RequiredArgsConstructor
 abstract class BaseCallAdapter implements CallAdapter<Object, Object> {
 
