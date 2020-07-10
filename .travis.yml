@@ -16,12 +16,12 @@ git:
 
 env:
   global:
-  - GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4 -Dorg.gradle.warning.mode=all -Dsun.net.client.defaultConnectTimeout=15000 -Dsun.net.client.defaultReadTimeout=600000 -Dsun.io.useCanonCaches=false -Djava.awt.headless=true"
+  - GRADLE_OPTS="-Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4 -Dorg.gradle.warning.mode=all -Dsun.net.client.defaultConnectTimeout=15000 -Dsun.net.client.defaultReadTimeout=600000 -Dsun.io.useCanonCaches=false -Djava.awt.headless=true"
 
 before_cache:
 - rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
 - find $HOME/.gradle -name '*.lock' -type f -delete
-- .travis/save-docker-images.sh
+- ./.travis/save-docker-images.sh
 
 cache:
   directories:
@@ -31,10 +31,10 @@ cache:
 
 before_install:
 - sudo apt-get -y install parallel
-- .travis/load-docker-images.sh
+- ./.travis/load-docker-images.sh
 
 before_script:
-- sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
+- sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
 
 script:
 - chmod -R 0777 .
