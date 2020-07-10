@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 set -e
 
+sudo apt-get -y install parallel
+
 mkdir -p "$HOME/.docker-images"
 
 docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}}' | while read -r IMAGE; do

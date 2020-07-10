@@ -5,6 +5,8 @@ if [ ! -d "$HOME/.docker-images" ]; then
     exit 0
 fi
 
+sudo apt-get -y install parallel
+
 find "$HOME/.docker-images" -name '*.tar.gz' -type f | while read -r FILE; do
     sem --will-cite --id docker-load -j 8 "zcat '$FILE' | docker load; echo '    from $FILE'"
 done
