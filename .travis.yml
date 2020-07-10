@@ -21,7 +21,7 @@ env:
 before_cache:
 - rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
 - find $HOME/.gradle -name '*.lock' -type f -delete
-- ./.travis/save-docker-images.sh
+#- ./.travis/save-docker-images.sh
 
 cache:
   directories:
