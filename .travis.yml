@@ -18,22 +18,23 @@ env:
   global:
   - GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4 -Dorg.gradle.warning.mode=all -Dsun.net.client.defaultConnectTimeout=15000 -Dsun.net.client.defaultReadTimeout=600000 -Dsun.io.useCanonCaches=false -Djava.awt.headless=true"
 
+before_cache:
+- rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
+- find $HOME/.gradle -name '*.lock' -type f -delete
+- .travis/save-docker-images.sh
+
 cache:
   directories:
   - $HOME/.gradle/
   - $HOME/.sonar/cache
   - $HOME/docker-images
 
-before_cache:
-- rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
-- find $HOME/.gradle -name '*.lock' -type f -delete
-- mkdir -p $HOME/docker-images && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}' | xargs -n 2 -t sh -c 'test -e $HOME/docker-images/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker-images/$1.tar.gz'
+before_install:
+- sudo apt-get -y install parallel
+- .travis/load-docker-images.sh
 
 before_script:
 - sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
-
-before_install:
-- if [[ -d $HOME/docker-images ]]; then ls $HOME/docker-images/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
 
 script:
 - chmod -R 0777 .
