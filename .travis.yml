@@ -27,7 +27,7 @@ cache:
   directories:
   - $HOME/.gradle/
   - $HOME/.sonar/cache
-  - $HOME/docker-images
+  - $HOME/.docker-images
 
 before_install:
 - sudo apt-get -y install parallel
