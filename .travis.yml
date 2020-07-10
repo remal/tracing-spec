@@ -38,6 +38,3 @@ before_script:
 script:
 - chmod -R 0777 .
 - ./gradlew build runAllTests sonarqube
-
-after_script:
-- 'bash <(curl -s https://codecov.io/bash)'
