@@ -10,6 +10,9 @@
     <inspection_tool class="TrivialIf" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreChainedIf" value="true" />
     </inspection_tool>
+    <inspection_tool class="UnstableApiUsage" enabled="true" level="INFORMATION" enabled_by_default="true">
+      <scope name="Production" level="WARNING" enabled="true" />
+    </inspection_tool>
     <inspection_tool class="UnusedReturnValue" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>

@@ -16,6 +16,8 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
+import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
+
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
@@ -23,7 +25,7 @@ import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneContainer> {
 
     public static final String IMAGE = "jaegertracing/all-in-one";
-    public static final String DEFAULT_TAG = System.getProperty("docker-image-tag", "latest");
+    public static final String DEFAULT_TAG = System.getProperty("jaeger-image-tag", "latest");
 
     public static final int JAEGER_QUERY_PORT = 16686;
     public static final int JAEGER_COLLECTOR_THRIFT_PORT = 14268;
@@ -40,8 +42,9 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
     @Override
     @SuppressWarnings("java:S109")
     protected void configure() {
+        withEnv("LOG_LEVEL", "info");
+
         withEnv("COLLECTOR_ZIPKIN_HTTP_PORT", ZIPKIN_PORT + "");
-        withEnv("LOG_LEVEL", "debug");
 
         withExposedPorts(
             JAEGER_QUERY_PORT,
@@ -49,7 +52,7 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
             ZIPKIN_PORT
         );
 
-        waitingFor(new WaitAllStrategy()
+        waitingFor(new WaitAllStrategy(WITH_INDIVIDUAL_TIMEOUTS_ONLY)
             .withStrategy(new HttpWaitStrategy()
                 .forPort(JAEGER_QUERY_PORT)
                 .forStatusCodeMatching(status -> 200 <= status && status < 500)

@@ -17,7 +17,6 @@
 package name.remal.tracingspec.retriever.jaeger;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -61,14 +60,47 @@ class JaegerSpanConverterTest {
     }
 
     @Test
-    void name() {
+    void parentSpanKey() {
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().build()
+                Span.newBuilder()
+                    .addAllReferences(singletonList(
+                        SpanRef.newBuilder()
+                            .setRefType(SpanRefType.CHILD_OF)
+                            .setTraceId(ByteString.copyFrom(new byte[]{1, -1, 9}))
+                            .setSpanId(ByteString.copyFrom(new byte[]{1, -1, 9}))
+                            .build()
+                    ))
+                    .build()
             ),
-            hasProperty("name", equalTo(Optional.empty()))
+            hasProperty("parentSpanKey", equalTo(Optional.of(
+                SpecSpanKey.builder().traceId("1ff09").spanId("1ff09").build()
+            )))
         );
+    }
 
+    @Test
+    void leadingSpanKey() {
+        assertThat(
+            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
+                Span.newBuilder()
+                    .addAllReferences(singletonList(
+                        SpanRef.newBuilder()
+                            .setRefType(SpanRefType.FOLLOWS_FROM)
+                            .setTraceId(ByteString.copyFrom(new byte[]{1, -1, 9}))
+                            .setSpanId(ByteString.copyFrom(new byte[]{1, -1, 9}))
+                            .build()
+                    ))
+                    .build()
+            ),
+            hasProperty("leadingSpanKey", equalTo(Optional.of(
+                SpecSpanKey.builder().traceId("1ff09").spanId("1ff09").build()
+            )))
+        );
+    }
+
+    @Test
+    void name() {
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                 Span.newBuilder().setOperationName("test name").build()
@@ -79,22 +111,6 @@ class JaegerSpanConverterTest {
 
     @Test
     void serviceName() {
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().build()
-            ),
-            hasProperty("serviceName", equalTo(Optional.empty()))
-        );
-
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
-                    .setProcess(Process.newBuilder())
-                    .build()
-            ),
-            hasProperty("serviceName", equalTo(Optional.empty()))
-        );
-
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                 Span.newBuilder()
@@ -109,13 +125,6 @@ class JaegerSpanConverterTest {
 
     @Test
     void startedAt() {
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().build()
-            ),
-            hasProperty("startedAt", equalTo(Optional.empty()))
-        );
-
         val now = Instant.now();
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
@@ -132,13 +141,6 @@ class JaegerSpanConverterTest {
 
     @Test
     void duration() {
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().build()
-            ),
-            hasProperty("duration", equalTo(Optional.empty()))
-        );
-
         val duration = Duration.between(LocalTime.MIDNIGHT, LocalTime.now());
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
@@ -155,13 +157,6 @@ class JaegerSpanConverterTest {
 
     @Test
     void tags() {
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().build()
-            ),
-            hasProperty("tags", equalTo(emptyMap()))
-        );
-
         val baseTag = KeyValue.newBuilder()
             .setVStr("string")
             .setVBool(true)
@@ -190,62 +185,6 @@ class JaegerSpanConverterTest {
                     "binary", baseTag.getVBinary().toString()
                 )))
             )
-        );
-    }
-
-    @Test
-    void parentSpanKey() {
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
-                    .build()
-            ),
-            hasProperty("parentSpanKey", equalTo(Optional.empty()))
-        );
-
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
-                    .addAllReferences(singletonList(
-                        SpanRef.newBuilder()
-                            .setRefType(SpanRefType.CHILD_OF)
-                            .setTraceId(ByteString.copyFrom(new byte[]{1, -1, 9}))
-                            .setSpanId(ByteString.copyFrom(new byte[]{1, -1, 9}))
-                            .build()
-                    ))
-                    .build()
-            ),
-            hasProperty("parentSpanKey", equalTo(Optional.of(
-                SpecSpanKey.builder().traceId("1ff09").spanId("1ff09").build()
-            )))
-        );
-    }
-
-    @Test
-    void leadingSpanKey() {
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
-                    .build()
-            ),
-            hasProperty("leadingSpanKey", equalTo(Optional.empty()))
-        );
-
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
-                    .addAllReferences(singletonList(
-                        SpanRef.newBuilder()
-                            .setRefType(SpanRefType.FOLLOWS_FROM)
-                            .setTraceId(ByteString.copyFrom(new byte[]{1, -1, 9}))
-                            .setSpanId(ByteString.copyFrom(new byte[]{1, -1, 9}))
-                            .build()
-                    ))
-                    .build()
-            ),
-            hasProperty("leadingSpanKey", equalTo(Optional.of(
-                SpecSpanKey.builder().traceId("1ff09").spanId("1ff09").build()
-            )))
         );
     }
 

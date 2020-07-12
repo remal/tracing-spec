@@ -25,6 +25,23 @@ buildscript {
         jcenter()
         gradlePluginPortal()
     }
+
+    configurations.classpath.allDependencies.all { Dependency dep ->
+        if (dep instanceof ModuleDependency) {
+            if (dep.version.endsWith("-SNAPSHOT")) {
+                repositories {
+                    mavenLocal()
+                }
+                project.allprojects {
+                    project.pluginManager.withPlugin('java') {
+                        project.repositories {
+                            mavenLocal()
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -47,6 +64,8 @@ allprojects {
             allResolvable platform('com.google.protobuf:protobuf-bom')
             allResolvable platform('org.testcontainers:testcontainers-bom')
             allResolvable platform('io.opentracing:parent')
+            allResolvable platform('io.zipkin.brave:brave-bom')
+            allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom')
         }
     }
 
@@ -88,6 +107,8 @@ allprojects {
         }
 
         dependencies {
+            components.all(RetrofitAlignmentRule)
+            components.all(OkhttpAlignmentRule)
             components.all(JacocoAlignmentRule)
 
             staticAnalysis 'com.google.code.findbugs:jsr305'
@@ -97,7 +118,6 @@ allprojects {
             annotationProcessing 'name.remal:gradle-plugins-api'
             annotationProcessing 'org.projectlombok:lombok'
             annotationProcessing 'org.immutables:value'
-            annotationProcessing 'org.immutables:metainf'
 
             apt 'org.springframework.boot:spring-boot-configuration-processor'
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
@@ -121,6 +141,7 @@ allprojects {
             testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-jcl'
+            testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
         }
 
         transitiveDependencies {
@@ -131,7 +152,7 @@ allprojects {
             resolutionStrategy {
                 eachDependency { DependencyResolveDetails details ->
                     String groupModule = "${details.target.group}:${details.target.name}"
-                    if ("$groupModule" == 'org.hamcrest:hamcrest-core') {
+                    if (groupModule == 'org.hamcrest:hamcrest-core') {
                         details.useTarget("org.hamcrest:hamcrest:${details.target.version}")
                     }
                 }
@@ -152,6 +173,8 @@ allprojects {
 
         tasks.withType(Test) {
             useJUnitPlatform()
+
+            systemProperty('java.util.logging.manager', 'org.apache.logging.log4j.jul.LogManager')
 
             testLogging {
                 events('FAILED')
@@ -219,7 +242,7 @@ allprojects {
                     .find { it.getAttributeValue('name') == 'notice' }
                     ?.getAttributeValue('value')
                 if (licenseTemplate == null) {
-                    throw new GradleScriptException("IDEA license template can't be retrieved")
+                    throw new GradleScriptException('IDEA license template can\'t be retrieved ')
                 }
                 licenseTemplate = licenseTemplate.replaceAll(/(?:\$|&#36;)([\w.]+)/, '\\$\\{$1\\}')
 
@@ -279,6 +302,26 @@ allprojects {
     }
 }
 
+class RetrofitAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group.matches(/com\.squareup\.retrofit\d*/)) {
+                belongsTo("${id.group}:retrofit-bom:${id.version}", true)
+            }
+        }
+    }
+}
+
+class OkhttpAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group.matches(/com\.squareup\.okhttp\d*/)) {
+                belongsTo("${id.group}:okhttp-bom:${id.version}", true)
+            }
+        }
+    }
+}
+
 class JacocoAlignmentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext ctx) {
         ctx.details.with {
@@ -299,34 +342,38 @@ tasks.named('sonarqube').configure {
         List<String> propertyPrefixes = ['', modules.collect { "$it." }].flatten()
         propertyPrefixes.forEach { prefix ->
             if (properties[prefix + 'sonar.projectName'] == null) {
-                throw new GradleScriptException("SonarQube property isn't set: " + prefix + 'sonar.projectName')
+                throw new GradleScriptException("SonarQube property isn't set: ${prefix}sonar.projectName")
             }
 
             project.pluginManager.withPlugin('java') {
                 project.pluginManager.withPlugin('name.remal.test-source-sets') {
                     properties[prefix + 'sonar.tests'] =
                         testSourceSets.collect { it.allSource.srcDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(",")
+                            .unique().findAll { it.exists() }.join(',')
                     properties[prefix + 'sonar.java.test.binaries'] =
                         testSourceSets.collect { it.output.classesDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(",")
+                            .unique().findAll { it.exists() }.join(',')
                     properties[prefix + 'sonar.java.test.libraries'] =
                         testSourceSets.collect { it.compileClasspath }.flatten()
-                            .unique().findAll { it.exists() }.join(",")
+                            .unique().findAll { it.exists() }.join(',')
                 }
             }
 
             properties[prefix + 'sonar.java.checkstyle.reportPaths'] =
                 tasks.withType(Checkstyle).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(",")
+                    .unique().findAll { it.exists() }.join(',')
 
             properties[prefix + 'sonar.junit.reportPaths'] =
                 tasks.withType(Test).collect { it.reports.junitXml.destination }
-                    .unique().findAll { it.exists() }.join(",")
+                    .unique().findAll { it.exists() }.join(',')
 
             properties[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
                 tasks.withType(JacocoReport).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(",")
+                    .unique().findAll { it.exists() }.join(',')
+
+            properties[prefix + 'sonar.coverage.exclusions'] = [
+                '**/*Properties.java',
+            ].join(',')
         }
 
         return true
@@ -413,7 +460,7 @@ class DockerImages {
 }
 
 allprojects {
-    extensions.create("dockerImages", DockerImages.class, project)
+    extensions.create('dockerImages', DockerImages.class, project)
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

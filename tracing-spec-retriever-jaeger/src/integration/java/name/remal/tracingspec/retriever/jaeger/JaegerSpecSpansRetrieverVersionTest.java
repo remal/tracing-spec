@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.testcontainers.images.PullPolicy.ageBased;
 
 import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.reporters.RemoteReporter;
@@ -45,15 +46,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"java:S1450", "java:S109"})
-public class JaegerRetrieverVersionTest {
+public class JaegerSpecSpansRetrieverVersionTest {
 
     private static final String SERVICE_NAME = "service-name";
 
-    private final JaegerAllInOneContainer jaegerContainer = new JaegerAllInOneContainer();
+    private final JaegerAllInOneContainer jaegerContainer = new JaegerAllInOneContainer()
+        .withImagePullPolicy(ageBased(Duration.ofHours(1)));
 
     private JaegerTracer tracer;
 
-    private JaegerRetriever retriever;
+    private JaegerSpecSpansRetriever retriever;
 
     @BeforeEach
     void beforeEach() {
@@ -71,11 +73,11 @@ public class JaegerRetrieverVersionTest {
             .withReporter(reporter)
             .build();
 
-        val retrieverProperties = new JaegerRetrieverProperties();
+        val retrieverProperties = new JaegerSpecSpansRetrieverProperties();
         retrieverProperties.setHost("localhost");
         retrieverProperties.setPort(jaegerContainer.getQueryPort());
         retrieverProperties.setTimeoutMillis(5_000);
-        retriever = new JaegerRetriever(retrieverProperties);
+        retriever = new JaegerSpecSpansRetriever(retrieverProperties);
     }
 
     @AfterEach
@@ -101,7 +103,7 @@ public class JaegerRetrieverVersionTest {
         await().atMost(Duration.ofSeconds(30)).until(
             () -> {
                 specSpans.clear();
-                specSpans.addAll(retriever.retrieveSpansForTrace(traceId));
+                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
                 return specSpans;
             },
             hasSize(2)

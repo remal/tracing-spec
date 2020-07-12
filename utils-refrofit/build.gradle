@@ -1,0 +1,10 @@
+apply plugin: 'java-library'
+
+dependencies {
+    optional project(':tracing-spec-model')
+    optional 'org.apache.logging.log4j:log4j-api'
+
+    api 'com.squareup.retrofit2:retrofit'
+    api 'com.google.code.gson:gson'
+    api 'org.apache.commons:commons-lang3'
+}

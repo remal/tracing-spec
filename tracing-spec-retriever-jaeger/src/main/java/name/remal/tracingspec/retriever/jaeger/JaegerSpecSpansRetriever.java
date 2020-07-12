@@ -26,26 +26,30 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.ToString;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.retriever.SpecSpansRetriever;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.GetTraceRequest;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.QueryServiceGrpc;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @ToString
-public class JaegerRetriever {
+public class JaegerSpecSpansRetriever implements SpecSpansRetriever {
 
-    private static final Logger logger = LogManager.getLogger(JaegerRetriever.class);
+    private static final Logger logger = LogManager.getLogger(JaegerSpecSpansRetriever.class);
 
-    private final JaegerRetrieverProperties properties;
+    @Valid
+    private final JaegerSpecSpansRetrieverProperties properties;
 
-    public JaegerRetriever(JaegerRetrieverProperties properties) {
+    public JaegerSpecSpansRetriever(JaegerSpecSpansRetrieverProperties properties) {
         this.properties = properties;
     }
 
-    public List<SpecSpan> retrieveSpansForTrace(String traceId) {
+    @Override
+    public List<SpecSpan> retrieveSpecSpansForTrace(String traceId) {
         val host = properties.getHost();
         if (host == null) {
             throw new IllegalStateException("properties.host must not be null");

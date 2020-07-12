@@ -1,1 +1,61 @@
+import name.remal.version.Version
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
+
+dependencies {
+    relocateClasses project(':utils-refrofit')
+
+    annotationProcessing('org.immutables:gson') { exclude group: 'com.google.code.gson' }
+
+    api project(':tracing-spec-retriever')
+    api 'org.apache.logging.log4j:log4j-api'
+
+    integrationImplementation 'org.testcontainers:testcontainers'
+    integrationImplementation 'io.zipkin.brave:brave'
+    integrationImplementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+SourceSet versionTestSourceSet = sourceSets.integration
+String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
+
+Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") {
+    group = 'verification'
+    tasks.runAllTests.dependsOn(it)
+}
+
+dockerImages.getAllTags('openzipkin/zipkin').forEach { String tagName ->
+    Version version = Version.parseOrNull(tagName)
+    // Only versions of <major>.<minor> format
+    if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
+
+    // https://github.com/remal/tracing-spec/issues/19
+    if (version < Version.create(2)) return
+
+    TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
+        dependsOn(versionTestSourceSet.classesTaskName)
+
+        systemProperty('zipkin-image-tag', tagName)
+
+        Test baseTestTask = tasks[baseVersionTestTaskName]
+        group = baseTestTask.group
+
+        onlyIf {
+            testClassesDirs = baseTestTask.testClassesDirs
+            classpath = baseTestTask.classpath
+
+            filter {
+                includeTestsMatching('*VersionTest')
+                failOnNoMatchingTests = true
+            }
+
+            return true
+        }
+    }
+
+    allTestVersionTask.dependsOn(testVersionTask)
+}
