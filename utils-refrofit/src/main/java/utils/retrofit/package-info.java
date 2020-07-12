@@ -16,7 +16,7 @@
 
 @Internal
 @NonNullByDefault
-package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
+package utils.retrofit;
 
 import name.remal.tracingspec.model.internal.NonNullByDefault;
 import org.jetbrains.annotations.ApiStatus.Internal;

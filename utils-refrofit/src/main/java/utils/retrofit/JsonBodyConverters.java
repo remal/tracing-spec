@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
+package utils.retrofit;
 
-import static name.remal.tracingspec.retriever.zipkin.internal.gson.GsonFactory.getGsonInstance;
+import static utils.gson.GsonFactory.getGsonInstance;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -36,7 +36,7 @@ public class JsonBodyConverters extends Converter.Factory {
 
     @Nullable
     @Override
-    public Converter<?, RequestBody> requestBodyConverter(
+    public Converter<Object, RequestBody> requestBodyConverter(
         Type type,
         Annotation[] parameterAnnotations,
         Annotation[] methodAnnotations,
@@ -50,7 +50,11 @@ public class JsonBodyConverters extends Converter.Factory {
 
     @Nullable
     @Override
-    public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
+    public Converter<ResponseBody, Object> responseBodyConverter(
+        Type type,
+        Annotation[] annotations,
+        Retrofit retrofit
+    ) {
         return responseBody -> {
             val json = responseBody.string();
             return getGsonInstance().fromJson(json, type);

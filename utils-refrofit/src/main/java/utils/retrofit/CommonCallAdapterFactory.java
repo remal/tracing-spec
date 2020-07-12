@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-@Internal
-@NonNullByDefault
-package name.remal.tracingspec.retriever.zipkin.internal.gson;
+package utils.retrofit;
 
-import name.remal.tracingspec.model.internal.NonNullByDefault;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import javax.annotation.Nullable;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import retrofit2.CallAdapter;
+import retrofit2.Retrofit;
+
+@Internal
+public class CommonCallAdapterFactory extends CallAdapter.Factory {
+
+    @Nullable
+    @Override
+    public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
+        return new CommonCallAdapter(returnType);
+    }
+
+}

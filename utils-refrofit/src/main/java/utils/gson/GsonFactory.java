@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.gson;
+package utils.gson;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

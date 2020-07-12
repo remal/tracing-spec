@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.okhttp;
+package utils.okhttp;
 
 import static java.lang.Character.isISOControl;
 import static java.lang.Character.isWhitespace;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 public interface OkhttpUtils {
 
     @SuppressWarnings("java:S109")
-    static boolean isPlaintext(Buffer buffer) {
+    static boolean isPlainText(Buffer buffer) {
         try {
             val prefix = new Buffer();
             long byteCount = min(buffer.size(), 64);
@@ -52,11 +52,11 @@ public interface OkhttpUtils {
     }
 
     @SneakyThrows
-    static boolean isPlaintext(ResponseBody responseBody) {
+    static boolean isPlainText(ResponseBody responseBody) {
         val source = responseBody.source();
         source.request(Long.MAX_VALUE); // Buffer the entire body
         val buffer = source.getBuffer();
-        return isPlaintext(buffer);
+        return isPlainText(buffer);
     }
 
 }

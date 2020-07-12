@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
+package utils.retrofit;
 
-import static name.remal.tracingspec.retriever.zipkin.internal.okhttp.OkhttpUtils.isPlaintext;
+import static utils.okhttp.OkhttpUtils.isPlainText;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -59,7 +59,7 @@ abstract class BaseCallAdapter implements CallAdapter<Object, Object> {
 
         val errorBody = response.errorBody();
         if (errorBody != null) {
-            if (isPlaintext(errorBody)) {
+            if (isPlainText(errorBody)) {
                 sb.append(":\n").append(errorBody.string());
             } else {
                 sb.append(":\n").append("[binary ").append(errorBody.contentLength()).append("-byte body]");

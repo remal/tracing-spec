@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.okhttp;
+package utils.okhttp;
 
 import java.io.IOException;
 import lombok.val;
@@ -35,7 +35,7 @@ abstract class AbstractHeaderInterceptor implements Interceptor {
     }
 
     @Override
-    public Response intercept(Chain chain) throws IOException {
+    public final Response intercept(Chain chain) throws IOException {
         val request = chain.request();
         if (request.header(header) != null) {
             return chain.proceed(request);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.okhttp;
+package utils.okhttp;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 

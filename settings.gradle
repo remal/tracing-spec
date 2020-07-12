@@ -6,4 +6,5 @@ include(
     ':tracing-spec-retriever',
     ':tracing-spec-retriever-jaeger',
     ':tracing-spec-retriever-zipkin',
+    ':utils-refrofit',
 )

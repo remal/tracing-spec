@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
+package utils.retrofit;
 
 import org.jetbrains.annotations.ApiStatus.Internal;
 

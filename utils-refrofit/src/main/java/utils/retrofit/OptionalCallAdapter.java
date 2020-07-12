@@ -14,27 +14,46 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin.internal.retrofit;
-
-import static java.util.Objects.requireNonNull;
+package utils.retrofit;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
 import lombok.val;
+import okhttp3.ResponseBody;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.Call;
 
 @Internal
-class CommonCallAdapter extends BaseCallAdapter {
+public class OptionalCallAdapter extends BaseCallAdapter {
 
-    public CommonCallAdapter(Type responseType) {
+    public OptionalCallAdapter(Type responseType) {
         super(responseType);
     }
 
     @Override
+    @SuppressWarnings("java:S109")
     public Object adapt(Call<Object> call) {
         val response = executeCall(call);
         if (response.isSuccessful()) {
-            return requireNonNull(response.body());
+            long contentLength = Optional.ofNullable(response.raw().body())
+                .map(ResponseBody::contentLength)
+                .orElse(-1L);
+            if (contentLength == 0L) {
+                return Optional.empty();
+            }
+            if (contentLength <= 0 && response.code() == 204) {
+                return Optional.empty();
+            }
+
+            val body = response.body();
+            if (body == null) {
+                return Optional.empty();
+            }
+
+            return body;
+
+        } else if (response.code() == 404) {
+            return Optional.empty();
 
         } else {
             throw createStatusException(call, response);

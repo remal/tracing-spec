@@ -15,8 +15,8 @@
  */
 
 @Internal
-@ExcludeFromCodeCoverage
-package name.remal.tracingspec.retriever.jaeger.internal.grpc;
+@NonNullByDefault
+package utils.gson;
 
-import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
+import name.remal.tracingspec.model.internal.NonNullByDefault;
 import org.jetbrains.annotations.ApiStatus.Internal;

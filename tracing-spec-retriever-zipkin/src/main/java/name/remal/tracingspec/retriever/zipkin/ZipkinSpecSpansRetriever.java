@@ -25,13 +25,13 @@ import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinApi;
-import name.remal.tracingspec.retriever.zipkin.internal.okhttp.ConnectionCloseHeaderInterceptor;
-import name.remal.tracingspec.retriever.zipkin.internal.okhttp.HttpLoggingInterceptor;
-import name.remal.tracingspec.retriever.zipkin.internal.retrofit.CommonCallAdapterFactory;
-import name.remal.tracingspec.retriever.zipkin.internal.retrofit.JsonBodyConverters;
-import name.remal.tracingspec.retriever.zipkin.internal.retrofit.OptionalCallAdapterFactory;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
+import utils.okhttp.ConnectionCloseHeaderInterceptor;
+import utils.okhttp.HttpLoggingInterceptor;
+import utils.retrofit.CommonCallAdapterFactory;
+import utils.retrofit.JsonBodyConverters;
+import utils.retrofit.OptionalCallAdapterFactory;
 
 @ToString
 public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
