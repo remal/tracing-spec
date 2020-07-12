@@ -33,8 +33,10 @@ buildscript {
                     mavenLocal()
                 }
                 project.allprojects {
-                    project.repositories {
-                        mavenLocal()
+                    project.pluginManager.withPlugin('java') {
+                        project.repositories {
+                            mavenLocal()
+                        }
                     }
                 }
             }
@@ -368,6 +370,10 @@ tasks.named('sonarqube').configure {
             properties[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
                 tasks.withType(JacocoReport).collect { it.reports.xml.destination }
                     .unique().findAll { it.exists() }.join(',')
+
+            properties[prefix + 'sonar.coverage.exclusions'] = [
+                '**/*Properties.java',
+            ].join(',')
         }
 
         return true

@@ -26,6 +26,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.ToString;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
@@ -40,6 +41,7 @@ public class JaegerSpecSpansRetriever implements SpecSpansRetriever {
 
     private static final Logger logger = LogManager.getLogger(JaegerSpecSpansRetriever.class);
 
+    @Valid
     private final JaegerSpecSpansRetrieverProperties properties;
 
     public JaegerSpecSpansRetriever(JaegerSpecSpansRetrieverProperties properties) {

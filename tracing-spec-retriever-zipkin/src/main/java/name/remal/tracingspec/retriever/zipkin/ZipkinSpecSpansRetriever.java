@@ -20,6 +20,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import javax.validation.Valid;
 import lombok.ToString;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
@@ -36,6 +37,7 @@ import utils.retrofit.OptionalCallAdapterFactory;
 @ToString
 public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
 
+    @Valid
     private final ZipkinSpecSpansRetrieverProperties properties;
 
     public ZipkinSpecSpansRetriever(ZipkinSpecSpansRetrieverProperties properties) {

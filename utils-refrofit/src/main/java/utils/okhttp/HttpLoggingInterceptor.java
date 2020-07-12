@@ -34,7 +34,9 @@ import lombok.var;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.GzipSource;
 import org.apache.logging.log4j.LogManager;
@@ -136,15 +138,7 @@ public class HttpLoggingInterceptor implements Interceptor {
                 requestBody.writeTo(buffer);
 
                 if (OkhttpUtils.isPlainText(buffer)) {
-                    val charset = Optional.ofNullable(requestBody.contentType())
-                        .map(MediaType::charset)
-                        .orElse(UTF_8);
-
-                    if (requestBody.contentLength() > 0) {
-                        messageBuilder
-                            .append("\n\n")
-                            .append(buffer.readString(charset));
-                    }
+                    appendPlainTextRequestBody(requestBody, buffer, messageBuilder);
 
                     messageBuilder
                         .append("\n--> END ")
@@ -165,6 +159,25 @@ public class HttpLoggingInterceptor implements Interceptor {
         } else {
             messageBuilder.append("\n--> END ").append(request.method());
         }
+    }
+
+    @SneakyThrows
+    private static void appendPlainTextRequestBody(
+        RequestBody requestBody,
+        Buffer buffer,
+        StringBuilder messageBuilder
+    ) {
+        if (requestBody.contentLength() <= 0) {
+            return;
+        }
+
+        val charset = Optional.ofNullable(requestBody.contentType())
+            .map(MediaType::charset)
+            .orElse(UTF_8);
+
+        messageBuilder
+            .append("\n\n")
+            .append(buffer.readString(charset));
     }
 
     @SneakyThrows
@@ -201,15 +214,7 @@ public class HttpLoggingInterceptor implements Interceptor {
             }
 
             if (OkhttpUtils.isPlainText(buffer)) {
-                val charset = Optional.ofNullable(responseBody.contentType())
-                    .map(MediaType::charset)
-                    .orElse(UTF_8);
-
-                if (responseBody.contentLength() > 0) {
-                    messageBuilder
-                        .append("\n\n")
-                        .append(buffer.snapshot().string(charset));
-                }
+                appendPlainTextResponseBody(responseBody, buffer, messageBuilder);
 
                 if (gzippedLength != null) {
                     messageBuilder
@@ -229,6 +234,25 @@ public class HttpLoggingInterceptor implements Interceptor {
                     .append("-byte body omitted)");
             }
         }
+    }
+
+    @SneakyThrows
+    private static void appendPlainTextResponseBody(
+        ResponseBody responseBody,
+        Buffer buffer,
+        StringBuilder messageBuilder
+    ) {
+        if (responseBody.contentLength() <= 0) {
+            return;
+        }
+
+        val charset = Optional.ofNullable(responseBody.contentType())
+            .map(MediaType::charset)
+            .orElse(UTF_8);
+
+        messageBuilder
+            .append("\n\n")
+            .append(buffer.snapshot().string(charset));
     }
 
     private static final Pattern AUTH_WITH_SCHEME = Pattern.compile(
