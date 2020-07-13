@@ -31,11 +31,13 @@ buildscript {
             if (dep.version.endsWith("-SNAPSHOT")) {
                 repositories {
                     mavenLocal()
+                    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
                 }
                 project.allprojects {
                     project.pluginManager.withPlugin('java') {
                         project.repositories {
                             mavenLocal()
+                            maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
                         }
                     }
                 }
@@ -215,6 +217,14 @@ allprojects {
                     .replaceAll(/[^\w.]/, '.')
             }
             relocatedClassesPackageName += '.internal._relocated'
+        }
+
+        gradle.buildFinished { result ->
+            if (result.failure != null) {
+                classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
+                    println "Relocated from $sourceClassName -> $relocatedClassName"
+                }
+            }
         }
     }
 
