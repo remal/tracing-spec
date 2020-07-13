@@ -21,73 +21,75 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-tasks.compileJava.doFirst {
-    CachedArtifactsCollection classpathArtifacts = new CachedArtifactsCollection(classpath)
-    println "classpathArtifacts: $classpathArtifacts"
-    Configuration relocateClassesConf = configurations.relocateClasses
-    println "relocateClassesConf: $relocateClassesConf"
-    Configuration excludeFromClassesRelocationConf = configurations.excludeFromClassesRelocation
-    println "excludeFromClassesRelocationConf: $excludeFromClassesRelocationConf"
-    Configuration excludeFromForcedClassesRelocationConf = configurations.excludeFromForcedClassesRelocation
-    println "excludeFromForcedClassesRelocationConf: $excludeFromForcedClassesRelocationConf"
+gradle.buildFinished { result ->
+    if (result.failure != null) {
+        CachedArtifactsCollection classpathArtifacts = new CachedArtifactsCollection(tasks.compileJava.classpath)
+        println "classpathArtifacts: $classpathArtifacts"
+        Configuration relocateClassesConf = configurations.relocateClasses
+        println "relocateClassesConf: $relocateClassesConf"
+        Configuration excludeFromClassesRelocationConf = configurations.excludeFromClassesRelocation
+        println "excludeFromClassesRelocationConf: $excludeFromClassesRelocationConf"
+        Configuration excludeFromForcedClassesRelocationConf = configurations.excludeFromForcedClassesRelocation
+        println "excludeFromForcedClassesRelocationConf: $excludeFromForcedClassesRelocationConf"
 
-    Set<String> internalClassNamesExcludedFromForcedRelocation = new CachedArtifactsCollection(
-        excludeFromForcedClassesRelocationConf
-    )
-        .classNames
-        .collect { it.replace('.', '/') }
-        .toSet()
-    println "internalClassNamesExcludedFromForcedRelocation:"
-    internalClassNamesExcludedFromForcedRelocation.toSorted().forEach { println "  $it" }
+        Set<String> internalClassNamesExcludedFromForcedRelocation = new CachedArtifactsCollection(
+            excludeFromForcedClassesRelocationConf
+        )
+            .classNames
+            .collect { it.replace('.', '/') }
+            .toSet()
+        println "internalClassNamesExcludedFromForcedRelocation:"
+        internalClassNamesExcludedFromForcedRelocation.toSorted().forEach { println "  $it" }
 
-    Set<String> possibleInternalClassNamesForForcedRelocation = classpathArtifacts.classNames
-        .collect { it.replace('.', '/') }
-        .findAll { !internalClassNamesExcludedFromForcedRelocation.contains(it) }
-        .toSet()
-    println "possibleInternalClassNamesForForcedRelocation:"
-    possibleInternalClassNamesForForcedRelocation.toSorted().forEach { println "  $it" }
+        Set<String> possibleInternalClassNamesForForcedRelocation = classpathArtifacts.classNames
+            .collect { it.replace('.', '/') }
+            .findAll { !internalClassNamesExcludedFromForcedRelocation.contains(it) }
+            .toSet()
+        println "possibleInternalClassNamesForForcedRelocation:"
+        possibleInternalClassNamesForForcedRelocation.toSorted().forEach { println "  $it" }
 
-    Set<String> resourcesExcludedFromForcedRelocation = new CachedArtifactsCollection(
-        excludeFromForcedClassesRelocationConf
-    )
-        .entryNames
-    println "resourcesExcludedFromForcedRelocation:"
-    resourcesExcludedFromForcedRelocation.toSorted().forEach { println "  $it" }
+        Set<String> resourcesExcludedFromForcedRelocation = new CachedArtifactsCollection(
+            excludeFromForcedClassesRelocationConf
+        )
+            .entryNames
+        println "resourcesExcludedFromForcedRelocation:"
+        resourcesExcludedFromForcedRelocation.toSorted().forEach { println "  $it" }
 
-    Set<String> possibleResourcesForForcedRelocation = classpathArtifacts.entryNames
-        .findAll { !resourcesExcludedFromForcedRelocation.contains(it) }
-        .toSet()
-    println "possibleResourcesForForcedRelocation:"
-    possibleResourcesForForcedRelocation.toSorted().forEach { println "  $it" }
+        Set<String> possibleResourcesForForcedRelocation = classpathArtifacts.entryNames
+            .findAll { !resourcesExcludedFromForcedRelocation.contains(it) }
+            .toSet()
+        println "possibleResourcesForForcedRelocation:"
+        possibleResourcesForForcedRelocation.toSorted().forEach { println "  $it" }
 
-    Set<String> internalClassNamesExcludedFromRelocation = new CachedArtifactsCollection(
-        excludeFromClassesRelocationConf
-    )
-        .classNames
-        .collect { it.replace('.', '/') }
-        .toSet()
-    println "internalClassNamesExcludedFromRelocation:"
-    internalClassNamesExcludedFromRelocation.toSorted().forEach { println "  $it" }
+        Set<String> internalClassNamesExcludedFromRelocation = new CachedArtifactsCollection(
+            excludeFromClassesRelocationConf
+        )
+            .classNames
+            .collect { it.replace('.', '/') }
+            .toSet()
+        println "internalClassNamesExcludedFromRelocation:"
+        internalClassNamesExcludedFromRelocation.toSorted().forEach { println "  $it" }
 
-    Set<String> possibleInternalClassNamesForRelocation = new CachedArtifactsCollection(relocateClassesConf)
-        .classNames
-        .collect { it.replace('.', '/') }
-        .findAll { !internalClassNamesExcludedFromRelocation.contains(it) }
-        .toSet()
-    println "possibleInternalClassNamesForRelocation:"
-    possibleInternalClassNamesForRelocation.toSorted().forEach { println "  $it" }
+        Set<String> possibleInternalClassNamesForRelocation = new CachedArtifactsCollection(relocateClassesConf)
+            .classNames
+            .collect { it.replace('.', '/') }
+            .findAll { !internalClassNamesExcludedFromRelocation.contains(it) }
+            .toSet()
+        println "possibleInternalClassNamesForRelocation:"
+        possibleInternalClassNamesForRelocation.toSorted().forEach { println "  $it" }
 
-    Set<String> resourcesExcludedFromRelocation = new CachedArtifactsCollection(excludeFromClassesRelocationConf)
-        .entryNames
-    println "resourcesExcludedFromRelocation:"
-    resourcesExcludedFromRelocation.toSorted().forEach { println "  $it" }
+        Set<String> resourcesExcludedFromRelocation = new CachedArtifactsCollection(excludeFromClassesRelocationConf)
+            .entryNames
+        println "resourcesExcludedFromRelocation:"
+        resourcesExcludedFromRelocation.toSorted().forEach { println "  $it" }
 
-    Set<String> possibleResourcesForRelocation = new CachedArtifactsCollection(relocateClassesConf)
-        .entryNames
-        .findAll { !resourcesExcludedFromRelocation.contains(it) }
-        .toSet()
-    println "possibleResourcesForRelocation:"
-    possibleResourcesForRelocation.toSorted().forEach { println "  $it" }
+        Set<String> possibleResourcesForRelocation = new CachedArtifactsCollection(relocateClassesConf)
+            .entryNames
+            .findAll { !resourcesExcludedFromRelocation.contains(it) }
+            .toSet()
+        println "possibleResourcesForRelocation:"
+        possibleResourcesForRelocation.toSorted().forEach { println "  $it" }
+    }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
