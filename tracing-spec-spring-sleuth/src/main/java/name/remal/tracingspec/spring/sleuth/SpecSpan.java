@@ -16,12 +16,15 @@
 
 package name.remal.tracingspec.spring.sleuth;
 
-import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Role;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-@Configuration
-@Role(ROLE_INFRASTRUCTURE)
-public class TracingSpecSpringSleuthAutoConfiguration {
+@Inherited
+@Target(METHOD)
+@Retention(RUNTIME)
+public @interface SpecSpan {
 }
