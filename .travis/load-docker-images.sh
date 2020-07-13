@@ -1,14 +1,11 @@
 #!/usr/bin/env sh
 set -e
 
-if [ ! -d "$HOME/.docker-images" ]; then
+DIR="$HOME/.docker-cache"
+FILE="$DIR/images.tar"
+if [ ! -f "$FILE" ]; then
     exit 0
 fi
 
-sudo apt-get -y install parallel
-
-find "$HOME/.docker-images" -name '*.tar.gz' -type f | while read -r FILE; do
-    sem --will-cite --id docker-load -j 8 "zcat '$FILE' | docker load; echo '    from $FILE'"
-done
-
-sem --will-cite --id docker-load --wait
+echo docker load -i "$FILE"
+docker load -i "$FILE"

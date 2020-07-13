@@ -1,14 +1,15 @@
-#!/usr/bin/env sh
-set -e
+#!/usr/bin/env bash
 
-sudo apt-get -y install parallel
+set -e +o pipefail
 
-mkdir -p "$HOME/.docker-images"
+DIR="$HOME/.docker-cache"
+mkdir -p "$DIR"
 
-docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}}' | while read -r IMAGE; do
-    ESCAPED_IMAGE=$(echo "$IMAGE" | sed 's#/#:#g')
-    FILE=$HOME/.docker-images/$ESCAPED_IMAGE.tar.gz
-    sem --will-cite --id docker-save -j 8 "docker save '$IMAGE' | gzip -9 > '$FILE'; echo 'Saved $IMAGE to $FILE'"
-done
+FILE="$DIR/images.tar"
+rm -rf "$FILE"
 
-sem --will-cite --id docker-save --wait
+IMAGES=(`docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}}' | sort`)
+if [ ! -z "$IMAGES" ]; then
+    echo docker save ${IMAGES[@]} \> "$FILE"
+    docker save ${IMAGES[@]} > "$FILE"
+fi
