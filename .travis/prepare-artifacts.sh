@@ -7,5 +7,5 @@ ARTIFACTS_FILE=./.artifacts.zip
 FILES=($(find . -name 'build' -type d | sort))
 if [ ${#FILES[@]} -ge 1 ]; then
     echo zip -r -9 "$ARTIFACTS_FILE" "${FILES[@]}"
-    zip -r -9 "$ARTIFACTS_FILE" "${FILES[@]}" > /dev/nul
+    zip -r -9 "$ARTIFACTS_FILE" "${FILES[@]}" > /dev/null
 fi
