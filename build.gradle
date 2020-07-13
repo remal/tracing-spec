@@ -203,6 +203,10 @@ allprojects {
                 }
             }
         }
+
+        afterEvaluate {
+            tasks.compileJava.doLast { println "Finished $it" }
+        }
     }
 
     pluginManager.withPlugin('name.remal.classes-relocation') {
@@ -221,8 +225,9 @@ allprojects {
 
         gradle.buildFinished { result ->
             if (result.failure != null) {
+                println "Relocations for $project"
                 classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
-                    println "Relocated from $sourceClassName -> $relocatedClassName"
+                    println "  $sourceClassName -> $relocatedClassName"
                 }
             }
         }
