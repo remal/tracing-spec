@@ -1,7 +1,0 @@
-apply plugin: 'java-library'
-
-dependencies {
-    api 'org.springframework.cloud:spring-cloud-starter-zipkin'
-
-    testImplementation 'org.springframework:spring-test'
-}

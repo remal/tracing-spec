@@ -1,0 +1,8 @@
+apply plugin: 'java-library'
+
+dependencies {
+    optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
+
+    testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
+}
