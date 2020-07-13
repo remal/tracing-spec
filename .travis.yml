@@ -38,5 +38,6 @@ script:
 - ./gradlew assemble
 #- ./gradlew build runAllTests sonarqube
 
-after_failure:
+#after_failure:
+after_script:
 - ./.travis/prepare-artifacts.sh
