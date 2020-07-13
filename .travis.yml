@@ -26,10 +26,13 @@ cache:
   directories:
   - $HOME/.gradle/
   - $HOME/.sonar/cache
+  - /var/lib/docker/image
+  - /var/lib/docker/overlay2
 
 before_script:
 - sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
 
 script:
 - chmod -R 0777 .
-- ./gradlew build runAllTests sonarqube
+- ./gradlew assemble
+#- ./gradlew build runAllTests sonarqube
