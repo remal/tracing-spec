@@ -227,8 +227,9 @@ allprojects {
 
         gradle.buildFinished { result ->
             if (result.failure != null) {
+                println "Relocations for $project:"
                 classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
-                    println "Relocated from $sourceClassName -> $relocatedClassName"
+                    println "  $sourceClassName -> $relocatedClassName"
                 }
             }
         }
