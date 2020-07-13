@@ -6,6 +6,7 @@ import java.time.ZonedDateTime
 import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import name.remal.gradle_plugins.dsl.artifact.ArtifactsCache
 import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jdom2.Document
@@ -204,9 +205,12 @@ allprojects {
             }
         }
 
-        afterEvaluate {
-            tasks.compileJava.doFirst { println "Started $it" }
-            tasks.compileJava.doLast { println "Finished $it" }
+        tasks.compileJava.onlyIf {
+            it.doFirst { ArtifactsCache.INSTANCE.invalidateAll() }
+            it.doFirst { println "Started $it" }
+            it.doLast { ArtifactsCache.INSTANCE.invalidateAll() }
+            it.doLast { println "Finished $it" }
+            return true
         }
     }
 
