@@ -12,6 +12,6 @@ while read -r DIR; do
 
     REAL_DIR=$(realpath "$DIR")
     REAL_PARENT_DIR=$(realpath "$PARENT_DIR")
-    echo ln -s "$REAL_DIR" "$REAL_PARENT_DIR"
-    ln -s "$REAL_DIR" "$REAL_PARENT_DIR"
+    echo cp -r "$REAL_DIR" "$REAL_PARENT_DIR"
+    cp  -r "$REAL_DIR" "$REAL_PARENT_DIR"
 done < <(find . -name 'build' -type d)
