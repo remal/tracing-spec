@@ -6,8 +6,6 @@ ARTIFACTS_DIR=./.artifacts
 mkdir -p "$ARTIFACTS_DIR"
 
 while read -r DIR; do
-    DIR_RELATIVE_PATH=${DIR:2}
-
     PARENT=$(dirname "$DIR")
     PARENT_RELATIVE_PATH=${PARENT:2}
     PARENT_DIR="$ARTIFACTS_DIR/$PARENT_RELATIVE_PATH"
@@ -17,4 +15,4 @@ while read -r DIR; do
     REAL_PARENT_DIR=$(realpath "$PARENT_DIR")
     echo ln -s "$REAL_DIR" "$REAL_PARENT_DIR"
     ln -s "$REAL_DIR" "$REAL_PARENT_DIR"
-done < <(find . -name 'docker' -type d)
+done < <(find . -name 'build' -type d)
