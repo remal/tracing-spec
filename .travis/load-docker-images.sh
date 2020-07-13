@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -e
+#!/usr/bin/env bash
+set -e +o pipefail
 
 DIR="$HOME/.docker-cache"
 FILE="$DIR/images.tar"
