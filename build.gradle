@@ -205,6 +205,7 @@ allprojects {
         }
 
         afterEvaluate {
+            tasks.compileJava.doFirst { println "Started $it" }
             tasks.compileJava.doLast { println "Finished $it" }
         }
     }
