@@ -13,6 +13,7 @@ addons:
   artifacts:
     debug: true
     paths:
+    - ./build
     - $(find . -name "build" -type d | tr "\n" ":")
 
 git:
