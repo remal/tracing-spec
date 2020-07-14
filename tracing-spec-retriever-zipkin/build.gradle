@@ -27,6 +27,9 @@ gradle.buildFinished { result ->
         println "classpath: {"
         artifactsCollection.artifacts.forEach { artifact ->
             println "  $artifact"
+            if (!"$artifact".endsWith(".jar")) {
+                artifact.entryNames.forEach { println "    $it" }
+            }
         }
         println "}"
 
