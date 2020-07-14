@@ -228,15 +228,6 @@ allprojects {
             }
             relocatedClassesPackageName += '.internal._relocated'
         }
-
-        gradle.buildFinished { result ->
-            if (result.failure != null) {
-                println "Relocations for $project"
-                classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
-                    println "  $sourceClassName -> $relocatedClassName"
-                }
-            }
-        }
     }
 
     pluginManager.withPlugin('checkstyle') {

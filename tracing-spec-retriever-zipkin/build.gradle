@@ -20,6 +20,26 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+gradle.buildFinished { result ->
+    if (result.failure != null) {
+        println "Relocations for $project: {"
+        classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
+            println "  $sourceClassName -> $relocatedClassName"
+        }
+        println "}"
+
+        println "_possibleClassInternalNamesForForcedRelocation: {"
+        classesRelocation._possibleClassInternalNamesForForcedRelocation.forEach { println "  $it" }
+        println "}"
+
+        println "_possibleClassInternalNamesForRelocation: {"
+        classesRelocation._possibleClassInternalNamesForRelocation.forEach { println "  $it" }
+        println "}"
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 SourceSet versionTestSourceSet = sourceSets.integration
 String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
 
