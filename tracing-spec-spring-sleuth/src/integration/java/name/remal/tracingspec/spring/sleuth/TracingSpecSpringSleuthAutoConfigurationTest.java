@@ -41,7 +41,7 @@ class TracingSpecSpringSleuthAutoConfigurationTest {
     private final TestSpanHandler testSpanHandler;
 
     @Test
-    @SuppressWarnings({"UnusedAssignment", "java:S881"})
+    @SuppressWarnings({"UnusedAssignment", "java:S881", "java:S1854", "java:S1199"})
     void test() {
         int executionsCounter = 0;
 
