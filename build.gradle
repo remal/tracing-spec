@@ -6,7 +6,6 @@ import java.time.ZonedDateTime
 import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-import name.remal.gradle_plugins.dsl.artifact.ArtifactsCache
 import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jdom2.Document
@@ -16,7 +15,8 @@ import org.jdom2.input.SAXBuilder
 
 buildscript {
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.0.204'
+        //classpath 'name.remal:gradle-plugins:1.0.204'
+        classpath 'name.remal:gradle-plugins:1.0.205-develop-SNAPSHOT'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
@@ -206,9 +206,9 @@ allprojects {
         }
 
         tasks.compileJava.onlyIf {
-            it.doFirst { ArtifactsCache.INSTANCE.invalidateAll() }
+            //it.doFirst { ArtifactsCache.invalidateAll() }
             it.doFirst { println "Started $it" }
-            it.doLast { ArtifactsCache.INSTANCE.invalidateAll() }
+            //it.doLast { ArtifactsCache.invalidateAll() }
             it.doLast { println "Finished $it" }
             return true
         }

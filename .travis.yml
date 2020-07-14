@@ -26,9 +26,9 @@ before_cache:
 - find $HOME/.gradle -name '*.lock' -type f -delete
 
 cache:
-  directories:
-  - $HOME/.gradle/
-  - $HOME/.sonar/cache
+  directories: []
+  #- $HOME/.gradle/
+  #- $HOME/.sonar/cache
 
 before_script:
 - sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
