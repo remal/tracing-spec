@@ -19,6 +19,8 @@ package name.remal.tracingspec.model;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
 import static java.lang.Boolean.parseBoolean;
 import static java.util.Collections.emptyMap;
+import static name.remal.tracingspec.model.SpecSpanTag.DESCRIPTION;
+import static name.remal.tracingspec.model.SpecSpanTag.IS_ASYNC;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -60,8 +62,14 @@ public interface SpecSpan {
     }
 
     @Default
+    @SuppressWarnings("immutables:untype")
+    default Optional<String> getDescription() {
+        return Optional.ofNullable(getTags().get(DESCRIPTION.getTagName()));
+    }
+
+    @Default
     default boolean isAsync() {
-        return parseBoolean(getTags().get(SpecSpanTag.ASYNC.getTagName()));
+        return parseBoolean(getTags().get(IS_ASYNC.getTagName()));
     }
 
 }

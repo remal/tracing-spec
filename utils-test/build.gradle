@@ -1,0 +1,7 @@
+apply plugin: 'java-library'
+
+dependencies {
+    optional 'org.springframework.boot:spring-boot-starter-test'
+    optional 'org.testcontainers:testcontainers'
+    optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
+}

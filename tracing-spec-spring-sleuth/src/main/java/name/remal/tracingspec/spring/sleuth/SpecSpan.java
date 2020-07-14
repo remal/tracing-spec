@@ -27,4 +27,9 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 @Retention(RUNTIME)
 public @interface SpecSpan {
+
+    String description() default "";
+
+    boolean isAsync() default false;
+
 }

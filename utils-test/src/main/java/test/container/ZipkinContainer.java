@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.zipkin;
+package test.container;
 
 import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
 
@@ -25,7 +25,7 @@ import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 
 public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
 
-    public static final String IMAGE = "openzipkin/zipkin";
+    public static final String IMAGE = System.getProperty("zipkin-image", "openzipkin/zipkin");
     public static final String DEFAULT_TAG = System.getProperty("zipkin-image-tag", "latest");
 
     public static final int ZIPKIN_PORT = 9411;

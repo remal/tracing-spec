@@ -18,10 +18,26 @@ package name.remal.tracingspec.spring.sleuth;
 
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 
+import brave.Tracer;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cloud.sleuth.annotation.SleuthAnnotationAutoConfiguration;
+import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 
 @Configuration
 @Role(ROLE_INFRASTRUCTURE)
+@ConditionalOnBean(Tracer.class)
+@AutoConfigureAfter({TraceAutoConfiguration.class, SleuthAnnotationAutoConfiguration.class})
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class TracingSpecSpringSleuthAutoConfiguration {
+
+    @Bean
+    @Role(ROLE_INFRASTRUCTURE)
+    SpecSpanPointcutAdvisor specSpanPointcutAdvisor(Tracer tracer) {
+        return new SpecSpanPointcutAdvisor(tracer);
+    }
+
 }

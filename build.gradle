@@ -124,6 +124,7 @@ allprojects {
             annotationProcessing 'org.immutables:value'
 
             apt 'org.springframework.boot:spring-boot-configuration-processor'
+            apt 'org.springframework.boot:spring-boot-autoconfigure-processor'
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
 
             optional 'com.fasterxml.jackson.core:jackson-databind'
@@ -144,8 +145,17 @@ allprojects {
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
-            testRuntimeOnly 'org.apache.logging.log4j:log4j-jcl'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
+            testRuntimeOnly 'org.springframework:spring-jcl'
+
+
+            integrationImplementation 'org.testcontainers:testcontainers'
+        }
+
+        if (project.path != ':utils-test') {
+            dependencies {
+                testImplementation project(':utils-test')
+            }
         }
 
         transitiveDependencies {
@@ -184,6 +194,7 @@ allprojects {
             useJUnitPlatform()
 
             systemProperty('java.util.logging.manager', 'org.apache.logging.log4j.jul.LogManager')
+            systemProperty('spring.main.banner-mode', 'off')
 
             testLogging {
                 events('FAILED')
@@ -403,7 +414,7 @@ tasks.named('sonarqube').configure {
             .findAll {
                 (
                     it.name == 'check'
-                        || it instanceof Checkstyle
+                        || it instanceof VerificationTask
                         || it instanceof Test
                         || it instanceof JacocoReport
                 )

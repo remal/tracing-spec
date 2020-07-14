@@ -1,8 +1,15 @@
 apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
 
 dependencies {
+    relocateClasses 'org.apache.commons:commons-lang3'
+
+    optional 'org.springframework:spring-aop'
     optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
 
-    testImplementation 'org.springframework:spring-test'
-    testImplementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+
+    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
 }
