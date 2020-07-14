@@ -190,6 +190,8 @@ allprojects {
             )
         }
 
+        testSourceSets.create('component')
+
         tasks.withType(Test) {
             useJUnitPlatform()
 
