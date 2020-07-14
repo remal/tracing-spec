@@ -6,6 +6,7 @@ import java.time.ZonedDateTime
 import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import name.remal.gradle_plugins.dsl.artifact.ArtifactsCache
 import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jdom2.Document
