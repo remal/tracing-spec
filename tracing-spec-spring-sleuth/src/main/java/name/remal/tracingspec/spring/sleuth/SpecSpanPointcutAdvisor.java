@@ -23,7 +23,7 @@ import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
 
 @Internal
-@SuppressWarnings({"serial", "java:S2057", "java:S2160"})
+@SuppressWarnings({"serial", "java:S2057", "java:S2160", "java:S1948"})
 class SpecSpanPointcutAdvisor extends AbstractPointcutAdvisor {
 
     private final SpecSpanPointcut pointcut;

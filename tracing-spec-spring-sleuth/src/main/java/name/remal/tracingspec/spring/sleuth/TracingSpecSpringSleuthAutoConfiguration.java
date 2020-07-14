@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Role;
 @Role(ROLE_INFRASTRUCTURE)
 @ConditionalOnBean(Tracer.class)
 @AutoConfigureAfter({TraceAutoConfiguration.class, SleuthAnnotationAutoConfiguration.class})
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class TracingSpecSpringSleuthAutoConfiguration {
 
     @Bean

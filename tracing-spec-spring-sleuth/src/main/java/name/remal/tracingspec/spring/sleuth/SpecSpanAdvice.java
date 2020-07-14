@@ -30,10 +30,11 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.springframework.aop.IntroductionInterceptor;
+import org.springframework.core.Ordered;
 
 @Internal
 @RequiredArgsConstructor
-class SpecSpanAdvice implements IntroductionInterceptor {
+class SpecSpanAdvice implements IntroductionInterceptor, Ordered {
 
     private final Tracer tracer;
 
@@ -63,7 +64,7 @@ class SpecSpanAdvice implements IntroductionInterceptor {
         return invocation.proceed();
     }
 
-    private void adjustSpan(Span span, SpecSpan specSpan) {
+    private static void adjustSpan(Span span, SpecSpan specSpan) {
         Optional.of(specSpan.description())
             .filter(StringUtils::isNotEmpty)
             .ifPresent(description -> span.tag("spec.description", description));
@@ -76,6 +77,11 @@ class SpecSpanAdvice implements IntroductionInterceptor {
     @Override
     public boolean implementsInterface(Class<?> intf) {
         return true;
+    }
+
+    @Override
+    public int getOrder() {
+        return LOWEST_PRECEDENCE;
     }
 
 }
