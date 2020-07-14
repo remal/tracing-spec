@@ -89,7 +89,7 @@ allprojects {
                 project.afterEvaluate {
                     project.tasks.withType(AbstractCompile) {
                         onlyIf {
-                            classpath += conf
+                            //classpath += conf
                             return true
                         }
                     }
@@ -468,7 +468,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*
+//*
 apply plugin: 'java-library'
 
 repositories {
