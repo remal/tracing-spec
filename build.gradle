@@ -85,12 +85,13 @@ allprojects {
         configurations {
             compileOnlyAllHidden { conf ->
                 // We don't want IDE to index these dependencies, but they are required for compilation
-                project.afterEvaluate {
-                    project.tasks.withType(AbstractCompile) {
-                        onlyIf {
-                            classpath += conf
-                            return true
+                project.tasks.withType(AbstractCompile) {
+                    onlyIf {
+                        Collection<File> confFiles = conf.files
+                        if (!confFiles.isEmpty()) {
+                            classpath = classpath + project.files(confFiles)
                         }
+                        return true
                     }
                 }
             }
@@ -217,14 +218,6 @@ allprojects {
                     .replaceAll(/[^\w.]/, '.')
             }
             relocatedClassesPackageName += '.internal._relocated'
-        }
-
-        gradle.buildFinished { result ->
-            if (result.failure != null) {
-                classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
-                    println "Relocated from $sourceClassName -> $relocatedClassName"
-                }
-            }
         }
     }
 
@@ -475,7 +468,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*
+//*
 apply plugin: 'java-library'
 
 repositories {
