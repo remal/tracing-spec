@@ -35,7 +35,7 @@ before_script:
 
 script:
 - chmod -R 0777 .
-- ./gradlew build runAllTests sonarqube --info
+- ./gradlew build runAllTests sonarqube
 
 after_failure:
 - ./.travis/prepare-artifacts.sh

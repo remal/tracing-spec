@@ -21,18 +21,6 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-tasks.compileJava.doFirst {
-    CachedArtifactsCollection artifactsCollection = new CachedArtifactsCollection(tasks.compileJava.classpath)
-    println "classpath: {"
-    artifactsCollection.artifacts.forEach { artifact ->
-        println "  $artifact"
-        if (!"$artifact".endsWith(".jar")) {
-            artifact.classNames.forEach { println "    $it" }
-        }
-    }
-    println "}"
-}
-
 gradle.buildFinished { result ->
     if (result.failure != null) {
         CachedArtifactsCollection artifactsCollection = new CachedArtifactsCollection(tasks.compileJava.classpath)
