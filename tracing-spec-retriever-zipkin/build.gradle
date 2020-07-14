@@ -34,8 +34,16 @@ gradle.buildFinished { result ->
         println "}"
         */
 
+        println "_classInternalNamesExcludedFromForcedRelocation: {"
+        classesRelocation._classInternalNamesExcludedFromForcedRelocation?.forEach { println "  $it" }
+        println "}"
+
         println "_possibleClassInternalNamesForForcedRelocation: {"
         classesRelocation._possibleClassInternalNamesForForcedRelocation?.forEach { println "  $it" }
+        println "}"
+
+        println "_classInternalNamesExcludedFromRelocation: {"
+        classesRelocation._classInternalNamesExcludedFromRelocation?.forEach { println "  $it" }
         println "}"
 
         println "_possibleClassInternalNamesForRelocation: {"
