@@ -19,7 +19,7 @@ buildscript {
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
-        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7'
+        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.8'
     }
     repositories {
         jcenter()
@@ -86,12 +86,13 @@ allprojects {
         configurations {
             compileOnlyAllHidden { conf ->
                 // We don't want IDE to index these dependencies, but they are required for compilation
-                project.afterEvaluate {
-                    project.tasks.withType(AbstractCompile) {
-                        onlyIf {
-                            classpath += conf
-                            return true
+                project.tasks.withType(AbstractCompile) {
+                    onlyIf {
+                        Collection<File> confFiles = conf.files
+                        if (!confFiles.isEmpty()) {
+                            classpath = classpath + project.files(confFiles)
                         }
+                        return true
                     }
                 }
             }
@@ -223,15 +224,6 @@ allprojects {
                     .replaceAll(/[^\w.]/, '.')
             }
             relocatedClassesPackageName += '.internal._relocated'
-        }
-
-        gradle.buildFinished { result ->
-            if (result.failure != null) {
-                println "Relocations for $project:"
-                classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
-                    println "  $sourceClassName -> $relocatedClassName"
-                }
-            }
         }
     }
 
@@ -491,7 +483,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*
+//*
 apply plugin: 'java-library'
 
 repositories {
