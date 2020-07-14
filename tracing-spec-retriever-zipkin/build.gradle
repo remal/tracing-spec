@@ -21,6 +21,26 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+tasks.compileJava.doFirst {
+    println "classpath: {"
+    new CachedArtifactsCollection(tasks.compileJava.classpath).artifacts.forEach { artifact ->
+        println "  $artifact"
+        if (!"$artifact".endsWith(".jar")) {
+            artifact.classNames.forEach { println "    $it" }
+        }
+    }
+    println "}"
+
+    println "relocateClasses: {"
+    new CachedArtifactsCollection(configurations.relocateClasses).artifacts.forEach { artifact ->
+        println "  $artifact"
+        if (!"$artifact".endsWith(".jar")) {
+            artifact.classNames.forEach { println "    $it" }
+        }
+    }
+    println "}"
+}
+
 gradle.buildFinished { result ->
     if (result.failure != null) {
         CachedArtifactsCollection artifactsCollection = new CachedArtifactsCollection(tasks.compileJava.classpath)
