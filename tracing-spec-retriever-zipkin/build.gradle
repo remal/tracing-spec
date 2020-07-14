@@ -23,8 +23,12 @@ dependencies {
 
 gradle.buildFinished { result ->
     if (result.failure != null) {
-        CachedArtifactsCollection artifacts = new CachedArtifactsCollection(tasks.compileJava.classpath)
-        println "classpath: $artifacts"
+        CachedArtifactsCollection artifactsCollection = new CachedArtifactsCollection(tasks.compileJava.classpath)
+        println "classpath: {"
+        artifactsCollection.artifacts.forEach { artifact ->
+            println "  $artifact"
+        }
+        println "}"
 
         /*
         println "Relocations for $project: {"
