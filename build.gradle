@@ -234,7 +234,7 @@ allprojects {
     }
 
     pluginManager.withPlugin('maven-publish') {
-        String prefix = 'tracing-spec-'
+        String prefix = rootProject.name + '-'
         if (!project.name.startsWith(prefix)) {
             throw new GradleScriptException(
                 "Gradle plugin maven-publish can be applied only to projects with name prefixed with '$prefix'"
