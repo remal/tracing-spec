@@ -1,4 +1,3 @@
-import name.remal.gradle_plugins.dsl.artifact.CachedArtifactsCollection
 import name.remal.version.Version
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -17,66 +16,6 @@ dependencies {
     integrationImplementation 'org.testcontainers:testcontainers'
     integrationImplementation 'io.zipkin.brave:brave'
     integrationImplementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-tasks.compileJava.doFirst {
-    println "classpath: {"
-    new CachedArtifactsCollection(tasks.compileJava.classpath).artifacts.forEach { artifact ->
-        println "  $artifact"
-        if (!"$artifact".endsWith(".jar")) {
-            artifact.classNames.forEach { println "    $it" }
-        }
-    }
-    println "}"
-
-    println "relocateClasses: {"
-    new CachedArtifactsCollection(configurations.relocateClasses).artifacts.forEach { artifact ->
-        println "  $artifact"
-        if (!"$artifact".endsWith(".jar")) {
-            artifact.classNames.forEach { println "    $it" }
-        }
-    }
-    println "}"
-}
-
-gradle.buildFinished { result ->
-    if (result.failure != null) {
-        CachedArtifactsCollection artifactsCollection = new CachedArtifactsCollection(tasks.compileJava.classpath)
-        println "classpath: {"
-        artifactsCollection.artifacts.forEach { artifact ->
-            println "  $artifact"
-            if (!"$artifact".endsWith(".jar")) {
-                artifact.classNames.forEach { println "    $it" }
-            }
-        }
-        println "}"
-
-        /*
-        println "Relocations for $project: {"
-        classesRelocation._relocatedClassSources.forEach { relocatedClassName, sourceClassName ->
-            println "  $sourceClassName -> $relocatedClassName"
-        }
-        println "}"
-        */
-
-        println "_classInternalNamesExcludedFromForcedRelocation: {"
-        classesRelocation._classInternalNamesExcludedFromForcedRelocation?.forEach { println "  $it" }
-        println "}"
-
-        println "_possibleClassInternalNamesForForcedRelocation: {"
-        classesRelocation._possibleClassInternalNamesForForcedRelocation?.forEach { println "  $it" }
-        println "}"
-
-        println "_classInternalNamesExcludedFromRelocation: {"
-        classesRelocation._classInternalNamesExcludedFromRelocation?.forEach { println "  $it" }
-        println "}"
-
-        println "_possibleClassInternalNamesForRelocation: {"
-        classesRelocation._possibleClassInternalNamesForRelocation?.forEach { println "  $it" }
-        println "}"
-    }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
