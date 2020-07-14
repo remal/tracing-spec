@@ -206,9 +206,9 @@ allprojects {
         }
 
         tasks.compileJava.onlyIf {
-            //it.doFirst { ArtifactsCache.invalidateAll() }
+            it.doFirst { ArtifactsCache.invalidateAll() }
             it.doFirst { println "Started $it" }
-            //it.doLast { ArtifactsCache.invalidateAll() }
+            it.doLast { ArtifactsCache.invalidateAll() }
             it.doLast { println "Finished $it" }
             return true
         }
