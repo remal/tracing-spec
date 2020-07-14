@@ -9,7 +9,4 @@ dependencies {
 
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-
-    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
 }
