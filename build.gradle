@@ -462,10 +462,10 @@ tasks.named('sonarqube').configure {
                 //noinspection GroovyPointlessBoolean
                 (
                     false
-                    //|| it.name == 'check'
-                    //|| it instanceof VerificationTask
-                    //|| it instanceof Test
-                    //|| it instanceof JacocoReport
+                        || it.name == 'check'
+                        || it instanceof VerificationTask
+                        || it instanceof Test
+                        || it instanceof JacocoReport
                 )
             }
     }
