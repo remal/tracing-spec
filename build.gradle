@@ -369,43 +369,88 @@ apply plugin: 'org.sonarqube'
 
 tasks.named('sonarqube').configure {
     onlyIf {
-        List<String> modules = properties['sonar.modules']?.split(/\s*,\s*/) ?: []
-        List<String> propertyPrefixes = ['', modules.collect { "$it." }].flatten()
-        propertyPrefixes.forEach { prefix ->
-            if (properties[prefix + 'sonar.projectName'] == null) {
+        Map<String, String> props = properties
+
+        List<String> modules = [':']
+        modules.addAll(props['sonar.modules']?.split(/\s*,\s*/) ?: [])
+        modules.unique().forEach { module ->
+            String prefix = (module == ':') ? ('') : ("$module.")
+            if (props[prefix + 'sonar.projectName'] == null) {
                 throw new GradleScriptException("SonarQube property isn't set: ${prefix}sonar.projectName")
             }
 
-            project.pluginManager.withPlugin('java') {
-                project.pluginManager.withPlugin('name.remal.test-source-sets') {
-                    properties[prefix + 'sonar.tests'] =
-                        testSourceSets.collect { it.allSource.srcDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(',')
-                    properties[prefix + 'sonar.java.test.binaries'] =
-                        testSourceSets.collect { it.output.classesDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(',')
-                    properties[prefix + 'sonar.java.test.libraries'] =
-                        testSourceSets.collect { it.compileClasspath }.flatten()
-                            .unique().findAll { it.exists() }.join(',')
+
+            Project project = project(module)
+            if (project.pluginManager.hasPlugin('java')) {
+                props[prefix + 'sonar.java.sources'] =
+                    project.sourceSets.main.allSource.srcDirs.findAll { it.exists() }
+                        .unique().join(',')
+                props[prefix + 'sonar.java.binaries'] =
+                    project.sourceSets.main.output.classesDirs.findAll { it.exists() }
+                        .unique().join(',')
+                props[prefix + 'sonar.java.libraries'] =
+                    project.sourceSets.main.compileClasspath.findAll { it.exists() }
+                        .unique().join(',')
+
+                props[prefix + 'sonar.tests'] =
+                    project.testSourceSets.collect { it.allSource.srcDirs.collect() }.flatten()
+                        .unique().findAll { it.exists() }.join(',')
+                props[prefix + 'sonar.java.test.binaries'] =
+                    project.testSourceSets.collect { it.output.classesDirs.collect() }.flatten()
+                        .unique().findAll { it.exists() }.join(',')
+                props[prefix + 'sonar.java.test.libraries'] =
+                    project.testSourceSets.collect { it.compileClasspath.collect() }.flatten()
+                        .unique().findAll { it.exists() }.join(',')
+
+                if (project.name.matches(/^(.*-)?test(-.*)?$/)) {
+                    props[prefix + 'sonar.java.sources'] = ''
+                    props[prefix + 'sonar.java.binaries'] = ''
+                    props[prefix + 'sonar.java.libraries'] = ''
+
+                    props[prefix + 'sonar.tests'] =
+                        project.sourceSets.main.allSource.srcDirs.findAll { it.exists() }
+                            .plus(props[prefix + 'sonar.tests'].split(/,+/))
+                            .unique().join(',')
+                    props[prefix + 'sonar.java.test.binaries'] =
+                        project.sourceSets.main.output.classesDirs.findAll { it.exists() }
+                            .plus(props[prefix + 'sonar.java.test.binaries'].split(/,+/))
+                            .unique().join(',')
+                    props[prefix + 'sonar.java.test.libraries'] =
+                        project.sourceSets.main.compileClasspath.findAll { it.exists() }
+                            .plus(props[prefix + 'sonar.java.test.libraries'].split(/,+/))
+                            .unique().join(',')
                 }
+
+                props[prefix + 'sonar.sources'] = props[prefix + 'sonar.java.sources']
+                props[prefix + 'sonar.binaries'] = props[prefix + 'sonar.java.binaries']
+                props[prefix + 'sonar.libraries'] = props[prefix + 'sonar.java.libraries']
             }
 
-            properties[prefix + 'sonar.java.checkstyle.reportPaths'] =
-                tasks.withType(Checkstyle).collect { it.reports.xml.destination }
+            props[prefix + 'sonar.java.checkstyle.reportPaths'] =
+                project.tasks.withType(Checkstyle).collect { it.reports.xml.destination }
                     .unique().findAll { it.exists() }.join(',')
 
-            properties[prefix + 'sonar.junit.reportPaths'] =
-                tasks.withType(Test).collect { it.reports.junitXml.destination }
+            props[prefix + 'sonar.junit.reportPaths'] =
+                project.tasks.withType(Test).collect { it.reports.junitXml.destination }
                     .unique().findAll { it.exists() }.join(',')
 
-            properties[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
-                tasks.withType(JacocoReport).collect { it.reports.xml.destination }
+            props[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
+                project.tasks.withType(JacocoReport).collect { it.reports.xml.destination }
                     .unique().findAll { it.exists() }.join(',')
 
-            properties[prefix + 'sonar.coverage.exclusions'] = [
+            props[prefix + 'sonar.coverage.exclusions'] = [
                 '**/*Properties.java',
             ].join(',')
+
+            props.keySet().forEach { key ->
+                String value = props[key]
+                value = value.replaceFirst(/^\s*,\s*/, '')
+                value = value.replaceFirst(/\s*,\s*$/, '')
+                props[key] = value
+            }
         }
+
+        //new TreeMap(props).forEach { key, value -> println "$key: '$value'" }
 
         return true
     }
@@ -414,11 +459,13 @@ tasks.named('sonarqube').configure {
         project.allprojects
             .collect { it.tasks }.flatten()
             .findAll {
+                //noinspection GroovyPointlessBoolean
                 (
-                    it.name == 'check'
-                        || it instanceof VerificationTask
-                        || it instanceof Test
-                        || it instanceof JacocoReport
+                    false
+                    //|| it.name == 'check'
+                    //|| it instanceof VerificationTask
+                    //|| it instanceof Test
+                    //|| it instanceof JacocoReport
                 )
             }
     }
