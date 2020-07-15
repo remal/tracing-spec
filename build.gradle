@@ -15,7 +15,8 @@ import org.jdom2.input.SAXBuilder
 
 buildscript {
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.0.206'
+        //classpath 'name.remal:gradle-plugins:1.0.206'
+        classpath 'name.remal:gradle-plugins:1.0.207-feature-sonarqube-settings-SNAPSHOT'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
@@ -367,107 +368,16 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
 
 apply plugin: 'org.sonarqube'
 
-tasks.named('sonarqube').configure {
-    onlyIf {
-        Map<String, String> props = properties
-
-        List<String> modules = [':']
-        modules.addAll(props['sonar.modules']?.split(/\s*,\s*/) ?: [])
-        modules.unique().forEach { module ->
-            String prefix = (module == ':') ? ('') : ("$module.")
-            if (props[prefix + 'sonar.projectName'] == null) {
-                throw new GradleScriptException("SonarQube property isn't set: ${prefix}sonar.projectName")
-            }
-
-
-            Project project = project(module)
-            if (project.pluginManager.hasPlugin('java')) {
-                props[prefix + 'sonar.java.sources'] =
-                    project.sourceSets.main.allSource.srcDirs.findAll { it.exists() }
-                        .unique().join(',')
-                props[prefix + 'sonar.java.binaries'] =
-                    project.sourceSets.main.output.classesDirs.findAll { it.exists() }
-                        .unique().join(',')
-                props[prefix + 'sonar.java.libraries'] =
-                    project.sourceSets.main.compileClasspath.findAll { it.exists() }
-                        .unique().join(',')
-
-                props[prefix + 'sonar.tests'] =
-                    project.testSourceSets.collect { it.allSource.srcDirs.collect() }.flatten()
-                        .unique().findAll { it.exists() }.join(',')
-                props[prefix + 'sonar.java.test.binaries'] =
-                    project.testSourceSets.collect { it.output.classesDirs.collect() }.flatten()
-                        .unique().findAll { it.exists() }.join(',')
-                props[prefix + 'sonar.java.test.libraries'] =
-                    project.testSourceSets.collect { it.compileClasspath.collect() }.flatten()
-                        .unique().findAll { it.exists() }.join(',')
-
-                if (project.name.matches(/^(.*-)?test(-.*)?$/)) {
-                    props[prefix + 'sonar.java.sources'] = ''
-                    props[prefix + 'sonar.java.binaries'] = ''
-                    props[prefix + 'sonar.java.libraries'] = ''
-
-                    props[prefix + 'sonar.tests'] =
-                        project.sourceSets.main.allSource.srcDirs.findAll { it.exists() }
-                            .plus(props[prefix + 'sonar.tests'].split(/,+/))
-                            .unique().join(',')
-                    props[prefix + 'sonar.java.test.binaries'] =
-                        project.sourceSets.main.output.classesDirs.findAll { it.exists() }
-                            .plus(props[prefix + 'sonar.java.test.binaries'].split(/,+/))
-                            .unique().join(',')
-                    props[prefix + 'sonar.java.test.libraries'] =
-                        project.sourceSets.main.compileClasspath.findAll { it.exists() }
-                            .plus(props[prefix + 'sonar.java.test.libraries'].split(/,+/))
-                            .unique().join(',')
-                }
-
-                props[prefix + 'sonar.sources'] = props[prefix + 'sonar.java.sources']
-                props[prefix + 'sonar.binaries'] = props[prefix + 'sonar.java.binaries']
-                props[prefix + 'sonar.libraries'] = props[prefix + 'sonar.java.libraries']
-            }
-
-            props[prefix + 'sonar.java.checkstyle.reportPaths'] =
-                project.tasks.withType(Checkstyle).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(',')
-
-            props[prefix + 'sonar.junit.reportPaths'] =
-                project.tasks.withType(Test).collect { it.reports.junitXml.destination }
-                    .unique().findAll { it.exists() }.join(',')
-
-            props[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
-                project.tasks.withType(JacocoReport).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(',')
-
-            props[prefix + 'sonar.coverage.exclusions'] = [
-                '**/*Properties.java',
-            ].join(',')
-
-            props.keySet().forEach { key ->
-                String value = props[key]
-                value = value.replaceFirst(/^\s*,\s*/, '')
-                value = value.replaceFirst(/\s*,\s*$/, '')
-                props[key] = value
-            }
+allprojects {
+    sonarqube {
+        properties {
+            property(
+                'sonar.coverage.exclusions',
+                [
+                    '**/*Properties.java',
+                ].join(',')
+            )
         }
-
-        //new TreeMap(props).forEach { key, value -> println "$key: '$value'" }
-
-        return true
-    }
-
-    dependsOn {
-        project.allprojects
-            .collect { it.tasks }.flatten()
-            .findAll {
-                //noinspection GroovyPointlessBoolean
-                (
-                    false
-                        || it.name == 'check'
-                        || it instanceof VerificationTask
-                        || it instanceof Test
-                        || it instanceof JacocoReport
-                )
-            }
     }
 }
 
@@ -544,14 +454,17 @@ allprojects {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
-apply plugin: 'java-library'
+forBuildOnLocal {
+    apply plugin: 'java-library'
 
-repositories {
-    gradlePluginPortal()
-}
+    repositories { gradlePluginPortal() }
+    dependencies { runtimeOnly gradleApi() }
 
-dependencies {
-    runtimeOnly gradleApi()
+    String remalGradlePluginsVersion = buildscript.configurations.classpath.dependencies
+        .findAll { it.group == 'name.remal' && it.name == 'gradle-plugins' }
+        .last()
+        .version
+    //dependencies { runtimeOnly "name.remal:gradle-plugins:$remalGradlePluginsVersion" }
 }
 //*/
 
