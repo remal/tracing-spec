@@ -60,7 +60,12 @@ abstract class BaseCallAdapter implements CallAdapter<Object, Object> {
         val errorBody = response.errorBody();
         if (errorBody != null) {
             if (isPlainText(errorBody)) {
-                sb.append(":\n").append(errorBody.string());
+                val errorBodyString = errorBody.string();
+                if (errorBodyString.isEmpty()) {
+                    sb.append(":\n[empty error body]");
+                } else {
+                    sb.append(":\n").append(errorBodyString);
+                }
             } else {
                 sb.append(":\n").append("[binary ").append(errorBody.contentLength()).append("-byte body]");
             }
