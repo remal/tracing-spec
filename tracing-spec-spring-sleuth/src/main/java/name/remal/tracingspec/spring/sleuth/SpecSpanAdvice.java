@@ -28,6 +28,8 @@ import lombok.SneakyThrows;
 import lombok.val;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.springframework.aop.IntroductionInterceptor;
 import org.springframework.core.Ordered;
@@ -35,6 +37,8 @@ import org.springframework.core.Ordered;
 @Internal
 @RequiredArgsConstructor
 class SpecSpanAdvice implements IntroductionInterceptor, Ordered {
+
+    private static final Logger logger = LogManager.getLogger(SpecSpanAdvice.class);
 
     private final Tracer tracer;
 
@@ -56,6 +60,11 @@ class SpecSpanAdvice implements IntroductionInterceptor, Ordered {
 
         val span = tracer.currentSpan();
         if (span == null) {
+            val exception = new IllegalStateException(
+                "There is no tracing span for the invocation (" + method + "). It can happen if the method is not"
+                    + " annotated with @NewSpan or Spring Sleuth isn't properly working."
+            );
+            logger.warn(exception, exception);
             return invocation.proceed();
         }
 
