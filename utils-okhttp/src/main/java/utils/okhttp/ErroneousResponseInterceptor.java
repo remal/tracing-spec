@@ -65,7 +65,7 @@ public class ErroneousResponseInterceptor implements Interceptor {
             if (isPlainText(responseBody)) {
                 val errorBodyString = responseBody.string();
                 if (errorBodyString.isEmpty()) {
-                    sb.append(":\n[empty error body]");
+                    sb.append(":\n[empty body]");
                 } else {
                     sb.append(":\n").append(errorBodyString);
                 }
