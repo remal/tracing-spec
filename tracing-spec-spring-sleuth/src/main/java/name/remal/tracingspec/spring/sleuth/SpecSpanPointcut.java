@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.model;
+package name.remal.tracingspec.spring.sleuth;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 
-import lombok.val;
-import org.junit.jupiter.api.Test;
+@Internal
+class SpecSpanPointcut extends AnnotationMatchingPointcut {
 
-class SpecSpanTagTest {
-
-    @Test
-    void tag_names_are_correct() {
-        for (val specTag : SpecSpanTag.values()) {
-            assertThat(specTag.name(), specTag.getTagName(), equalTo(
-                "spec." + specTag.name().toLowerCase().replace('_', '-')
-            ));
-        }
+    public SpecSpanPointcut() {
+        super(null, SpecSpan.class, true);
     }
 
 }

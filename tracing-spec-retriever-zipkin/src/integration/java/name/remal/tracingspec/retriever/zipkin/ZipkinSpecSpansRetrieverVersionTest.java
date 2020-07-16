@@ -43,12 +43,13 @@ import name.remal.tracingspec.model.SpecSpanKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import test.container.ZipkinContainer;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 @SuppressWarnings({"java:S1450", "java:S109"})
-public class ZipkinSpecSpansRetrieverVersionTest {
+class ZipkinSpecSpansRetrieverVersionTest {
 
     private static final String SERVICE_NAME = "service-name";
 

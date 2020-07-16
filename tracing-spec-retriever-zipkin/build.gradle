@@ -13,7 +13,7 @@ dependencies {
     api project(':tracing-spec-retriever')
     api 'org.apache.logging.log4j:log4j-api'
 
-    integrationImplementation 'org.testcontainers:testcontainers'
+
     integrationImplementation 'io.zipkin.brave:brave'
     integrationImplementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
 }

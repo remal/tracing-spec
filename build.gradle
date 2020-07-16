@@ -62,6 +62,7 @@ allprojects {
         dependencies {
             allResolvable enforcedPlatform(project(':dependency-versions'))
             allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies')
+            allResolvable platform('org.springframework.cloud:spring-cloud-sleuth-dependencies')
             allResolvable platform('io.grpc:grpc-bom')
             allResolvable platform('com.google.protobuf:protobuf-bom')
             allResolvable platform('org.testcontainers:testcontainers-bom')
@@ -123,6 +124,7 @@ allprojects {
             annotationProcessing 'org.immutables:value'
 
             apt 'org.springframework.boot:spring-boot-configuration-processor'
+            apt 'org.springframework.boot:spring-boot-autoconfigure-processor'
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
 
             optional 'com.fasterxml.jackson.core:jackson-databind'
@@ -143,8 +145,17 @@ allprojects {
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
-            testRuntimeOnly 'org.apache.logging.log4j:log4j-jcl'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
+            testRuntimeOnly 'org.springframework:spring-jcl'
+
+
+            integrationImplementation 'org.testcontainers:testcontainers'
+        }
+
+        if (project.path != ':utils-test') {
+            dependencies {
+                testImplementation project(':utils-test')
+            }
         }
 
         transitiveDependencies {
@@ -154,9 +165,14 @@ allprojects {
         configurations.all {
             resolutionStrategy {
                 eachDependency { DependencyResolveDetails details ->
-                    String groupModule = "${details.target.group}:${details.target.name}"
-                    if (groupModule == 'org.hamcrest:hamcrest-core') {
-                        details.useTarget("org.hamcrest:hamcrest:${details.target.version}")
+                    details.target.with {
+                        String groupModule = "$group:$name"
+                        if (groupModule == 'org.hamcrest:hamcrest-core') {
+                            details.useTarget("$group:hamcrest:$version")
+
+                        } else if (groupModule == 'org.springframework.boot:spring-boot-starter-logging') {
+                            details.useTarget("$group:spring-boot-starter-log4j2:$version")
+                        }
                     }
                 }
             }
@@ -174,10 +190,13 @@ allprojects {
             )
         }
 
+        testSourceSets.create('component')
+
         tasks.withType(Test) {
             useJUnitPlatform()
 
             systemProperty('java.util.logging.manager', 'org.apache.logging.log4j.jul.LogManager')
+            systemProperty('spring.main.banner-mode', 'off')
 
             testLogging {
                 events('FAILED')
@@ -224,6 +243,15 @@ allprojects {
     pluginManager.withPlugin('checkstyle') {
         checkstyle {
             configDirectory = rootProject.projectDir
+        }
+    }
+
+    pluginManager.withPlugin('maven-publish') {
+        String prefix = rootProject.name + '-'
+        if (!project.name.startsWith(prefix)) {
+            throw new GradleScriptException(
+                "Gradle plugin maven-publish can be applied only to projects with name prefixed with '$prefix'"
+            )
         }
     }
 
@@ -339,60 +367,16 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
 
 apply plugin: 'org.sonarqube'
 
-tasks.named('sonarqube').configure {
-    onlyIf {
-        List<String> modules = properties['sonar.modules']?.split(/\s*,\s*/) ?: []
-        List<String> propertyPrefixes = ['', modules.collect { "$it." }].flatten()
-        propertyPrefixes.forEach { prefix ->
-            if (properties[prefix + 'sonar.projectName'] == null) {
-                throw new GradleScriptException("SonarQube property isn't set: ${prefix}sonar.projectName")
-            }
-
-            project.pluginManager.withPlugin('java') {
-                project.pluginManager.withPlugin('name.remal.test-source-sets') {
-                    properties[prefix + 'sonar.tests'] =
-                        testSourceSets.collect { it.allSource.srcDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(',')
-                    properties[prefix + 'sonar.java.test.binaries'] =
-                        testSourceSets.collect { it.output.classesDirs }.flatten()
-                            .unique().findAll { it.exists() }.join(',')
-                    properties[prefix + 'sonar.java.test.libraries'] =
-                        testSourceSets.collect { it.compileClasspath }.flatten()
-                            .unique().findAll { it.exists() }.join(',')
-                }
-            }
-
-            properties[prefix + 'sonar.java.checkstyle.reportPaths'] =
-                tasks.withType(Checkstyle).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(',')
-
-            properties[prefix + 'sonar.junit.reportPaths'] =
-                tasks.withType(Test).collect { it.reports.junitXml.destination }
-                    .unique().findAll { it.exists() }.join(',')
-
-            properties[prefix + 'sonar.coverage.jacoco.xmlReportPaths'] =
-                tasks.withType(JacocoReport).collect { it.reports.xml.destination }
-                    .unique().findAll { it.exists() }.join(',')
-
-            properties[prefix + 'sonar.coverage.exclusions'] = [
-                '**/*Properties.java',
-            ].join(',')
+allprojects {
+    sonarqube {
+        properties {
+            property(
+                'sonar.coverage.exclusions',
+                [
+                    '**/*Properties.java',
+                ].join(',')
+            )
         }
-
-        return true
-    }
-
-    dependsOn {
-        project.allprojects
-            .collect { it.tasks }.flatten()
-            .findAll {
-                (
-                    it.name == 'check'
-                        || it instanceof Checkstyle
-                        || it instanceof Test
-                        || it instanceof JacocoReport
-                )
-            }
     }
 }
 
@@ -469,14 +453,17 @@ allprojects {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
-apply plugin: 'java-library'
+forBuildOnLocal {
+    apply plugin: 'java-library'
 
-repositories {
-    gradlePluginPortal()
-}
+    repositories { gradlePluginPortal() }
+    dependencies { runtimeOnly gradleApi() }
 
-dependencies {
-    runtimeOnly gradleApi()
+    String remalGradlePluginsVersion = buildscript.configurations.classpath.dependencies
+        .findAll { it.group == 'name.remal' && it.name == 'gradle-plugins' }
+        .last()
+        .version
+    //dependencies { runtimeOnly "name.remal:gradle-plugins:$remalGradlePluginsVersion" }
 }
 //*/
 

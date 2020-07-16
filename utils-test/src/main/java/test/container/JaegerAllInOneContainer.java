@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.retriever.jaeger;
+package test.container;
 
 import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
 
@@ -24,7 +24,7 @@ import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 
 public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneContainer> {
 
-    public static final String IMAGE = "jaegertracing/all-in-one";
+    public static final String IMAGE = System.getProperty("jaeger-image", "jaegertracing/all-in-one");
     public static final String DEFAULT_TAG = System.getProperty("jaeger-image-tag", "latest");
 
     public static final int JAEGER_QUERY_PORT = 16686;

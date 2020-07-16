@@ -15,7 +15,7 @@ dependencies {
     api 'io.grpc:grpc-netty-shaded'
     api 'org.apache.logging.log4j:log4j-api'
 
-    integrationImplementation 'org.testcontainers:testcontainers'
+
     integrationImplementation 'io.jaegertracing:jaeger-thrift'
 }
 

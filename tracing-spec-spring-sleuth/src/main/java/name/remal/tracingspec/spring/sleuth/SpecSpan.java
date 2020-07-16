@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.model;
+package name.remal.tracingspec.spring.sleuth;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import lombok.val;
-import org.junit.jupiter.api.Test;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-class SpecSpanTagTest {
+@Inherited
+@Target(METHOD)
+@Retention(RUNTIME)
+public @interface SpecSpan {
 
-    @Test
-    void tag_names_are_correct() {
-        for (val specTag : SpecSpanTag.values()) {
-            assertThat(specTag.name(), specTag.getTagName(), equalTo(
-                "spec." + specTag.name().toLowerCase().replace('_', '-')
-            ));
-        }
-    }
+    String description() default "";
+
+    boolean isAsync() default false;
 
 }

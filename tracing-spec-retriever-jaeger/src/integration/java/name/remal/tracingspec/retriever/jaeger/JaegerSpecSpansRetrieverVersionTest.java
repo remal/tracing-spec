@@ -44,9 +44,10 @@ import name.remal.tracingspec.model.SpecSpanKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import test.container.JaegerAllInOneContainer;
 
 @SuppressWarnings({"java:S1450", "java:S109"})
-public class JaegerSpecSpansRetrieverVersionTest {
+class JaegerSpecSpansRetrieverVersionTest {
 
     private static final String SERVICE_NAME = "service-name";
 

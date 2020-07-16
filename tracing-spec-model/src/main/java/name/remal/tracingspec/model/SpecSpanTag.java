@@ -18,11 +18,11 @@ package name.remal.tracingspec.model;
 
 public enum SpecSpanTag {
 
-    ASYNC,
-
+    DESCRIPTION,
+    IS_ASYNC,
     ;
 
-    private final String tagName = "spec." + this.name().toLowerCase().replace('_', '.');
+    private final String tagName = "spec." + this.name().toLowerCase().replace('_', '-');
 
     public String getTagName() {
         return tagName;

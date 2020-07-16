@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.model;
+@NonNullApi
+@NonNullFields
+package test.container;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-
-import lombok.val;
-import org.junit.jupiter.api.Test;
-
-class SpecSpanTagTest {
-
-    @Test
-    void tag_names_are_correct() {
-        for (val specTag : SpecSpanTag.values()) {
-            assertThat(specTag.name(), specTag.getTagName(), equalTo(
-                "spec." + specTag.name().toLowerCase().replace('_', '-')
-            ));
-        }
-    }
-
-}
+import org.springframework.lang.NonNullApi;
+import org.springframework.lang.NonNullFields;

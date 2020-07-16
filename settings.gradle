@@ -6,5 +6,7 @@ include(
     ':tracing-spec-retriever',
     ':tracing-spec-retriever-jaeger',
     ':tracing-spec-retriever-zipkin',
+    ':tracing-spec-spring-sleuth',
     ':utils-refrofit',
+    ':utils-test',
 )

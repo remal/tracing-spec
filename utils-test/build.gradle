@@ -1,0 +1,8 @@
+apply plugin: 'java-library'
+apply plugin: 'name.remal.test-fixtures'
+
+dependencies {
+    optional 'org.springframework.boot:spring-boot-starter-test'
+    optional 'org.testcontainers:testcontainers'
+    optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
+}
