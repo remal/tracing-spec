@@ -179,7 +179,7 @@ public class HttpLoggingInterceptor implements Interceptor {
     }
 
     @SneakyThrows
-    @SuppressWarnings("java:S3776")
+    @SuppressWarnings({"java:S3776", "java:S2095"})
     private static void appendResponse(Response response, long tookMillis, StringBuilder messageBuilder) {
         messageBuilder.append("\n\n<-- ").append(response.code());
 
