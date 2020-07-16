@@ -20,10 +20,8 @@ import java.lang.reflect.Type;
 import java.util.Optional;
 import lombok.val;
 import okhttp3.ResponseBody;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.Call;
 
-@Internal
 public class OptionalCallAdapter extends BaseCallAdapter {
 
     public OptionalCallAdapter(Type responseType) {

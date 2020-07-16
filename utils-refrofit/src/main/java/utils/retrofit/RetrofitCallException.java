@@ -16,9 +16,6 @@
 
 package utils.retrofit;
 
-import org.jetbrains.annotations.ApiStatus.Internal;
-
-@Internal
 public class RetrofitCallException extends RuntimeException {
 
     protected RetrofitCallException(String message) {

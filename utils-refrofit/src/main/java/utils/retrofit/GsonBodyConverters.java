@@ -25,12 +25,10 @@ import lombok.val;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 
-@Internal
-public class JsonBodyConverters extends Converter.Factory {
+public class GsonBodyConverters extends Converter.Factory {
 
     private static final MediaType MEDIA_TYPE = MediaType.get("application/json; charset=UTF-8");
 

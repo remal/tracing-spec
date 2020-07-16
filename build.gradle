@@ -14,6 +14,11 @@ import org.jdom2.input.SAXBuilder
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 buildscript {
+    JavaVersion minimumJavaVersion = JavaVersion.VERSION_14
+    if (JavaVersion.current() < minimumJavaVersion) {
+        throw new GradleException("Minimum Java version for building the project is $minimumJavaVersion")
+    }
+
     dependencies {
         classpath 'name.remal:gradle-plugins:1.0.207'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
@@ -194,6 +199,10 @@ allprojects {
 
         tasks.withType(Test) {
             useJUnitPlatform()
+
+            List<String> jvmArgs = it.jvmArgs
+            jvmArgs += '--illegal-access=deny'
+            it.jvmArgs = jvmArgs
 
             systemProperty('java.util.logging.manager', 'org.apache.logging.log4j.jul.LogManager')
             systemProperty('spring.main.banner-mode', 'off')
@@ -475,7 +484,7 @@ forBuildOnLocal {
 
     idea {
         project {
-            jdkName = '11'
+            jdkName = '14'
             languageLevel = new IdeaLanguageLevel('8')
             targetBytecodeVersion = JavaVersion.VERSION_1_8
 

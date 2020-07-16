@@ -16,9 +16,6 @@
 
 package utils.okhttp;
 
-import org.jetbrains.annotations.ApiStatus.Internal;
-
-@Internal
 public class ConnectionCloseHeaderInterceptor extends AbstractHeaderInterceptor {
 
     public ConnectionCloseHeaderInterceptor() {

@@ -25,9 +25,7 @@ import lombok.SneakyThrows;
 import lombok.val;
 import okhttp3.ResponseBody;
 import okio.Buffer;
-import org.jetbrains.annotations.ApiStatus.Internal;
 
-@Internal
 public interface OkhttpUtils {
 
     @SuppressWarnings("java:S109")

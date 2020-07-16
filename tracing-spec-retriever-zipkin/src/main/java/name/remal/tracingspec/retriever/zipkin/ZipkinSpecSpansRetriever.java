@@ -18,6 +18,7 @@ package name.remal.tracingspec.retriever.zipkin;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
+import static utils.retrofit.RetrofitUtils.newRetrofitBuilder;
 
 import java.util.List;
 import javax.validation.Valid;
@@ -27,11 +28,10 @@ import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinApi;
 import okhttp3.OkHttpClient;
-import retrofit2.Retrofit;
 import utils.okhttp.ConnectionCloseHeaderInterceptor;
 import utils.okhttp.HttpLoggingInterceptor;
 import utils.retrofit.CommonCallAdapterFactory;
-import utils.retrofit.JsonBodyConverters;
+import utils.retrofit.GsonBodyConverters;
 import utils.retrofit.OptionalCallAdapterFactory;
 
 @ToString
@@ -51,7 +51,7 @@ public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
             throw new IllegalStateException("properties.url must not be null");
         }
 
-        val retrofit = new Retrofit.Builder()
+        val retrofit = newRetrofitBuilder()
             .baseUrl(zipkinUrl)
             .client(new OkHttpClient.Builder()
                 .connectTimeout(properties.getConnectTimeoutMillis(), MILLISECONDS)
@@ -61,7 +61,7 @@ public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
                 .addInterceptor(new HttpLoggingInterceptor())
                 .build()
             )
-            .addConverterFactory(new JsonBodyConverters())
+            .addConverterFactory(new GsonBodyConverters())
             .addCallAdapterFactory(new OptionalCallAdapterFactory())
             .addCallAdapterFactory(new CommonCallAdapterFactory())
             .validateEagerly(true)

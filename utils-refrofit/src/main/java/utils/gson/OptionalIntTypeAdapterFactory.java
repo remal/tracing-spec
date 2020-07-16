@@ -28,9 +28,7 @@ import java.util.OptionalInt;
 import javax.annotation.Nullable;
 import lombok.val;
 import name.remal.gradle_plugins.api.AutoService;
-import org.jetbrains.annotations.ApiStatus.Internal;
 
-@Internal
 @AutoService
 public class OptionalIntTypeAdapterFactory implements TypeAdapterFactory {
 

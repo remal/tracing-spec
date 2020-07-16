@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-@Internal
 @NonNullByDefault
 package utils.retrofit;
 
 import name.remal.tracingspec.model.internal.NonNullByDefault;
-import org.jetbrains.annotations.ApiStatus.Internal;

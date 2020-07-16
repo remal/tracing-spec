@@ -20,9 +20,7 @@ import java.io.IOException;
 import lombok.val;
 import okhttp3.Interceptor;
 import okhttp3.Response;
-import org.jetbrains.annotations.ApiStatus.Internal;
 
-@Internal
 abstract class AbstractHeaderInterceptor implements Interceptor {
 
     protected abstract Object getValue();

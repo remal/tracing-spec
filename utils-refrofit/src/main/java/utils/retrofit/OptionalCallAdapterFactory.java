@@ -20,11 +20,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.CallAdapter;
 import retrofit2.Retrofit;
 
-@Internal
 public class OptionalCallAdapterFactory extends CallAdapter.Factory {
 
     @Nullable

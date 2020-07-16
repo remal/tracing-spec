@@ -34,9 +34,9 @@ import okio.Buffer;
 import org.junit.jupiter.api.Test;
 import retrofit2.Retrofit;
 
-class JsonBodyConvertersTest {
+class GsonBodyConvertersTest {
 
-    private final JsonBodyConverters converters = new JsonBodyConverters();
+    private final GsonBodyConverters converters = new GsonBodyConverters();
 
     private final Retrofit retrofit = mock(Retrofit.class, invocation -> {
         throw new UnsupportedOperationException();

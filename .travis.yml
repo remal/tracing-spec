@@ -2,7 +2,7 @@ os: linux
 dist: bionic
 
 language: java
-jdk: openjdk11
+jdk: openjdk14
 install: skip
 
 addons:

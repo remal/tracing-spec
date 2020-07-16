@@ -21,9 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import java.util.ServiceLoader;
 import lombok.val;
-import org.jetbrains.annotations.ApiStatus.Internal;
 
-@Internal
 public abstract class GsonFactory {
 
     private static final Gson GSON;

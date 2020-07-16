@@ -40,9 +40,7 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.GzipSource;
 import org.apache.logging.log4j.LogManager;
-import org.jetbrains.annotations.ApiStatus.Internal;
 
-@Internal
 public class HttpLoggingInterceptor implements Interceptor {
 
     private final Consumer<CharSequence> logger;

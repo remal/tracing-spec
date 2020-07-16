@@ -23,11 +23,9 @@ import java.lang.reflect.Type;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import org.jetbrains.annotations.ApiStatus.Internal;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 
-@Internal
 @RequiredArgsConstructor
 abstract class BaseCallAdapter implements CallAdapter<Object, Object> {
 
