@@ -14,62 +14,67 @@
  * limitations under the License.
  */
 
-package utils.retrofit;
+package utils.okhttp;
 
+import static java.lang.String.format;
 import static utils.okhttp.OkhttpUtils.isPlainText;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import retrofit2.Call;
-import retrofit2.CallAdapter;
+import okhttp3.Interceptor;
+import okhttp3.Response;
 
-@RequiredArgsConstructor
-abstract class BaseCallAdapter implements CallAdapter<Object, Object> {
-
-    private final Type responseType;
+public class ErroneousResponseInterceptor implements Interceptor {
 
     @Override
-    public Type responseType() {
-        return responseType;
-    }
+    @SneakyThrows
+    public Response intercept(Chain chain) {
+        val request = chain.request();
 
-
-    protected static <T> retrofit2.Response<T> executeCall(Call<T> call) {
+        final Response response;
         try {
-            return call.execute();
-        } catch (IOException e) {
-            throw new RetrofitCallException(e);
+            response = chain.proceed(request);
+        } catch (Throwable exception) {
+            throw new ErroneousResponseException(
+                format("%s %s: %s", request.method(), request.url(), exception),
+                exception
+            );
         }
+
+        if (response.code() >= 400) {
+            throw createException(response);
+        }
+
+        return response;
     }
 
     @SneakyThrows
-    protected static RetrofitCallException createStatusException(Call<?> call, retrofit2.Response<?> response) {
+    private static Throwable createException(Response response) {
+        val request = response.request();
+
         val sb = new StringBuilder();
-        sb.append(call.request().method()).append(' ').append(call.request().url());
+        sb.append(request.method()).append(' ').append(request.url());
         sb.append(": HTTP status ").append(response.code());
 
         if (!response.message().isEmpty()) {
             sb.append(' ').append(response.message());
         }
 
-        val errorBody = response.errorBody();
-        if (errorBody != null) {
-            if (isPlainText(errorBody)) {
-                val errorBodyString = errorBody.string();
+        val responseBody = response.body();
+        if (responseBody != null) {
+            if (isPlainText(responseBody)) {
+                val errorBodyString = responseBody.string();
                 if (errorBodyString.isEmpty()) {
                     sb.append(":\n[empty error body]");
                 } else {
                     sb.append(":\n").append(errorBodyString);
                 }
             } else {
-                sb.append(":\n").append("[binary ").append(errorBody.contentLength()).append("-byte body]");
+                sb.append(":\n").append("[binary ").append(responseBody.contentLength()).append("-byte body]");
             }
         }
 
-        throw new RetrofitCallException(sb.toString());
+        return new ErroneousResponseException(sb.toString());
     }
 
 }

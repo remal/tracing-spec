@@ -278,8 +278,7 @@ public class HttpLoggingInterceptor implements Interceptor {
             if ("Authorization".equalsIgnoreCase(name)) {
                 val matcher = AUTH_WITH_SCHEME.matcher(value);
                 if (matcher.find()) {
-                    value = value.substring(0, matcher.end())
-                        + repeat('*', value.length() - matcher.end());
+                    value = value.substring(0, matcher.end()) + repeat('*', value.length() - matcher.end());
                 } else {
                     value = repeat('*', value.length());
                 }

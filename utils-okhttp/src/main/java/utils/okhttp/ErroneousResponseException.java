@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package utils.retrofit;
+package utils.okhttp;
 
-public class RetrofitCallException extends RuntimeException {
+public class ErroneousResponseException extends RuntimeException {
 
-    protected RetrofitCallException(String message) {
+    ErroneousResponseException(String message) {
         super(message);
     }
 
-    protected RetrofitCallException(Throwable cause) {
-        super(cause);
+    ErroneousResponseException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

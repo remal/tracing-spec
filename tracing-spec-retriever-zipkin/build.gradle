@@ -6,7 +6,8 @@ apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
 
 dependencies {
-    relocateClasses project(':utils-refrofit')
+    relocateClasses project(':utils-okhttp')
+    relocateClasses project(':utils-gson')
 
     annotationProcessing('org.immutables:gson') { exclude group: 'com.google.code.gson' }
 

@@ -26,8 +26,6 @@ dependencies {
 
         // Compile
         api 'com.google.guava:guava:29.0-jre'
-        api 'com.squareup.retrofit2:retrofit:2.9.0'
-        api 'com.google.code.gson:gson:2.8.6'
 
         // Test
         api 'org.awaitility:awaitility:4.0.3'

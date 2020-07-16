@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("java:S2789")
 class GsonFactoryTest {
 
     @Test
