@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test.sleuth;
+package utils.test.sleuth;
 
 import static brave.handler.SpanHandler.Cause.FINISHED;
 import static java.lang.String.format;

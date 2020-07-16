@@ -22,7 +22,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
-import static test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
+import static utils.test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
 import com.google.common.collect.ImmutableMap;
 import java.time.Duration;

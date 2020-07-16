@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.stereotype.Component;
-import test.sleuth.TestSpanHandler;
+import utils.test.sleuth.TestSpanHandler;
 
 @SpringBootTest
 @SpringBootApplication

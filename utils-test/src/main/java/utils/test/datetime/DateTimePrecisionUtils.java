@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test.datetime;
+package utils.test.datetime;
 
 import static java.lang.Math.toIntExact;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;

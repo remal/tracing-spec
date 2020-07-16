@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test.container;
+package utils.test.container;
 
 import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
 

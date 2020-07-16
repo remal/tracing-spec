@@ -16,7 +16,7 @@
 
 @NonNullApi
 @NonNullFields
-package test.sleuth;
+package utils.test.sleuth;
 
 import org.springframework.lang.NonNullApi;
 import org.springframework.lang.NonNullFields;

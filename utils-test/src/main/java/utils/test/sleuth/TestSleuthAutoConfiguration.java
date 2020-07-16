@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test.sleuth;
+package utils.test.sleuth;
 
 import static brave.sampler.Sampler.ALWAYS_SAMPLE;
 import static zipkin2.reporter.Reporter.NOOP;
