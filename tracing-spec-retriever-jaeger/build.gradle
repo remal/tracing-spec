@@ -138,11 +138,9 @@ TaskProvider<Task> pullProtobufDockerImage = tasks.register('pullProtobufDockerI
 
                 String content = file.getText('UTF-8')
 
-                content = content.
-                    replaceAll(
-                        /@(?:javax\.annotation\.)?Generated\(\s*value\s*=\s*("[^"]*")[^)]*\)/,
-                        '@javax.annotation.Generated($1)'
-                    )
+                content = content
+                    .replaceAll(/import javax\.annotation\.Generated;\s*\n*/, '')
+                    .replaceAll(/@(?:javax\.annotation\.)?Generated\([^)]*\)/, '@Generated')
 
                 file.setText(content, 'UTF-8')
             }

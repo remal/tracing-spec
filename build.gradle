@@ -475,7 +475,7 @@ forBuildOnLocal {
 
     idea {
         project {
-            jdkName = '1.8'
+            jdkName = '11'
             languageLevel = new IdeaLanguageLevel('8')
             targetBytecodeVersion = JavaVersion.VERSION_1_8
 

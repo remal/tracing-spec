@@ -22,7 +22,6 @@ import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
 import lombok.SneakyThrows;
 import lombok.val;
-import lombok.var;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
@@ -50,7 +49,7 @@ interface JaegerIdUtils {
 
     @SneakyThrows
     static String decodeJaegerId(byte[] jaegerId) {
-        var string = encodeHexString(jaegerId, true);
+        String string = encodeHexString(jaegerId, true);
 
         int notZeroCharIndex = 0;
         while (notZeroCharIndex < string.length() - 1 && string.charAt(notZeroCharIndex) == '0') {

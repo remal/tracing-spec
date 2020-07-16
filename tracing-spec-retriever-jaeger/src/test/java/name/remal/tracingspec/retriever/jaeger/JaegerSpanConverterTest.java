@@ -22,6 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
+import static test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
@@ -125,7 +126,7 @@ class JaegerSpanConverterTest {
 
     @Test
     void startedAt() {
-        val now = Instant.now();
+        val now = withMicrosecondsPrecision(Instant.now());
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                 Span.newBuilder()
@@ -141,7 +142,7 @@ class JaegerSpanConverterTest {
 
     @Test
     void duration() {
-        val duration = Duration.between(LocalTime.MIDNIGHT, LocalTime.now());
+        val duration = withMicrosecondsPrecision(Duration.between(LocalTime.MIDNIGHT, LocalTime.now()));
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                 Span.newBuilder()

@@ -30,8 +30,8 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import lombok.SneakyThrows;
 import lombok.val;
-import lombok.var;
 import okhttp3.Headers;
+import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -101,7 +101,7 @@ public class HttpLoggingInterceptor implements Interceptor {
 
         messageBuilder.append("--> ").append(request.method());
 
-        var url = request.url();
+        HttpUrl url = request.url();
         if (!url.password().isEmpty()) {
             url = url.newBuilder()
                 .encodedPassword(repeat('*', url.password().length()))
@@ -202,7 +202,7 @@ public class HttpLoggingInterceptor implements Interceptor {
         } else {
             val source = responseBody.source();
             source.request(Long.MAX_VALUE); // Buffer the entire body
-            var buffer = source.getBuffer();
+            Buffer buffer = source.getBuffer();
 
             Long gzippedLength = null;
             if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) {
@@ -275,7 +275,7 @@ public class HttpLoggingInterceptor implements Interceptor {
                 continue;
             }
 
-            var value = headers.value(headersIndex);
+            String value = headers.value(headersIndex);
 
             if ("Authorization".equalsIgnoreCase(name)) {
                 val matcher = AUTH_WITH_SCHEME.matcher(value);

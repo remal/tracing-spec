@@ -20,7 +20,6 @@ import static java.lang.annotation.ElementType.PACKAGE;
 import static java.lang.annotation.ElementType.TYPE;
 
 import java.lang.annotation.Target;
-import javax.annotation.Generated;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -44,7 +43,6 @@ import org.jetbrains.annotations.ApiStatus.Internal;
     typeBuilder = "*Builder",
     typeInnerBuilder = "BaseBuilder",
     allowedClasspathAnnotations = {
-        Generated.class,
         org.immutables.value.Generated.class,
         Nullable.class,
         Immutable.class,

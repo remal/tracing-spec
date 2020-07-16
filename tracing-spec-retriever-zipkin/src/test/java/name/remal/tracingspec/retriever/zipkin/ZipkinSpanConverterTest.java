@@ -22,6 +22,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
+import static test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
 import com.google.common.collect.ImmutableMap;
 import java.time.Duration;
@@ -135,12 +136,13 @@ class ZipkinSpanConverterTest {
 
     @Test
     void startedAt() {
-        val now = Instant.now();
+        val now = withMicrosecondsPrecision(Instant.now());
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().traceId("0").id("0")
-                    .timestamp(MICROSECONDS.convert(now.getEpochSecond(), SECONDS)
-                        + MICROSECONDS.convert(now.getNano(), NANOSECONDS)
+                    .timestamp(
+                        MICROSECONDS.convert(now.getEpochSecond(), SECONDS)
+                            + MICROSECONDS.convert(now.getNano(), NANOSECONDS)
                     )
                     .build()
             ),
@@ -150,12 +152,13 @@ class ZipkinSpanConverterTest {
 
     @Test
     void duration() {
-        val duration = Duration.between(LocalTime.MIDNIGHT, LocalTime.now());
+        val duration = withMicrosecondsPrecision(Duration.between(LocalTime.MIDNIGHT, LocalTime.now()));
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().traceId("0").id("0")
-                    .duration(MICROSECONDS.convert(duration.getSeconds(), SECONDS)
-                        + MICROSECONDS.convert(duration.getNano(), NANOSECONDS)
+                    .duration(
+                        MICROSECONDS.convert(duration.getSeconds(), SECONDS)
+                            + MICROSECONDS.convert(duration.getNano(), NANOSECONDS)
                     )
                     .build()
             ),
