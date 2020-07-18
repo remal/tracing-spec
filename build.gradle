@@ -20,7 +20,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.0.207'
+        classpath 'name.remal:gradle-plugins:1.0.208'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
@@ -468,11 +468,7 @@ forBuildOnLocal {
     repositories { gradlePluginPortal() }
     dependencies { runtimeOnly gradleApi() }
 
-    String remalGradlePluginsVersion = buildscript.configurations.classpath.dependencies
-        .findAll { it.group == 'name.remal' && it.name == 'gradle-plugins' }
-        .last()
-        .version
-    //dependencies { runtimeOnly "name.remal:gradle-plugins:$remalGradlePluginsVersion" }
+    dependencies { runtimeOnly "name.remal:gradle-plugins" }
 }
 //*/
 
