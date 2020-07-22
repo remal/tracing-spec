@@ -79,7 +79,7 @@ class SpecSpanAdvice implements IntroductionInterceptor, Ordered {
             .ifPresent(description -> span.tag("spec.description", description));
 
         if (specSpan.isAsync()) {
-            span.tag("spec.is-async", "true");
+            span.tag("spec.is-async", "1");
         }
     }
 

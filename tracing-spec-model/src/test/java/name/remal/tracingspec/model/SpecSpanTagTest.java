@@ -16,9 +16,14 @@
 
 package name.remal.tracingspec.model;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
 
+import java.util.List;
+import java.util.Optional;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +36,104 @@ class SpecSpanTagTest {
                 "spec." + specTag.name().toLowerCase().replace('_', '-')
             ));
         }
+    }
+
+
+    @Test
+    void description() {
+        val builder = SpecSpan.builder().spanId("0");
+        SpecSpanTag.DESCRIPTION.processTagsIntoBuilder(
+            singletonMap(SpecSpanTag.DESCRIPTION.getTagName(), "some text"),
+            builder
+        );
+
+        assertThat(
+            builder.build(),
+            hasProperty("description", equalTo(Optional.of("some text")))
+        );
+    }
+
+    @Test
+    void description_null() {
+        val builder = SpecSpan.builder().spanId("0");
+        SpecSpanTag.DESCRIPTION.processTagsIntoBuilder(
+            singletonMap(SpecSpanTag.DESCRIPTION.getTagName(), null),
+            builder
+        );
+
+        assertThat(
+            builder.build(),
+            hasProperty("description", equalTo(Optional.empty()))
+        );
+    }
+
+    @Test
+    void description_empty() {
+        val builder = SpecSpan.builder().spanId("0");
+        SpecSpanTag.DESCRIPTION.processTagsIntoBuilder(
+            singletonMap(SpecSpanTag.DESCRIPTION.getTagName(), ""),
+            builder
+        );
+
+        assertThat(
+            builder.build(),
+            hasProperty("description", equalTo(Optional.empty()))
+        );
+    }
+
+
+    @Test
+    void is_async() {
+        for (val trueString : generateTrueStrings()) {
+            val builder = SpecSpan.builder().spanId("0");
+            SpecSpanTag.IS_ASYNC.processTagsIntoBuilder(
+                singletonMap(SpecSpanTag.IS_ASYNC.getTagName(), trueString),
+                builder
+            );
+
+            assertThat(
+                "True string: \"" + trueString + "\"",
+                builder.build(),
+                hasProperty("async", equalTo(true))
+            );
+        }
+    }
+
+    @Test
+    void is_async_null() {
+        val builder = SpecSpan.builder().spanId("0");
+        SpecSpanTag.IS_ASYNC.processTagsIntoBuilder(
+            singletonMap(SpecSpanTag.IS_ASYNC.getTagName(), null),
+            builder
+        );
+
+        assertThat(
+            builder.build(),
+            hasProperty("async", equalTo(false))
+        );
+    }
+
+    @Test
+    void is_async_empty() {
+        val builder = SpecSpan.builder().spanId("0");
+        SpecSpanTag.IS_ASYNC.processTagsIntoBuilder(
+            singletonMap(SpecSpanTag.IS_ASYNC.getTagName(), ""),
+            builder
+        );
+
+        assertThat(
+            builder.build(),
+            hasProperty("async", equalTo(false))
+        );
+    }
+
+
+    private static List<String> generateTrueStrings() {
+        return asList(
+            "1",
+            "true",
+            "TRUE"
+        );
     }
 
 }

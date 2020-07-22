@@ -16,14 +16,16 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
+import static name.remal.tracingspec.model.SpecSpanTag.processAllTagsIntoBuilder;
 import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerId;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
-import name.remal.tracingspec.model.SpecSpanKey;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRefType;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.ValueType;
@@ -36,11 +38,8 @@ interface JaegerSpanConverter {
     static SpecSpan convertJaegerSpanToSpecSpan(Span jaegerSpan) {
         val builder = SpecSpan.builder();
 
-        val spanKey = SpecSpanKey.builder()
-            .traceId(decodeJaegerId(jaegerSpan.getTraceId().toByteArray()))
-            .spanId(decodeJaegerId(jaegerSpan.getSpanId().toByteArray()))
-            .build();
-        builder.spanKey(spanKey);
+        val spanId = decodeJaegerId(jaegerSpan.getSpanId().toByteArray());
+        builder.spanId(spanId);
 
         Optional.ofNullable(jaegerSpan.getOperationName())
             .filter(it -> !it.isEmpty())
@@ -68,6 +67,7 @@ interface JaegerSpanConverter {
             ));
         }
 
+        Map<String, Object> tags = new HashMap<>();
         jaegerSpan.getTagsList().forEach(tag -> {
             val tagKey = tag.getKey();
 
@@ -86,31 +86,29 @@ interface JaegerSpanConverter {
             } else {
                 LogManager.getLogger(JaegerSpanConverter.class).warn(
                     "Span {}: Unsupported value type for tag {}: {}",
-                    spanKey,
+                    spanId,
                     tagKey,
                     valueType
                 );
                 return;
             }
 
-            builder.putTag(tagKey, tagValue);
+            tags.put(tagKey, tagValue);
         });
+        processAllTagsIntoBuilder(tags, builder);
 
         jaegerSpan.getReferencesList().forEach(ref -> {
-            val refSpanKey = SpecSpanKey.builder()
-                .traceId(decodeJaegerId(ref.getTraceId().toByteArray()))
-                .spanId(decodeJaegerId(ref.getSpanId().toByteArray()))
-                .build();
+            val refSpanId = decodeJaegerId(ref.getSpanId().toByteArray());
 
             val refType = ref.getRefType();
             if (refType == SpanRefType.CHILD_OF) {
-                builder.parentSpanKey(refSpanKey);
+                builder.parentSpanId(refSpanId);
             } else if (refType == SpanRefType.FOLLOWS_FROM) {
-                builder.leadingSpanKey(refSpanKey);
+                builder.leadingSpanId(refSpanId);
             } else {
                 LogManager.getLogger(JaegerSpanConverter.class).warn(
                     "Span {}: Unsupported ref type: {}",
-                    spanKey,
+                    spanId,
                     refType
                 );
             }

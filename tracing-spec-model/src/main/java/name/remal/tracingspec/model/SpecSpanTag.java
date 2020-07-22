@@ -16,16 +16,52 @@
 
 package name.remal.tracingspec.model;
 
+import java.util.Map;
+import java.util.function.BiConsumer;
+import lombok.val;
+import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
+
 public enum SpecSpanTag {
 
-    DESCRIPTION,
-    IS_ASYNC,
+    DESCRIPTION(SpecSpanBuilder::description),
+    IS_ASYNC(booleanSetter(SpecSpanBuilder::async)),
     ;
+
+    private final BiConsumer<SpecSpanBuilder, String> setter;
+
+    SpecSpanTag(BiConsumer<SpecSpanBuilder, String> setter) {
+        this.setter = setter;
+    }
+
 
     private final String tagName = "spec." + this.name().toLowerCase().replace('_', '-');
 
     public String getTagName() {
         return tagName;
+    }
+
+
+    public void processTagsIntoBuilder(Map<String, ?> tagsMap, SpecSpanBuilder builder) {
+        val valueObject = tagsMap.get(getTagName());
+        if (valueObject != null) {
+            val value = valueObject.toString();
+            if (!value.isEmpty()) {
+                setter.accept(builder, value);
+            }
+        }
+    }
+
+    public static void processAllTagsIntoBuilder(Map<String, ?> tagsMap, SpecSpanBuilder builder) {
+        for (val tag : values()) {
+            tag.processTagsIntoBuilder(tagsMap, builder);
+        }
+    }
+
+    private static BiConsumer<SpecSpanBuilder, String> booleanSetter(BiConsumer<SpecSpanBuilder, Boolean> setter) {
+        return (builder, value) -> {
+            val booleanValue = "1".equals(value) || "true".equalsIgnoreCase(value);
+            setter.accept(builder, booleanValue);
+        };
     }
 
 }

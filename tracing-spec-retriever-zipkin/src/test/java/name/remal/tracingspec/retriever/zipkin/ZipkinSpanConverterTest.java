@@ -24,13 +24,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static utils.test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
-import com.google.common.collect.ImmutableMap;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Optional;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpanKey;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
 import org.junit.jupiter.api.Test;
@@ -39,37 +37,26 @@ import org.junit.jupiter.api.Test;
 class ZipkinSpanConverterTest {
 
     @Test
-    void spanKey() {
+    void spanId() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder()
-                    .traceId("trace")
-                    .id("id")
+                    .id("35124234")
                     .build()
             ),
-            hasProperty("spanKey", equalTo(SpecSpanKey.builder()
-                .traceId("trace")
-                .spanId("id")
-                .build()
-            ))
+            hasProperty("spanId", equalTo("35124234"))
         );
     }
 
     @Test
-    void parentSpanKey() {
+    void parentSpanId() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder()
-                    .traceId("trace")
-                    .id("id")
-                    .parentId("parentId")
+                ZipkinSpan.builder().id("0")
+                    .parentId("4213435656")
                     .build()
             ),
-            hasProperty("parentSpanKey", equalTo(Optional.of(SpecSpanKey.builder()
-                .traceId("trace")
-                .spanId("parentId")
-                .build()
-            )))
+            hasProperty("parentSpanId", equalTo(Optional.of("4213435656")))
         );
     }
 
@@ -77,7 +64,7 @@ class ZipkinSpanConverterTest {
     void name() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().traceId("0").id("0")
+                ZipkinSpan.builder().id("0")
                     .name("test name")
                     .build()
             ),
@@ -89,7 +76,7 @@ class ZipkinSpanConverterTest {
     void serviceName_only_remoteEndpoint() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().traceId("0").id("0")
+                ZipkinSpan.builder().id("0")
                     .remoteEndpoint(ZipkinSpanEndpoint.builder()
                         .serviceName("remote service")
                         .build()
@@ -104,7 +91,7 @@ class ZipkinSpanConverterTest {
     void serviceName_only_localEndpoint() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().traceId("0").id("0")
+                ZipkinSpan.builder().id("0")
                     .localEndpoint(ZipkinSpanEndpoint.builder()
                         .serviceName("local service")
                         .build()
@@ -119,7 +106,7 @@ class ZipkinSpanConverterTest {
     void serviceName_both_endpoints() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().traceId("0").id("0")
+                ZipkinSpan.builder().id("0")
                     .remoteEndpoint(ZipkinSpanEndpoint.builder()
                         .serviceName("remote service")
                         .build()
@@ -139,7 +126,7 @@ class ZipkinSpanConverterTest {
         val now = withMicrosecondsPrecision(Instant.now());
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().traceId("0").id("0")
+                ZipkinSpan.builder().id("0")
                     .timestamp(
                         MICROSECONDS.convert(now.getEpochSecond(), SECONDS)
                             + MICROSECONDS.convert(now.getNano(), NANOSECONDS)
@@ -155,7 +142,7 @@ class ZipkinSpanConverterTest {
         val duration = withMicrosecondsPrecision(Duration.between(LocalTime.MIDNIGHT, LocalTime.now()));
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().traceId("0").id("0")
+                ZipkinSpan.builder().id("0")
                     .duration(
                         MICROSECONDS.convert(duration.getSeconds(), SECONDS)
                             + MICROSECONDS.convert(duration.getNano(), NANOSECONDS)
@@ -167,15 +154,43 @@ class ZipkinSpanConverterTest {
     }
 
     @Test
-    void tags() {
-        val tags = ImmutableMap.of("tag", "value");
+    void description() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().traceId("0").id("0")
-                    .tags(tags)
+                ZipkinSpan.builder().id("0")
+                    .putTag("spec.description", "some text")
                     .build()
             ),
-            hasProperty("tags", equalTo(tags))
+            hasProperty("description", equalTo(Optional.of("some text")))
+        );
+    }
+
+    @Test
+    void async() {
+        assertThat(
+            ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
+                ZipkinSpan.builder().id("0")
+                    .build()
+            ),
+            hasProperty("async", equalTo(false))
+        );
+
+        assertThat(
+            ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
+                ZipkinSpan.builder().id("0")
+                    .putTag("spec.is-async", "1")
+                    .build()
+            ),
+            hasProperty("async", equalTo(true))
+        );
+
+        assertThat(
+            ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
+                ZipkinSpan.builder().id("0")
+                    .putTag("spec.is-async", "TrUe")
+                    .build()
+            ),
+            hasProperty("async", equalTo(true))
         );
     }
 
