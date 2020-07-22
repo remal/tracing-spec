@@ -98,7 +98,7 @@ class SpecSpanAdviceTest {
 
         assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
 
-        verify(span, times(1)).tag("spec.is-async", "true");
+        verify(span, times(1)).tag("spec.is-async", "1");
         verifyNoMoreInteractions(span);
     }
 
