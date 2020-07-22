@@ -55,7 +55,7 @@ class JaegerSpanConverterTest {
     void parentSpanId() {
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
+                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                     .addAllReferences(singletonList(
                         SpanRef.newBuilder()
                             .setRefType(SpanRefType.CHILD_OF)
@@ -72,7 +72,7 @@ class JaegerSpanConverterTest {
     void leadingSpanId() {
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
+                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                     .addAllReferences(singletonList(
                         SpanRef.newBuilder()
                             .setRefType(SpanRefType.FOLLOWS_FROM)
@@ -89,7 +89,9 @@ class JaegerSpanConverterTest {
     void name() {
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().setOperationName("test name").build()
+                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
+                    .setOperationName("test name")
+                    .build()
             ),
             hasProperty("name", equalTo(Optional.of("test name")))
         );
@@ -99,7 +101,7 @@ class JaegerSpanConverterTest {
     void serviceName() {
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
+                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                     .setProcess(Process.newBuilder()
                         .setServiceName("test name")
                     )
@@ -114,7 +116,7 @@ class JaegerSpanConverterTest {
         val now = withMicrosecondsPrecision(Instant.now());
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
+                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                     .setStartTime(com.google.protobuf.Timestamp.newBuilder()
                         .setSeconds(now.getEpochSecond())
                         .setNanos(now.getNano())
@@ -130,7 +132,7 @@ class JaegerSpanConverterTest {
         val duration = withMicrosecondsPrecision(Duration.between(LocalTime.MIDNIGHT, LocalTime.now()));
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder()
+                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                     .setDuration(com.google.protobuf.Duration.newBuilder()
                         .setSeconds(duration.getSeconds())
                         .setNanos(duration.getNano())
@@ -171,7 +173,7 @@ class JaegerSpanConverterTest {
             assertThat(
                 "Value type " + valueType,
                 JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                    Span.newBuilder()
+                    Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                         .addTags(
                             KeyValue.newBuilder(baseTag).setKey("spec.description").setVType(valueType).build()
                         )
@@ -212,7 +214,7 @@ class JaegerSpanConverterTest {
             assertThat(
                 "Value type " + valueType,
                 JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                    Span.newBuilder()
+                    Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                         .addTags(
                             KeyValue.newBuilder(baseTag).setKey("spec.is-async").setVType(valueType).build()
                         )
