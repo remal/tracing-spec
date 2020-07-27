@@ -6,7 +6,7 @@ String jacocoVersion = '0.8.5'
 dependencies {
     constraints {
         // BOMs:
-        api 'org.springframework.boot:spring-boot-dependencies:2.3.1.RELEASE'
+        api 'org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE'
         api 'org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.3.RELEASE'
         api 'io.grpc:grpc-bom:1.30.2'
         api 'com.google.protobuf:protobuf-bom:3.12.2'
