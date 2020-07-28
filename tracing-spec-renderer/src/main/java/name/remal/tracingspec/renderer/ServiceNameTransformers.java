@@ -22,8 +22,9 @@ public interface ServiceNameTransformers {
 
     static ServiceNameTransformer removeServiceNamePrefixes(String... prefixes) {
         if (prefixes.length == 0) {
-            throw new IllegalArgumentException("prefixes must not be empty");
+            return serviceName -> serviceName;
         }
+
         for (int i = 0; i < prefixes.length; ++i) {
             val prefix = prefixes[i];
             if (prefix == null || prefix.isEmpty()) {
@@ -48,8 +49,9 @@ public interface ServiceNameTransformers {
 
     static ServiceNameTransformer removeServiceNameSuffixes(String... suffixes) {
         if (suffixes.length == 0) {
-            throw new IllegalArgumentException("suffixes must not be empty");
+            return serviceName -> serviceName;
         }
+
         for (int i = 0; i < suffixes.length; ++i) {
             val suffix = suffixes[i];
             if (suffix == null || suffix.isEmpty()) {

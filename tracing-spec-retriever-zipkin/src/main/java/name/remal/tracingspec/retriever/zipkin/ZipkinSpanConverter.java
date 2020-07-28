@@ -20,7 +20,6 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static name.remal.tracingspec.model.SpecSpanTag.processAllTagsIntoBuilder;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.val;
@@ -48,13 +47,6 @@ interface ZipkinSpanConverter {
             builder.startedAt(Instant.ofEpochSecond(
                 0,
                 NANOSECONDS.convert(timestamp, MICROSECONDS)
-            ))
-        );
-
-        zipkinSpan.getDuration().ifPresent(duration ->
-            builder.duration(Duration.ofSeconds(
-                0,
-                NANOSECONDS.convert(duration, MICROSECONDS)
             ))
         );
 

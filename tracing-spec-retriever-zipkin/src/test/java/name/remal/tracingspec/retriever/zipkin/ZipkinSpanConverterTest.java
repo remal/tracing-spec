@@ -24,9 +24,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static utils.test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalTime;
 import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
@@ -134,22 +132,6 @@ class ZipkinSpanConverterTest {
                     .build()
             ),
             hasProperty("startedAt", equalTo(Optional.of(now)))
-        );
-    }
-
-    @Test
-    void duration() {
-        val duration = withMicrosecondsPrecision(Duration.between(LocalTime.MIDNIGHT, LocalTime.now()));
-        assertThat(
-            ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().id("0")
-                    .duration(
-                        MICROSECONDS.convert(duration.getSeconds(), SECONDS)
-                            + MICROSECONDS.convert(duration.getNano(), NANOSECONDS)
-                    )
-                    .build()
-            ),
-            hasProperty("duration", equalTo(Optional.of(duration)))
         );
     }
 

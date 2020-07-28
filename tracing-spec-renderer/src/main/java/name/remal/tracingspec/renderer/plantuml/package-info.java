@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.renderer;
+@NonNullByDefault
+package name.remal.tracingspec.renderer.plantuml;
 
-public interface SpecSpansFilters {
-
-    static SpecSpansFilter specSpansWithName() {
-        return specSpan -> specSpan.getName().isPresent();
-    }
-
-    static SpecSpansFilter specSpansWithServiceName() {
-        return specSpan -> specSpan.getServiceName().isPresent();
-    }
-
-    static SpecSpansFilter specSpansWithDescription() {
-        return specSpan -> specSpan.getDescription().isPresent();
-    }
-
-}
+import name.remal.tracingspec.model.internal.NonNullByDefault;

@@ -20,25 +20,12 @@ import java.util.List;
 import javax.annotation.Nullable;
 import name.remal.tracingspec.model.SpecSpan;
 
-public class TracingSpecPlantumlRenderer {
+public interface TracingSpecRenderer<Result> {
 
-    @Nullable
-    private ServiceNameTransformer serviceNameTransformer;
+    void setServiceNameTransformer(@Nullable ServiceNameTransformer serviceNameTransformer);
 
-    public void setServiceNameTransformer(@Nullable ServiceNameTransformer serviceNameTransformer) {
-        this.serviceNameTransformer = serviceNameTransformer;
-    }
+    void setSpecSpansFilter(@Nullable SpecSpansFilter specSpansFilter);
 
-    @Nullable
-    private SpecSpansFilter specSpansFilter;
-
-    public void setSpecSpansFilter(@Nullable SpecSpansFilter specSpansFilter) {
-        this.specSpansFilter = specSpansFilter;
-    }
-
-
-    public String renderTracingSpec(List<SpecSpan> specSpans) {
-        throw new UnsupportedOperationException();
-    }
+    Result renderTracingSpec(List<SpecSpan> specSpans);
 
 }

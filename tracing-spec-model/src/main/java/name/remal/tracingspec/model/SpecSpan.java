@@ -20,7 +20,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
@@ -42,21 +41,21 @@ public interface SpecSpan {
 
     Optional<String> getParentSpanId();
 
-    Optional<String> getLeadingSpanId();
-
     Optional<String> getName();
 
     Optional<String> getServiceName();
 
     Optional<Instant> getStartedAt();
 
-    Optional<Duration> getDuration();
-
     Optional<String> getDescription();
 
     @Default
     default boolean isAsync() {
         return false;
+    }
+
+    default boolean isSync() {
+        return !isAsync();
     }
 
 
@@ -69,11 +68,6 @@ public interface SpecSpan {
         getParentSpanId().ifPresent(parentSpanId -> {
             if (parentSpanId.isEmpty()) {
                 throw new IllegalStateException("parentSpanId must not be empty");
-            }
-        });
-        getLeadingSpanId().ifPresent(leadingSpanId -> {
-            if (leadingSpanId.isEmpty()) {
-                throw new IllegalStateException("leadingSpanId must not be empty");
             }
         });
         getName().ifPresent(name -> {

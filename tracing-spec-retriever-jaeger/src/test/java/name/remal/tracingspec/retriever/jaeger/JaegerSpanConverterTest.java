@@ -23,9 +23,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static utils.test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
 import com.google.protobuf.ByteString;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalTime;
 import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.KeyValue;
@@ -69,23 +67,6 @@ class JaegerSpanConverterTest {
     }
 
     @Test
-    void leadingSpanId() {
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
-                    .addAllReferences(singletonList(
-                        SpanRef.newBuilder()
-                            .setRefType(SpanRefType.FOLLOWS_FROM)
-                            .setSpanId(ByteString.copyFrom(new byte[]{1, -1, 9}))
-                            .build()
-                    ))
-                    .build()
-            ),
-            hasProperty("leadingSpanId", equalTo(Optional.of("1ff09")))
-        );
-    }
-
-    @Test
     void name() {
         assertThat(
             JaegerSpanConverter.convertJaegerSpanToSpecSpan(
@@ -124,22 +105,6 @@ class JaegerSpanConverterTest {
                     .build()
             ),
             hasProperty("startedAt", equalTo(Optional.of(now)))
-        );
-    }
-
-    @Test
-    void duration() {
-        val duration = withMicrosecondsPrecision(Duration.between(LocalTime.MIDNIGHT, LocalTime.now()));
-        assertThat(
-            JaegerSpanConverter.convertJaegerSpanToSpecSpan(
-                Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
-                    .setDuration(com.google.protobuf.Duration.newBuilder()
-                        .setSeconds(duration.getSeconds())
-                        .setNanos(duration.getNano())
-                    )
-                    .build()
-            ),
-            hasProperty("duration", equalTo(Optional.of(duration)))
         );
     }
 

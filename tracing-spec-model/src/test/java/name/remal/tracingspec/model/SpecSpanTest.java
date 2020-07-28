@@ -59,13 +59,6 @@ class SpecSpanTest {
         }
 
         @Test
-        void leadingSpanId_cannot_be_empty() {
-            val builder = SpecSpan.builder().spanId("0")
-                .leadingSpanId("");
-            assertThrows(IllegalStateException.class, builder::build);
-        }
-
-        @Test
         void name_cannot_be_empty() {
             val builder = SpecSpan.builder().spanId("0")
                 .name("");

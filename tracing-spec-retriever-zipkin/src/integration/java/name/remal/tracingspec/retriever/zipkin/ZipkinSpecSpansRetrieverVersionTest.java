@@ -124,10 +124,6 @@ class ZipkinSpecSpansRetrieverVersionTest {
                     0,
                     NANOSECONDS.convert(start, MICROSECONDS)
                 ))
-                .duration(Duration.ofSeconds(
-                    0,
-                    NANOSECONDS.convert(11, MICROSECONDS)
-                ))
                 .build(),
 
             SpecSpan.builder()
@@ -138,10 +134,6 @@ class ZipkinSpecSpansRetrieverVersionTest {
                 .startedAt(Instant.ofEpochSecond(
                     0,
                     NANOSECONDS.convert(start + 5, MICROSECONDS)
-                ))
-                .duration(Duration.ofSeconds(
-                    0,
-                    NANOSECONDS.convert(3, MICROSECONDS)
                 ))
                 .description("some text")
                 .async(true)

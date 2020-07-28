@@ -44,6 +44,24 @@ class SpecSpansFiltersTest {
     }
 
     @Test
+    void specSpansWithServiceName() throws Throwable {
+        val filter = SpecSpansFilters.specSpansWithServiceName();
+        assertThat(
+            filter.test(SpecSpan.builder().spanId("0")
+                .serviceName("string")
+                .build()
+            ),
+            equalTo(true)
+        );
+        assertThat(
+            filter.test(SpecSpan.builder().spanId("0")
+                .build()
+            ),
+            equalTo(false)
+        );
+    }
+
+    @Test
     void specSpansWithDescription() throws Throwable {
         val filter = SpecSpansFilters.specSpansWithDescription();
         assertThat(

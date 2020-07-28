@@ -25,7 +25,7 @@ import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 
 public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
 
-    public static final String IMAGE = System.getProperty("zipkin-image", "openzipkin/zipkin");
+    public static final String IMAGE = System.getProperty("zipkin-image", "openzipkin/zipkin-slim");
     public static final String DEFAULT_TAG = System.getProperty("zipkin-image-tag", "latest");
 
     public static final int ZIPKIN_PORT = 9411;

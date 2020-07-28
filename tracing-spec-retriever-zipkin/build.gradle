@@ -29,7 +29,16 @@ Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") 
     tasks.runAllTests.dependsOn(it)
 }
 
-dockerImages.getAllTags('openzipkin/zipkin').forEach { String tagName ->
+Map<String, String> dockerTagImages = [:]
+[
+    'openzipkin/zipkin-slim',
+    'openzipkin/zipkin',
+].forEach { imageName ->
+    dockerImages.getAllTags(imageName).forEach { String tagName ->
+        dockerTagImages.putIfAbsent(tagName, imageName)
+    }
+}
+dockerTagImages.forEach { String tagName, String imageName ->
     Version version = Version.parseOrNull(tagName)
     // Only versions of <major>.<minor> format
     if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
@@ -40,6 +49,7 @@ dockerImages.getAllTags('openzipkin/zipkin').forEach { String tagName ->
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
 
+        systemProperty('zipkin-image', imageName)
         systemProperty('zipkin-image-tag', tagName)
 
         Test baseTestTask = tasks[baseVersionTestTaskName]

@@ -19,7 +19,6 @@ package name.remal.tracingspec.retriever.jaeger;
 import static name.remal.tracingspec.model.SpecSpanTag.processAllTagsIntoBuilder;
 import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerId;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,14 +58,6 @@ interface JaegerSpanConverter {
             ));
         }
 
-        if (jaegerSpan.hasDuration()) {
-            val duration = jaegerSpan.getDuration();
-            builder.duration(Duration.ofSeconds(
-                duration.getSeconds(),
-                duration.getNanos()
-            ));
-        }
-
         Map<String, Object> tags = new HashMap<>();
         jaegerSpan.getTagsList().forEach(tag -> {
             val tagKey = tag.getKey();
@@ -103,8 +94,6 @@ interface JaegerSpanConverter {
             val refType = ref.getRefType();
             if (refType == SpanRefType.CHILD_OF) {
                 builder.parentSpanId(refSpanId);
-            } else if (refType == SpanRefType.FOLLOWS_FROM) {
-                builder.leadingSpanId(refSpanId);
             } else {
                 LogManager.getLogger(JaegerSpanConverter.class).warn(
                     "Span {}: Unsupported ref type: {}",

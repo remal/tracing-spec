@@ -32,8 +32,7 @@ class ServiceNameTransformersTest {
     }
 
     @Test
-    void removeServiceNamePrefixes_empty() {
-        assertThrows(IllegalArgumentException.class, ServiceNameTransformers::removeServiceNamePrefixes);
+    void removeServiceNamePrefixes_empty_element() {
         assertThrows(IllegalArgumentException.class, () ->
             ServiceNameTransformers.removeServiceNamePrefixes("")
         );
@@ -50,8 +49,7 @@ class ServiceNameTransformersTest {
     }
 
     @Test
-    void removeServiceNameSuffixes_empty() {
-        assertThrows(IllegalArgumentException.class, ServiceNameTransformers::removeServiceNameSuffixes);
+    void removeServiceNameSuffixes_empty_element() {
         assertThrows(IllegalArgumentException.class, () ->
             ServiceNameTransformers.removeServiceNameSuffixes("")
         );

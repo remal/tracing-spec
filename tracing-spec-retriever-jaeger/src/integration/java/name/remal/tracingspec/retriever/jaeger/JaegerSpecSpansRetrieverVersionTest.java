@@ -112,10 +112,6 @@ class JaegerSpecSpansRetrieverVersionTest {
                     0,
                     NANOSECONDS.convert(rootSpan.getStart(), MICROSECONDS)
                 ))
-                .duration(Duration.ofSeconds(
-                    0,
-                    NANOSECONDS.convert(rootSpan.getDuration(), MICROSECONDS)
-                ))
                 .build(),
 
             SpecSpan.builder()
@@ -126,10 +122,6 @@ class JaegerSpecSpansRetrieverVersionTest {
                 .startedAt(Instant.ofEpochSecond(
                     0,
                     NANOSECONDS.convert(childSpan.getStart(), MICROSECONDS)
-                ))
-                .duration(Duration.ofSeconds(
-                    0,
-                    NANOSECONDS.convert(childSpan.getDuration(), MICROSECONDS)
                 ))
                 .description("some text")
                 .async(true)

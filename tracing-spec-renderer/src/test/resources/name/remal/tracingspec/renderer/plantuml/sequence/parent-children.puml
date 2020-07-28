@@ -1,0 +1,11 @@
+@startuml
+[-> service: parent
+activate service
+service -> service: child1
+activate service
+deactivate service
+service -> service: child2
+activate service
+deactivate service
+return
+@enduml
