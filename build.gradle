@@ -468,7 +468,7 @@ forBuildOnLocal {
     repositories { gradlePluginPortal() }
     dependencies { runtimeOnly gradleApi() }
 
-    dependencies { runtimeOnly "name.remal:gradle-plugins" }
+    dependencies { runtimeOnly 'name.remal:gradle-plugins' }
 }
 //*/
 

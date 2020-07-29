@@ -42,3 +42,16 @@ dependencies {
 }
 
 configurations.runtime.dependencyConstraints.addAll(configurations.api.dependencyConstraints)
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+if (gradle.startParameter.taskNames.contains('renovate')) {
+    Configuration configuration = configurations.create('constraintDependencies')
+    configurations.collect { it.dependencyConstraints }
+        .flatten()
+        .findAll { it.version != null && !it.version.isEmpty() }
+        .collect { "${it.group}:${it.name}:${it.version}" }
+        .unique()
+        .collect { project.dependencies.create(it) }
+        .forEach { configuration.dependencies.add(it) }
+}
