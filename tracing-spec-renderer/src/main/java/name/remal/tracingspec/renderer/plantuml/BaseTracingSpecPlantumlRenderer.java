@@ -16,7 +16,6 @@
 
 package name.remal.tracingspec.renderer.plantuml;
 
-import static java.lang.String.format;
 import static java.util.Arrays.binarySearch;
 import static java.util.Arrays.sort;
 
@@ -33,8 +32,12 @@ public abstract class BaseTracingSpecPlantumlRenderer extends BaseTracingSpecRen
         '/',
         '-',
         '_',
-        '~'
-    };
+        '~',
+        '=',
+        '#',
+        '|',
+        '&',
+        };
 
     static {
         sort(CHARACTERS_TO_ESCAPE_WITH_CODEPOINT);
@@ -52,7 +55,7 @@ public abstract class BaseTracingSpecPlantumlRenderer extends BaseTracingSpecRen
                 sb.append("\\t");
 
             } else if (binarySearch(CHARACTERS_TO_ESCAPE_WITH_CODEPOINT, ch) >= 0) {
-                sb.append("<U+").append(format("%04X", (int) ch)).append('>');
+                sb.append("&#").append((int) ch).append(';');
 
             } else {
                 sb.append(ch);

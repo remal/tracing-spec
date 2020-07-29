@@ -16,7 +16,6 @@
 
 package name.remal.tracingspec.renderer.plantuml;
 
-import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -33,8 +32,12 @@ class BaseTracingSpecPlantumlRendererTest {
         '/',
         '-',
         '_',
-        '~'
-    };
+        '~',
+        '=',
+        '#',
+        '|',
+        '&',
+        };
 
     @Nested
     class EscapeString {
@@ -66,7 +69,7 @@ class BaseTracingSpecPlantumlRendererTest {
                 assertThat(
                     "Character: '" + ch + '\'',
                     BaseTracingSpecPlantumlRenderer.escapeString(ch + ""),
-                    equalTo("<U+" + format("%04X", (int) ch) + '>')
+                    equalTo("&#" + ((int) ch) + ';')
                 );
             }
         }
@@ -103,7 +106,7 @@ class BaseTracingSpecPlantumlRendererTest {
                 assertThat(
                     "Character: '" + ch + '\'',
                     BaseTracingSpecPlantumlRenderer.quoteString(ch + ""),
-                    equalTo("\"<U+" + format("%04X", (int) ch) + ">\"")
+                    equalTo("\"&#" + ((int) ch) + ";\"")
                 );
             }
         }
