@@ -125,6 +125,21 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
         one_simple_span(normalizeResult(result));
     }
 
+
+    protected abstract void one_simple_span_with_description(Result result);
+
+    @Test
+    final void one_simple_span_with_description() {
+        Result result = renderer.renderTracingSpec(singletonList(
+            nextSpecSpanBuilder()
+                .name("name")
+                .serviceName("service")
+                .description("description")
+                .build()
+        ));
+        one_simple_span_with_description(normalizeResult(result));
+    }
+
     @Test
     final void one_simple_span_with_service_name_transformation() {
         renderer.setServiceNameTransformer(String::trim);

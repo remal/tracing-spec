@@ -1,0 +1,6 @@
+@startuml
+[-> service: name
+note right: description
+activate service
+return
+@enduml

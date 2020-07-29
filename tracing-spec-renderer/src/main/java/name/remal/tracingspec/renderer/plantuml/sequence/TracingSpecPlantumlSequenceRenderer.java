@@ -58,6 +58,9 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
                 quoteString(serviceName),
                 escapeString(span.getName())
             ));
+            span.getDescription().ifPresent(description ->
+                diagram.add(format("note right: %s", escapeString(description)))
+            );
             diagram.add(format("activate %s", quoteString(serviceName)));
 
             renderFilteredTracingSpecChildren(

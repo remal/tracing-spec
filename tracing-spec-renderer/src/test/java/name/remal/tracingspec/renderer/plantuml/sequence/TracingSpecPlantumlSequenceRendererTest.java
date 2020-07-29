@@ -31,6 +31,11 @@ class TracingSpecPlantumlSequenceRendererTest
     }
 
     @Override
+    protected void one_simple_span_with_description(String result) {
+        assertThat(result, equalTo(readPlantumlDiagramResource("one-simple-span-with-description.puml")));
+    }
+
+    @Override
     protected void two_parents(String result) {
         assertThat(result, equalTo(readPlantumlDiagramResource("two-parents.puml")));
     }
