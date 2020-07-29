@@ -27,8 +27,12 @@
       ],
     },
     {
+      "packageNames": ["com.google.guava:guava"],
+      "allowedVersions": "/^\\d+(\\.\\d+)+-jre$/",
+    },
+    {
       "packageNames": ["net.sourceforge.plantuml:plantuml"],
-      "allowedVersions": "/^[0-9]+\\.[0-9]+\\.[0-9]+(\\.[0-9]+)*$/"
+      "allowedVersions": "/^\\d+\\.\\d+(\\.\\d+)+$/",
     },
   ],
   "git-submodules": {
