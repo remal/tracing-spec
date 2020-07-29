@@ -468,11 +468,7 @@ forBuildOnLocal {
     repositories { gradlePluginPortal() }
     dependencies { runtimeOnly gradleApi() }
 
-    String remalGradlePluginsVersion = buildscript.configurations.classpath.dependencies
-        .findAll { it.group == 'name.remal' && it.name == 'gradle-plugins' }
-        .last()
-        .version
-    //dependencies { runtimeOnly "name.remal:gradle-plugins:$remalGradlePluginsVersion" }
+    dependencies { runtimeOnly "name.remal:gradle-plugins" }
 }
 //*/
 

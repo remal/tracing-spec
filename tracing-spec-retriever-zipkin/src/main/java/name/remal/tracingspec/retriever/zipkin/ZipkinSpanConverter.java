@@ -18,13 +18,12 @@ package name.remal.tracingspec.retriever.zipkin;
 
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static name.remal.tracingspec.model.SpecSpanTag.processAllTagsIntoBuilder;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
-import name.remal.tracingspec.model.SpecSpanKey;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -35,19 +34,9 @@ interface ZipkinSpanConverter {
     static SpecSpan convertZipkinSpanToSpecSpan(ZipkinSpan zipkinSpan) {
         val builder = SpecSpan.builder();
 
-        builder.spanKey(SpecSpanKey.builder()
-            .traceId(zipkinSpan.getTraceId())
-            .spanId(zipkinSpan.getId())
-            .build()
-        );
+        builder.spanId(zipkinSpan.getId());
 
-        zipkinSpan.getParentId().ifPresent(parentSpanId ->
-            builder.parentSpanKey(SpecSpanKey.builder()
-                .traceId(zipkinSpan.getTraceId())
-                .spanId(parentSpanId)
-                .build()
-            )
-        );
+        zipkinSpan.getParentId().ifPresent(builder::parentSpanId);
 
         builder.name(zipkinSpan.getName());
 
@@ -61,14 +50,7 @@ interface ZipkinSpanConverter {
             ))
         );
 
-        zipkinSpan.getDuration().ifPresent(duration ->
-            builder.duration(Duration.ofSeconds(
-                0,
-                NANOSECONDS.convert(duration, MICROSECONDS)
-            ))
-        );
-
-        builder.tags(zipkinSpan.getTags());
+        processAllTagsIntoBuilder(zipkinSpan.getTags(), builder);
 
         return builder.build();
     }

@@ -14,27 +14,18 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.model;
+package name.remal.tracingspec.renderer;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
+import java.util.List;
+import javax.annotation.Nullable;
+import name.remal.tracingspec.model.SpecSpan;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import name.remal.tracingspec.model.ImmutableSpecSpanKey.SpecSpanKeyBuilder;
-import org.immutables.value.Value;
+public interface TracingSpecRenderer<Result> {
 
-@Value.Immutable
-@JsonDeserialize(builder = SpecSpanKeyBuilder.class)
-@JsonInclude(NON_ABSENT)
-public interface SpecSpanKey {
+    void setServiceNameTransformer(@Nullable ServiceNameTransformer serviceNameTransformer);
 
-    static SpecSpanKeyBuilder builder() {
-        return ImmutableSpecSpanKey.builder();
-    }
+    void setSpecSpansFilter(@Nullable SpecSpansFilter specSpansFilter);
 
-
-    String getTraceId();
-
-    String getSpanId();
+    Result renderTracingSpec(List<SpecSpan> specSpans);
 
 }

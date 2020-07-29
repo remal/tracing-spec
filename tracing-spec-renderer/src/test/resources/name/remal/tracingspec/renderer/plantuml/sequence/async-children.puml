@@ -1,0 +1,11 @@
+@startuml
+[-> "service A": root
+activate "service A"
+"service A" ->> "service A": inner
+activate "service A"
+deactivate "service A"
+"service A" ->> "service B": child
+activate "service B"
+deactivate "service B"
+return
+@enduml

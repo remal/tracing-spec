@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-@NonNullApi
-@NonNullFields
-package test.container;
+package name.remal.tracingspec.renderer;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+@FunctionalInterface
+public interface ServiceNameTransformer {
+
+    String transform(String serviceName) throws Throwable;
+
+
+    default ServiceNameTransformer then(ServiceNameTransformer other) {
+        return serviceName -> {
+            serviceName = transform(serviceName);
+            serviceName = other.transform(serviceName);
+            return serviceName;
+        };
+    }
+
+}

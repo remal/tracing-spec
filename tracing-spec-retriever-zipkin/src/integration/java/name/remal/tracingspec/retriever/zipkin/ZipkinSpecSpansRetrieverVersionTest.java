@@ -22,11 +22,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.testcontainers.images.PullPolicy.ageBased;
 
@@ -36,14 +32,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
-import name.remal.tracingspec.model.SpecSpanKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import test.container.ZipkinContainer;
+import utils.test.container.ZipkinContainer;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.brave.ZipkinSpanHandler;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
@@ -104,7 +98,8 @@ class ZipkinSpecSpansRetrieverVersionTest {
             .start(start);
         val childSpan = tracer.newChild(rootSpan.context())
             .name("child")
-            .tag("string-tag", "string")
+            .tag("spec.description", "some text")
+            .tag("spec.is-async", "true")
             .start(start + 5);
         childSpan.finish(start + 8);
         rootSpan.finish(start + 11);
@@ -121,50 +116,28 @@ class ZipkinSpecSpansRetrieverVersionTest {
         );
 
         assertThat(specSpans, containsInAnyOrder(
-            allOf(
-                hasProperty("spanKey", equalTo(SpecSpanKey.builder()
-                    .traceId(traceId)
-                    .spanId(rootSpan.context().spanIdString())
-                    .build()
-                )),
-                hasProperty("name", equalTo(Optional.of("root"))),
-                hasProperty("serviceName", equalTo(Optional.of(SERVICE_NAME))),
-                hasProperty("parentSpanKey", equalTo(Optional.empty())),
-                hasProperty("startedAt", equalTo(Optional.of(Instant.ofEpochSecond(
+            SpecSpan.builder()
+                .spanId(rootSpan.context().spanIdString())
+                .name("root")
+                .serviceName(SERVICE_NAME)
+                .startedAt(Instant.ofEpochSecond(
                     0,
                     NANOSECONDS.convert(start, MICROSECONDS)
-                )))),
-                hasProperty("duration", equalTo(Optional.of(Duration.ofSeconds(
-                    0,
-                    NANOSECONDS.convert(11, MICROSECONDS)
-                ))))
-            ),
+                ))
+                .build(),
 
-            allOf(
-                hasProperty("spanKey", equalTo(SpecSpanKey.builder()
-                    .traceId(traceId)
-                    .spanId(childSpan.context().spanIdString())
-                    .build()
-                )),
-                hasProperty("name", equalTo(Optional.of("child"))),
-                hasProperty("serviceName", equalTo(Optional.of(SERVICE_NAME))),
-                hasProperty("parentSpanKey", equalTo(Optional.of(SpecSpanKey.builder()
-                    .traceId(traceId)
-                    .spanId(rootSpan.context().spanIdString())
-                    .build()
-                ))),
-                hasProperty("startedAt", equalTo(Optional.of(Instant.ofEpochSecond(
+            SpecSpan.builder()
+                .spanId(childSpan.context().spanIdString())
+                .parentSpanId(rootSpan.context().spanIdString())
+                .name("child")
+                .serviceName(SERVICE_NAME)
+                .startedAt(Instant.ofEpochSecond(
                     0,
                     NANOSECONDS.convert(start + 5, MICROSECONDS)
-                )))),
-                hasProperty("duration", equalTo(Optional.of(Duration.ofSeconds(
-                    0,
-                    NANOSECONDS.convert(3, MICROSECONDS)
-                )))),
-                hasProperty("tags", allOf(
-                    hasEntry("string-tag", "string")
                 ))
-            )
+                .description("some text")
+                .async(true)
+                .build()
         ));
     }
 

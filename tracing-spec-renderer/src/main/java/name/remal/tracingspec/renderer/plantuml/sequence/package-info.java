@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
-@NonNullFields
-package test.datetime;
+@NonNullByDefault
+package name.remal.tracingspec.renderer.plantuml.sequence;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import name.remal.tracingspec.model.internal.NonNullByDefault;

@@ -1,0 +1,11 @@
+@startuml
+[-> root: root
+activate root
+root -> parent: parent
+activate parent
+parent -> child: child
+activate child
+return
+return
+return
+@enduml

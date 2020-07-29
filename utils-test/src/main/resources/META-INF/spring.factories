@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration = \
-test.sleuth.TestSleuthAutoConfiguration
+utils.test.sleuth.TestSleuthAutoConfiguration

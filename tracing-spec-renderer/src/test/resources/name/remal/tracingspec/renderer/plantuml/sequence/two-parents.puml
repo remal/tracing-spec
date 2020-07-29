@@ -1,0 +1,8 @@
+@startuml
+[-> service: parent1
+activate service
+return
+[-> service: parent2
+activate service
+return
+@enduml

@@ -44,8 +44,6 @@ public interface ZipkinSpan {
 
     String getId();
 
-    String getTraceId();
-
     Optional<String> getParentId();
 
     Optional<String> getName();

@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.stereotype.Component;
-import test.sleuth.TestSpanHandler;
+import utils.test.sleuth.TestSpanHandler;
 
 @SpringBootTest
 @SpringBootApplication
@@ -68,14 +68,14 @@ class TracingSpecSpringSleuthAutoConfigurationTest {
             assertThat(span, notNullValue());
             assertThat(span.name(), equalTo("inner-async-logic"));
             assertThat(span.tag("spec.description"), equalTo("2.2"));
-            assertThat(span.tag("spec.is-async"), equalTo("true"));
+            assertThat(span.tag("spec.is-async"), equalTo("1"));
         }
         {
             val span = testSpanHandler.get(executionsCounter++);
             assertThat(span, notNullValue());
             assertThat(span.name(), equalTo("async-logic"));
             assertThat(span.tag("spec.description"), equalTo("2.1"));
-            assertThat(span.tag("spec.is-async"), equalTo("true"));
+            assertThat(span.tag("spec.is-async"), equalTo("1"));
         }
     }
 
