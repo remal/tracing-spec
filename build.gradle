@@ -63,17 +63,44 @@ allprojects {
         mavenCentral()
     }
 
-    if (project.path != ':dependency-versions') {
-        dependencies {
-            allResolvable enforcedPlatform(project(':dependency-versions'))
-            allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE')
-            allResolvable platform('org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.3.RELEASE')
-            allResolvable platform('io.grpc:grpc-bom:1.30.2')
-            allResolvable platform('com.google.protobuf:protobuf-bom:3.12.2')
-            allResolvable platform('org.testcontainers:testcontainers-bom:1.14.3')
-            allResolvable platform('io.opentracing:parent:0.33.0')
-            allResolvable platform('io.zipkin.brave:brave-bom:5.12.3')
-            allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.15.0')
+    dependencies {
+        String immutablesVersion = '2.8.8'
+        String jacocoVersion = '0.8.5'
+
+        // BOMs:
+        allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE')
+        allResolvable platform('org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.3.RELEASE')
+        allResolvable platform('io.grpc:grpc-bom:1.30.2')
+        allResolvable platform('com.google.protobuf:protobuf-bom:3.12.2')
+        allResolvable platform('org.testcontainers:testcontainers-bom:1.14.3')
+        allResolvable platform('io.opentracing:parent:0.33.0')
+        allResolvable platform('io.zipkin.brave:brave-bom:5.12.3')
+        allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.15.0')
+
+        constraints {
+            // Static analysis annotations
+            allResolvable 'com.google.code.findbugs:jsr305:3.0.2'
+            allResolvable 'com.google.errorprone:error_prone_annotations:2.4.0'
+            allResolvable 'org.jetbrains:annotations:19.0.0'
+
+            // Annotation processors
+            allResolvable "org.immutables:value:$immutablesVersion"
+            allResolvable "org.immutables:gson:$immutablesVersion"
+
+            // Compile
+            allResolvable 'com.google.guava:guava:29.0-jre'
+            allResolvable 'net.sourceforge.plantuml:plantuml:1.2020.15'
+
+            // Test
+            allResolvable 'org.awaitility:awaitility:4.0.3'
+            allResolvable 'io.jaegertracing:jaeger-thrift:1.3.1'
+
+            // Jacoco
+            allResolvable "org.jacoco:org.jacoco.agent:$jacocoVersion"
+            allResolvable "org.jacoco:org.jacoco.core:$jacocoVersion"
+
+            // Checkstyle
+            allResolvable 'com.puppycrawl.tools:checkstyle:8.35'
         }
     }
 
