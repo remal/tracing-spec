@@ -37,7 +37,7 @@ dependencies {
         api "org.jacoco:org.jacoco.core:$jacocoVersion"
 
         // Checkstyle
-        api 'com.puppycrawl.tools:checkstyle:8.34'
+        api 'com.puppycrawl.tools:checkstyle:8.35'
     }
 }
 
