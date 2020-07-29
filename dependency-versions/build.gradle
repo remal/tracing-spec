@@ -47,6 +47,7 @@ configurations.runtime.dependencyConstraints.addAll(configurations.api.dependenc
 
 if (gradle.startParameter.taskNames.contains('renovate')) {
     Configuration configuration = configurations.create('constraintDependencies')
+    println "Creating ${configuration.name} configuration"
     configurations.collect { it.dependencyConstraints }
         .flatten()
         .findAll { it.version != null && !it.version.isEmpty() }
