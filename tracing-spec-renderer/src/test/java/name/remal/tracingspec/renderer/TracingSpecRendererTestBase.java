@@ -23,11 +23,11 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static utils.test.tracing.SpanIdGenerator.nextSpanId;
 
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
@@ -295,12 +295,6 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     protected static SpecSpanBuilder nextSpecSpanBuilder() {
         return SpecSpan.builder().spanId(nextSpanId());
-    }
-
-    private static final AtomicLong SPAN_IDS = new AtomicLong(0);
-
-    protected static String nextSpanId() {
-        return SPAN_IDS.incrementAndGet() + "";
     }
 
 

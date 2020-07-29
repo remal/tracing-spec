@@ -20,8 +20,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static utils.test.tracing.SpanIdGenerator.nextSpanId;
 
 import lombok.val;
+import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -36,9 +38,33 @@ class SpecSpanTest {
 
     @Test
     void async_is_false_by_default() {
-        val specSpan = SpecSpan.builder().spanId("0")
+        val specSpan = nextSpecSpanBuilder()
             .build();
         assertThat(specSpan.isAsync(), equalTo(false));
+    }
+
+    @Test
+    void isSync() {
+        assertThat(
+            nextSpecSpanBuilder()
+                .build()
+                .isSync(),
+            equalTo(true)
+        );
+        assertThat(
+            nextSpecSpanBuilder()
+                .async(false)
+                .build()
+                .isSync(),
+            equalTo(true)
+        );
+        assertThat(
+            nextSpecSpanBuilder()
+                .async(true)
+                .build()
+                .isSync(),
+            equalTo(false)
+        );
     }
 
     @Nested
@@ -53,32 +79,37 @@ class SpecSpanTest {
 
         @Test
         void parentSpanId_cannot_be_empty() {
-            val builder = SpecSpan.builder().spanId("0")
+            val builder = nextSpecSpanBuilder()
                 .parentSpanId("");
             assertThrows(IllegalStateException.class, builder::build);
         }
 
         @Test
         void name_cannot_be_empty() {
-            val builder = SpecSpan.builder().spanId("0")
+            val builder = nextSpecSpanBuilder()
                 .name("");
             assertThrows(IllegalStateException.class, builder::build);
         }
 
         @Test
         void serviceName_cannot_be_empty() {
-            val builder = SpecSpan.builder().spanId("0")
+            val builder = nextSpecSpanBuilder()
                 .serviceName("");
             assertThrows(IllegalStateException.class, builder::build);
         }
 
         @Test
         void description_cannot_be_empty() {
-            val builder = SpecSpan.builder().spanId("0")
+            val builder = nextSpecSpanBuilder()
                 .description("");
             assertThrows(IllegalStateException.class, builder::build);
         }
 
+    }
+
+
+    private static SpecSpanBuilder nextSpecSpanBuilder() {
+        return SpecSpan.builder().spanId(nextSpanId());
     }
 
 }
