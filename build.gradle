@@ -27,7 +27,7 @@ buildscript {
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.8.1'
     }
     repositories {
-        jcenter()
+        mavenCentral()
         gradlePluginPortal()
     }
 
@@ -60,7 +60,7 @@ allprojects {
     apply plugin: 'name.remal.default-plugins'
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     if (project.path != ':dependency-versions') {

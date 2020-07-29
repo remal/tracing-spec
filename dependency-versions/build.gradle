@@ -12,7 +12,7 @@ dependencies {
         api 'com.google.protobuf:protobuf-bom:3.12.2'
         api 'org.testcontainers:testcontainers-bom:1.14.3'
         api 'io.opentracing:parent:0.33.0'
-        api 'io.zipkin.brave:brave-bom:5.12.4'
+        api 'io.zipkin.brave:brave-bom:5.12.3'
         api 'io.zipkin.reporter2:zipkin-reporter-bom:2.15.0'
 
         // Static analysis annotations
