@@ -83,9 +83,16 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
             .sorted(BaseTracingSpecRenderer::compareByStartedAt)
             .collect(toList());
 
-        Optional<String> prevServiceName = parentSpanServiceName;
+        SpecSpan prevSiblingSpan = null;
         for (val span : siblingSpans) {
             val serviceName = span.getServiceName();
+
+            if (prevSiblingSpan != null) {
+                if (prevSiblingSpan.getServiceName().equals(serviceName)) {
+                    diagram.add("|||");
+                }
+            }
+
             diagram.add(format(
                 "%s -> %s: %s",
                 quoteString(parentSpanServiceName),
@@ -101,15 +108,11 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
                 diagram
             );
 
-            if (serviceName.equals(prevServiceName)) {
-                diagram.add(format("deactivate %s", quoteString(serviceName)));
-            } else {
-                if (span.isSync()) {
-                    diagram.add("return");
-                }
+            if (span.isSync()) {
+                diagram.add("return");
             }
 
-            prevServiceName = serviceName;
+            prevSiblingSpan = span;
         }
     }
 

@@ -3,6 +3,6 @@
 activate service
 service -> service: child
 activate service
-deactivate service
+return
 return
 @enduml
