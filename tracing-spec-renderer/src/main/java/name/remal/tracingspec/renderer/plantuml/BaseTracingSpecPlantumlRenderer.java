@@ -16,6 +16,7 @@
 
 package name.remal.tracingspec.renderer.plantuml;
 
+import static java.lang.Character.isWhitespace;
 import static java.util.Arrays.binarySearch;
 import static java.util.Arrays.sort;
 
@@ -68,13 +69,26 @@ public abstract class BaseTracingSpecPlantumlRenderer extends BaseTracingSpecRen
         return escapeString(optionalString.orElse(""));
     }
 
+
+    private static boolean shouldBeQuoted(String string) {
+        for (int pos = 0; pos < string.length(); ++pos) {
+            val ch = string.charAt(pos);
+            if (ch == ':'
+                || isWhitespace(ch)
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected static String quoteString(String string) {
         if (string.isEmpty()) {
             return "\" \"";
         }
 
         val escapedString = escapeString(string);
-        if (escapedString.equals(string)) {
+        if (escapedString.equals(string) && !shouldBeQuoted(escapedString)) {
             return string;
         } else {
             return '"' + escapedString + '"';

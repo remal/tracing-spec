@@ -53,7 +53,8 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
         for (val span : rootSpans) {
             val serviceName = span.getServiceName();
             diagram.add(format(
-                "[-> %s: %s",
+                "[%s %s: %s",
+                span.isSync() ? "->" : "->>",
                 quoteString(serviceName),
                 escapeString(span.getName())
             ));
@@ -68,6 +69,8 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
 
             if (span.isSync()) {
                 diagram.add("return");
+            } else {
+                diagram.add(format("deactivate %s", quoteString(serviceName)));
             }
         }
     }
@@ -94,8 +97,9 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
             }
 
             diagram.add(format(
-                "%s -> %s: %s",
+                "%s %s %s: %s",
                 quoteString(parentSpanServiceName),
+                span.isSync() ? "->" : "->>",
                 quoteString(serviceName),
                 escapeString(span.getName())
             ));
@@ -110,6 +114,8 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
 
             if (span.isSync()) {
                 diagram.add("return");
+            } else {
+                diagram.add(format("deactivate %s", quoteString(serviceName)));
             }
 
             prevSiblingSpan = span;

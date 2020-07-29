@@ -233,6 +233,51 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     }
 
 
+    protected abstract void async_one_span(Result result);
+
+    @Test
+    final void async_one_span() {
+        val span = nextSpecSpanBuilder()
+            .async(true)
+            .name("name")
+            .serviceName("service")
+            .build();
+        Result result = renderer.renderTracingSpec(singletonList(
+            span
+        ));
+        async_one_span(normalizeResult(result));
+    }
+
+
+    protected abstract void async_children(Result result);
+
+    @Test
+    final void async_children() {
+        val parent = nextSpecSpanBuilder()
+            .name("root")
+            .serviceName("service A")
+            .build();
+        val inner = nextSpecSpanBuilder()
+            .async(true)
+            .parentSpanId(parent.getSpanId())
+            .name("inner")
+            .serviceName("service A")
+            .build();
+        val child = nextSpecSpanBuilder()
+            .async(true)
+            .parentSpanId(parent.getSpanId())
+            .name("child")
+            .serviceName("service B")
+            .build();
+        Result result = renderer.renderTracingSpec(asList(
+            parent,
+            inner,
+            child
+        ));
+        async_children(normalizeResult(result));
+    }
+
+
     protected static SpecSpanBuilder nextSpecSpanBuilder() {
         return SpecSpan.builder().spanId(nextSpanId());
     }

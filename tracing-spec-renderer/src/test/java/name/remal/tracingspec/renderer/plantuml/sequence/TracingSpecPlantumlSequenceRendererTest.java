@@ -50,4 +50,14 @@ class TracingSpecPlantumlSequenceRendererTest
         assertThat(result, equalTo(readPlantumlDiagramResource("root-parent-child.puml")));
     }
 
+    @Override
+    protected void async_one_span(String result) {
+        assertThat(result, equalTo(readPlantumlDiagramResource("async-one-span.puml")));
+    }
+
+    @Override
+    protected void async_children(String result) {
+        assertThat(result, equalTo(readPlantumlDiagramResource("async-children.puml")));
+    }
+
 }

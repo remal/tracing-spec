@@ -111,6 +111,17 @@ class BaseTracingSpecPlantumlRendererTest {
             }
         }
 
+        @Test
+        void should_be_quoted_by_char() {
+            for (val ch : new char[]{':', ' '}) {
+                assertThat(
+                    "Character: '" + ch + '\'',
+                    BaseTracingSpecPlantumlRenderer.quoteString(ch + ""),
+                    equalTo("\"" + ch + "\"")
+                );
+            }
+        }
+
     }
 
 }
