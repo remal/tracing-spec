@@ -5,16 +5,6 @@ String jacocoVersion = '0.8.5'
 
 dependencies {
     constraints {
-        // BOMs:
-        api 'org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE'
-        api 'org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.3.RELEASE'
-        api 'io.grpc:grpc-bom:1.30.2'
-        api 'com.google.protobuf:protobuf-bom:3.12.2'
-        api 'org.testcontainers:testcontainers-bom:1.14.3'
-        api 'io.opentracing:parent:0.33.0'
-        api 'io.zipkin.brave:brave-bom:5.12.3'
-        api 'io.zipkin.reporter2:zipkin-reporter-bom:2.15.0'
-
         // Static analysis annotations
         api 'com.google.code.findbugs:jsr305:3.0.2'
         api 'com.google.errorprone:error_prone_annotations:2.4.0'
@@ -42,17 +32,3 @@ dependencies {
 }
 
 configurations.runtime.dependencyConstraints.addAll(configurations.api.dependencyConstraints)
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-if (gradle.startParameter.taskNames.contains('renovate')) {
-    Configuration configuration = configurations.create('constraintDependencies')
-    println "Creating ${configuration.name} configuration"
-    configurations.collect { it.dependencyConstraints }
-        .flatten()
-        .findAll { it.version != null && !it.version.isEmpty() }
-        .collect { "${it.group}:${it.name}:${it.version}" }
-        .unique()
-        .collect { project.dependencies.create(it) }
-        .forEach { configuration.dependencies.add(it) }
-}
