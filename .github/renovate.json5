@@ -1,6 +1,13 @@
 {
   extends: ["config:base"],
   stabilityDays: 1,
+  separateMajorMinor: false,
+  separateMinorPatch: false,
+  prConcurrentLimit: 1,
+  assigneesFromCodeOwners: true,
+  reviewersFromCodeOwners: true,
+  dependencyDashboard: true,
+  dependencyDashboardAutoclose: true,
   labels: [
     "dependencies",
   ],
