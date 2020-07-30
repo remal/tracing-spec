@@ -3,6 +3,7 @@
   stabilityDays: 1,
   separateMajorMinor: false,
   separateMinorPatch: false,
+  prHourlyLimit: 0,
   prConcurrentLimit: 1,
   assigneesFromCodeOwners: true,
   reviewersFromCodeOwners: true,
