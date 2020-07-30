@@ -71,7 +71,7 @@ allprojects {
         allResolvable platform('com.google.protobuf:protobuf-bom:3.12.4')
         allResolvable platform('org.testcontainers:testcontainers-bom:1.14.3')
         allResolvable platform('io.opentracing:parent:0.33.0')
-        allResolvable platform('io.zipkin.brave:brave-bom:5.12.3')
+        allResolvable platform('io.zipkin.brave:brave-bom:5.12.4')
         allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.15.0')
 
         String immutablesVersion = '2.8.8'
