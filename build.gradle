@@ -64,9 +64,6 @@ allprojects {
     }
 
     dependencies {
-        String immutablesVersion = '2.8.8'
-        String jacocoVersion = '0.8.5'
-
         // BOMs:
         allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE')
         allResolvable platform('org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.3.RELEASE')
@@ -77,30 +74,37 @@ allprojects {
         allResolvable platform('io.zipkin.brave:brave-bom:5.12.3')
         allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.15.0')
 
-        constraints {
-            // Static analysis annotations
-            allResolvable 'com.google.code.findbugs:jsr305:3.0.2'
-            allResolvable 'com.google.errorprone:error_prone_annotations:2.4.0'
-            allResolvable 'org.jetbrains:annotations:19.0.0'
+        String immutablesVersion = '2.8.8'
+        String jacocoVersion = '0.8.5'
 
-            // Annotation processors
-            allResolvable "org.immutables:value:$immutablesVersion"
-            allResolvable "org.immutables:gson:$immutablesVersion"
+        configurations.matching { it.canBeResolved }.all { Configuration conf ->
+            conf.dependencyConstraints.addAll(
+                [
+                    // Static analysis annotations
+                    'com.google.code.findbugs:jsr305:3.0.2',
+                    'com.google.errorprone:error_prone_annotations:2.4.0',
+                    'org.jetbrains:annotations:19.0.0',
 
-            // Compile
-            allResolvable 'com.google.guava:guava:29.0-jre'
-            allResolvable 'net.sourceforge.plantuml:plantuml:1.2020.15'
+                    // Annotation processors
+                    "org.immutables:value:$immutablesVersion",
+                    "org.immutables:gson:$immutablesVersion",
 
-            // Test
-            allResolvable 'org.awaitility:awaitility:4.0.3'
-            allResolvable 'io.jaegertracing:jaeger-thrift:1.3.1'
+                    // Compile
+                    'com.google.guava:guava:29.0-jre',
+                    'net.sourceforge.plantuml:plantuml:1.2020.15',
 
-            // Jacoco
-            allResolvable "org.jacoco:org.jacoco.agent:$jacocoVersion"
-            allResolvable "org.jacoco:org.jacoco.core:$jacocoVersion"
+                    // Test
+                    'org.awaitility:awaitility:4.0.3',
+                    'io.jaegertracing:jaeger-thrift:1.3.1',
 
-            // Checkstyle
-            allResolvable 'com.puppycrawl.tools:checkstyle:8.35'
+                    // Jacoco
+                    "org.jacoco:org.jacoco.agent:$jacocoVersion",
+                    "org.jacoco:org.jacoco.core:$jacocoVersion",
+
+                    // Checkstyle
+                    'com.puppycrawl.tools:checkstyle:8.35',
+                ].collect { project.dependencies.constraints.create(it) }
+            )
         }
     }
 
