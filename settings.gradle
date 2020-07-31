@@ -10,4 +10,5 @@ include(
     ':utils-gson',
     ':utils-okhttp',
     ':utils-test',
+    ':end-to-end-test',
 )
