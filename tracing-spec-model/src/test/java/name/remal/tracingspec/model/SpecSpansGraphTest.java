@@ -16,16 +16,83 @@
 
 package name.remal.tracingspec.model;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static utils.test.json.ObjectMapperProvider.readJsonResource;
 import static utils.test.json.ObjectMapperProvider.writeJsonString;
+import static utils.test.tracing.SpecSpanGraphNodeGenerator.nextSpecSpansGraphNodeBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
+import lombok.Value;
+import lombok.val;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class SpecSpansGraphTest {
+
+    @Test
+    void visit() {
+        val graph = SpecSpansGraph.builder()
+            .addRoot(
+                nextSpecSpansGraphNodeBuilder()
+                    .name("root")
+                    .addChild(
+                        nextSpecSpansGraphNodeBuilder()
+                            .name("parent")
+                            .addChild(nextSpecSpansGraphNodeBuilder()
+                                .name("child 1")
+                                .build()
+                            )
+                            .addChild(nextSpecSpansGraphNodeBuilder()
+                                .name("child 2")
+                                .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+        val root = graph.getRoots().get(0);
+        val parent = root.getChildren().get(0);
+        val child1 = parent.getChildren().get(0);
+        val child2 = parent.getChildren().get(1);
+
+        @Value
+        class MethodInvocation {
+            String methodName;
+            List<Object> parameters;
+        }
+
+        List<MethodInvocation> invocations = new ArrayList<>();
+        SpecSpansGraphVisitor visitor = new SpecSpansGraphVisitor() {
+            @Override
+            public void visitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) {
+                invocations.add(new MethodInvocation("visitNode", asList(node, parentNode)));
+            }
+
+            @Override
+            public void postVisitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) {
+                invocations.add(new MethodInvocation("postVisitNode", asList(node, parentNode)));
+            }
+        };
+
+        graph.visit(visitor);
+
+        assertThat(invocations, equalTo(asList(
+            new MethodInvocation("visitNode", asList(root, null)),
+            new MethodInvocation("visitNode", asList(parent, root)),
+            new MethodInvocation("visitNode", asList(child1, parent)),
+            new MethodInvocation("postVisitNode", asList(child1, parent)),
+            new MethodInvocation("visitNode", asList(child2, parent)),
+            new MethodInvocation("postVisitNode", asList(child2, parent)),
+            new MethodInvocation("postVisitNode", asList(parent, root)),
+            new MethodInvocation("postVisitNode", asList(root, null))
+        )));
+    }
 
     @Nested
     class Json {

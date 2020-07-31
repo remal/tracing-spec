@@ -16,12 +16,8 @@
 
 package name.remal.tracingspec.model;
 
-import static java.util.Collections.emptyList;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -38,45 +34,6 @@ public interface SpecSpansGraphNode extends DisconnectedSpecSpan, Comparable<Spe
 
 
     List<SpecSpansGraphNode> getChildren();
-
-
-    @JsonIgnore
-    Optional<SpecSpansGraphNode> getParent();
-
-    @JsonIgnore
-    default List<SpecSpansGraphNode> getSiblings() {
-        return getParent().map(SpecSpansGraphNode::getChildren).orElse(emptyList());
-    }
-
-    @JsonIgnore
-    default Optional<SpecSpansGraphNode> getPrevious() {
-        val siblings = getSiblings();
-        int selfPos = siblings.indexOf(this);
-        if (selfPos < 0) {
-            throw new IllegalStateException("Node can't find itself in the parent's children: " + this);
-        }
-
-        if (selfPos == 0) {
-            return Optional.empty();
-        } else {
-            return Optional.of(siblings.get(selfPos - 1));
-        }
-    }
-
-    @JsonIgnore
-    default Optional<SpecSpansGraphNode> getNext() {
-        val siblings = getSiblings();
-        int selfPos = siblings.indexOf(this);
-        if (selfPos < 0) {
-            throw new IllegalStateException("Node can't find itself in the parent's children: " + this);
-        }
-
-        if (selfPos == siblings.size() - 1) {
-            return Optional.empty();
-        } else {
-            return Optional.of(siblings.get(selfPos + 1));
-        }
-    }
 
 
     @Override
