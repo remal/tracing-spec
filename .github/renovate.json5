@@ -9,6 +9,7 @@
   reviewersFromCodeOwners: true,
   dependencyDashboard: true,
   dependencyDashboardAutoclose: true,
+  dependencyDashboardTitle: "Renovate updates",
   labels: [
     "dependencies",
   ],
