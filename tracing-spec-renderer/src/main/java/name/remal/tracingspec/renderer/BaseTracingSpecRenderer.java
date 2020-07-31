@@ -16,12 +16,15 @@
 
 package name.remal.tracingspec.renderer;
 
+import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.model.SpecSpansGraph;
 
 public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
 
@@ -73,7 +76,8 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
         }
 
 
-        return renderFilteredTracingSpec(specSpans);
+        val specSpansGraph = createSpecSpansGraph(specSpans);
+        return renderFilteredTracingSpec(specSpansGraph);
     }
 
     @SneakyThrows
@@ -119,24 +123,6 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
         return result;
     }
 
-    protected abstract Result renderFilteredTracingSpec(List<SpecSpan> specSpans);
-
-
-    protected static int compareByStartedAt(SpecSpan span1, SpecSpan span2) {
-        val startedAt1 = span1.getStartedAt();
-        val startedAt2 = span2.getStartedAt();
-        if (startedAt1.isPresent() && startedAt2.isPresent()) {
-            return startedAt1.get().compareTo(startedAt2.get());
-
-        } else if (startedAt1.isPresent()) {
-            return -1;
-
-        } else if (startedAt2.isPresent()) {
-            return 1;
-
-        } else {
-            return 0;
-        }
-    }
+    protected abstract Result renderFilteredTracingSpec(SpecSpansGraph specSpansGraph);
 
 }

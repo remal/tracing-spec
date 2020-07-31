@@ -16,23 +16,19 @@
 
 package name.remal.tracingspec.renderer;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static utils.test.tracing.SpanIdGenerator.nextSpanId;
+import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanBuilder;
 
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
 import name.remal.tracingspec.model.SpecSpan;
-import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"java:S5786", "java:S2699"})
@@ -290,33 +286,6 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
             child
         ));
         async_children(normalizeResult(result));
-    }
-
-
-    protected static SpecSpanBuilder nextSpecSpanBuilder() {
-        return SpecSpan.builder().spanId(nextSpanId());
-    }
-
-
-    @SneakyThrows
-    protected byte[] readBinaryResource(@Language("file-reference") String resourceName) {
-        val loaderClass = this.getClass();
-        val resourceUrl = loaderClass.getResource(resourceName);
-        if (resourceUrl == null) {
-            throw new IllegalArgumentException(loaderClass + ": resource can't be found: " + resourceName);
-        }
-
-        final byte[] bytesContent;
-        try (val in = resourceUrl.openStream()) {
-            bytesContent = toByteArray(in);
-        }
-
-        return bytesContent;
-    }
-
-    protected String readTextResource(@Language("file-reference") String resourceName) {
-        val bytesContent = readBinaryResource(resourceName);
-        return new String(bytesContent, UTF_8);
     }
 
 }

@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-@NonNullByDefault
-package utils.test.sleuth;
+package utils.test.tracing;
 
-import name.remal.tracingspec.model.internal.NonNullByDefault;
+import static utils.test.tracing.SpanIdGenerator.nextSpanId;
+
+import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
+import name.remal.tracingspec.model.SpecSpan;
+
+public interface SpecSpanGenerator {
+
+    static SpecSpanBuilder nextSpecSpanBuilder() {
+        return SpecSpan.builder().spanId(nextSpanId());
+    }
+
+}

@@ -16,73 +16,44 @@
 
 package name.remal.tracingspec.model;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.time.Instant;
 import java.util.Optional;
 import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Default;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @Value.Immutable
 @JsonDeserialize(builder = SpecSpanBuilder.class)
-@JsonInclude(NON_ABSENT)
-public interface SpecSpan {
+public interface SpecSpan extends DisconnectedSpecSpan {
 
     static SpecSpanBuilder builder() {
         return ImmutableSpecSpan.builder();
     }
 
 
-    String getSpanId();
-
     Optional<String> getParentSpanId();
 
-    Optional<String> getName();
-
-    Optional<String> getServiceName();
-
-    Optional<Instant> getStartedAt();
-
-    Optional<String> getDescription();
-
-    @Default
-    default boolean isAsync() {
-        return false;
+    @JsonIgnore
+    default boolean hasParentSpanId() {
+        return getParentSpanId().isPresent();
     }
 
-    default boolean isSync() {
-        return !isAsync();
+    @JsonIgnore
+    default boolean hasNoParentSpanId() {
+        return !hasParentSpanId();
     }
 
 
+    @Override
     @OverrideOnly
     @Value.Check
     default void validate() {
-        if (getSpanId().isEmpty()) {
-            throw new IllegalStateException("spanId must not be empty");
-        }
+        DisconnectedSpecSpan.super.validate();
+
         getParentSpanId().ifPresent(parentSpanId -> {
             if (parentSpanId.isEmpty()) {
                 throw new IllegalStateException("parentSpanId must not be empty");
-            }
-        });
-        getName().ifPresent(name -> {
-            if (name.isEmpty()) {
-                throw new IllegalStateException("name must not be empty");
-            }
-        });
-        getServiceName().ifPresent(serviceName -> {
-            if (serviceName.isEmpty()) {
-                throw new IllegalStateException("serviceName must not be empty");
-            }
-        });
-        getDescription().ifPresent(description -> {
-            if (description.isEmpty()) {
-                throw new IllegalStateException("description must not be empty");
             }
         });
     }

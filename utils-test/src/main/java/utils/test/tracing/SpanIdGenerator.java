@@ -16,33 +16,30 @@
 
 package utils.test.tracing;
 
+import static java.util.Collections.newSetFromMap;
+
 import java.security.SecureRandom;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.val;
 
 public abstract class SpanIdGenerator {
 
-    private static final AtomicLong SPAN_ID;
+    private static final Random RANDOM = new SecureRandom();
 
-    static {
-        val random = new SecureRandom();
-        long initialValue;
-        do {
-            initialValue = random.nextInt();
-        } while (initialValue < 0);
-
-        SPAN_ID = new AtomicLong(initialValue);
-    }
+    private static final Set<Integer> GENERATED_IDS = newSetFromMap(new ConcurrentHashMap<>());
 
     private static long nextLongSpanId() {
-        long id = SPAN_ID.incrementAndGet();
-        while (id < 0) {
-            if (SPAN_ID.compareAndSet(id, 0)) {
-                return 0;
+        while (true) {
+            val id = RANDOM.nextInt();
+            if (id < 0) {
+                continue;
             }
-            id = SPAN_ID.incrementAndGet();
+            if (GENERATED_IDS.add(id)) {
+                return id;
+            }
         }
-        return id;
     }
 
     public static String nextSpanId() {

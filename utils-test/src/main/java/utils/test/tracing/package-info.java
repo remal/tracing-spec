@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
-@NonNullFields
+@NonNullByDefault
 package utils.test.tracing;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import name.remal.tracingspec.model.internal.NonNullByDefault;

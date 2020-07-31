@@ -175,8 +175,12 @@ allprojects {
             testImplementation 'org.hamcrest:hamcrest'
             testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.mockito:mockito-inline'
-            testImplementation 'com.google.guava:guava'
             testImplementation 'org.apache.commons:commons-lang3'
+            testImplementation 'com.google.guava:guava'
+            testImplementation 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+            testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+            testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+            testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-guava'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
             testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
@@ -511,7 +515,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-//*
+/*
 forBuildOnLocal {
     apply plugin: 'java-library'
 

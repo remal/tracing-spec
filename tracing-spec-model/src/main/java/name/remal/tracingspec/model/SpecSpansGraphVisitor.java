@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
-@NonNullByDefault
-package utils.test.sleuth;
+package name.remal.tracingspec.model;
 
-import name.remal.tracingspec.model.internal.NonNullByDefault;
+import javax.annotation.Nullable;
+
+public interface SpecSpansGraphVisitor {
+
+    default void visitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) throws Throwable {
+        // Should be overridden
+    }
+
+    default void postVisitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) throws Throwable {
+        // Should be overridden
+    }
+
+
+}

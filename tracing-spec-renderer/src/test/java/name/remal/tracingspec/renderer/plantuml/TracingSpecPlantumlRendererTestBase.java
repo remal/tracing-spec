@@ -17,6 +17,7 @@
 package name.remal.tracingspec.renderer.plantuml;
 
 import static java.util.stream.Collectors.joining;
+import static utils.test.resource.Resources.readTextResource;
 
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -42,7 +43,7 @@ public abstract class TracingSpecPlantumlRendererTestBase<Renderer extends Traci
 
     @SneakyThrows
     protected String readPlantumlDiagramResource(@Language("file-reference") String resourceName) {
-        val content = readTextResource(resourceName);
+        val content = readTextResource(getClass(), resourceName);
         return normalizeResult(content);
     }
 

@@ -21,9 +21,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static utils.test.tracing.SpanIdGenerator.nextSpanId;
+import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanBuilder;
 
 import lombok.val;
-import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -67,6 +67,40 @@ class SpecSpanTest {
         );
     }
 
+    @Test
+    void hasParentSpanId() {
+        assertThat(
+            nextSpecSpanBuilder()
+                .build()
+                .hasParentSpanId(),
+            equalTo(false)
+        );
+        assertThat(
+            nextSpecSpanBuilder()
+                .parentSpanId(nextSpanId())
+                .build()
+                .hasParentSpanId(),
+            equalTo(true)
+        );
+    }
+
+    @Test
+    void hasNoParentSpanId() {
+        assertThat(
+            nextSpecSpanBuilder()
+                .build()
+                .hasNoParentSpanId(),
+            equalTo(true)
+        );
+        assertThat(
+            nextSpecSpanBuilder()
+                .parentSpanId(nextSpanId())
+                .build()
+                .hasNoParentSpanId(),
+            equalTo(false)
+        );
+    }
+
     @Nested
     class Validation {
 
@@ -105,11 +139,6 @@ class SpecSpanTest {
             assertThrows(IllegalStateException.class, builder::build);
         }
 
-    }
-
-
-    private static SpecSpanBuilder nextSpecSpanBuilder() {
-        return SpecSpan.builder().spanId(nextSpanId());
     }
 
 }
