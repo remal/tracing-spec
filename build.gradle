@@ -68,7 +68,7 @@ allprojects {
     dependencies {
         // BOMs:
         allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE')
-        allResolvable platform('org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.3.RELEASE')
+        allResolvable platform('org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.4.RELEASE')
         allResolvable platform('io.grpc:grpc-bom:1.31.0')
         allResolvable platform('com.google.protobuf:protobuf-bom:3.12.4')
         allResolvable platform('org.testcontainers:testcontainers-bom:1.14.3')
