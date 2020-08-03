@@ -2,7 +2,9 @@
 set -e +o pipefail
 
 chmod -R 0777 .
-./gradlew build runAllTests sonarqube
+./gradlew build
+./gradlew runAllTests
+./gradlew sonarqube
 
 
 if [ -n "$TRAVIS_TAG" ]; then
