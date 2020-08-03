@@ -5,15 +5,15 @@ chmod -R 0777 .
 ./gradlew build runAllTests sonarqube
 
 
-if [ ! -z "$TRAVIS_TAG" ]; then
+if [ -n "$TRAVIS_TAG" ]; then
     # building tag
-    echo "building tag"
+    echo "Building tag"
 
-elif [ -z "$TRAVIS_PULL_REQUEST" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+elif [ -n "$TRAVIS_PULL_REQUEST" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
     # building PR
-    echo "building PR"
+    echo "Building PR"
 
 else
     # building push
-    echo "building push"
+    echo "Building push"
 fi
