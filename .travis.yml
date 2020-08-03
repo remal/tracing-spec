@@ -34,8 +34,7 @@ before_script:
 - sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
 
 script:
-- chmod -R 0777 .
-- ./gradlew build runAllTests sonarqube
+- ./.travis/build.sh
 
 after_failure:
 - ./.travis/prepare-artifacts.sh
