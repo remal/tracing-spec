@@ -68,7 +68,7 @@ allprojects {
     dependencies {
         // BOMs:
         allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE')
-        allResolvable platform('org.springframework.cloud:spring-cloud-sleuth-dependencies:2.2.4.RELEASE')
+        allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR6')
         allResolvable platform('io.grpc:grpc-bom:1.31.0')
         allResolvable platform('com.google.protobuf:protobuf-bom:3.12.4')
         allResolvable platform('org.testcontainers:testcontainers-bom:1.14.3')
@@ -169,6 +169,8 @@ allprojects {
             optional('org.springframework:spring-core') { transitive = false }
             optional('org.springframework:spring-context') { transitive = false }
 
+            runtimeOnly 'org.springframework.boot:spring-boot-properties-migrator'
+
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
             testImplementation 'org.awaitility:awaitility'
@@ -212,6 +214,9 @@ allprojects {
 
                         } else if (groupModule == 'org.springframework.boot:spring-boot-starter-logging') {
                             details.useTarget("$group:spring-boot-starter-log4j2:$version")
+
+                        } else if (groupModule == 'org.springframework.boot:spring-boot-starter-tomcat') {
+                            details.useTarget("$group:spring-boot-starter-undertow:$version")
                         }
                     }
                 }

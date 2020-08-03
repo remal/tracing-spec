@@ -1,2 +1,52 @@
+import java.util.Map.Entry
+import java.util.regex.Pattern
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
 apply plugin: 'name.remal.test-fixtures'
+
+dependencies {
+    integrationImplementation 'org.springframework.boot:spring-boot-starter-web'
+    integrationImplementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-stream-kafka'
+    integrationImplementation 'org.testcontainers:mongodb'
+    integrationImplementation 'org.testcontainers:kafka'
+}
+
+forBuildOnLocal {
+    dependencies {
+        //integrationImplementation 'io.projectreactor:reactor-tools'
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+configurations.all {
+    exclude group: 'org.springframework.cloud', module: 'spring-cloud-netflix-archaius'
+    exclude group: 'org.springframework.cloud', module: 'spring-cloud-netflix-ribbon'
+    exclude group: 'io.github.openfeign', module: 'feign-hystrix'
+}
+
+Map<String, Pattern> bannedDependencyTokens = [
+    'archaius',
+    'ribbon',
+    'hystrix',
+].collectEntries { [it, Pattern.compile('\\b' + Pattern.quote(it) + '\\b')] }
+configurations.all {
+    resolutionStrategy {
+        componentSelection {
+            all {
+                for (Entry<String, Pattern> entry : bannedDependencyTokens.entrySet()) {
+                    Pattern pattern = entry.value
+                    if (pattern.matcher("${candidate.group}:${candidate.module}").find()) {
+                        reject("Banned token: '${entry.key}'")
+                        return
+                    }
+                }
+            }
+        }
+    }
+}
