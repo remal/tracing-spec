@@ -35,6 +35,3 @@ before_script:
 
 script:
 - ./.travis/build.sh
-
-after_failure:
-- ./.travis/prepare-artifacts.sh
