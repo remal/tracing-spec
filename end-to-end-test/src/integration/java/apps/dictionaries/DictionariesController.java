@@ -16,10 +16,25 @@
 
 package apps.dictionaries;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import java.util.Map;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RestController;
 
-@SpringBootApplication
-@EnableFeignClients
-public class DictionariesApplication {
+@RestController
+@RequiredArgsConstructor
+public class DictionariesController implements DictionariesApi {
+
+    private final CounterpartyRepository repository;
+
+    @Override
+    public Map<Long, Counterparty> getCounterparties() {
+        return repository.getAll();
+    }
+
+    @Override
+    public Optional<Counterparty> getCounterparty(long id) {
+        return repository.findById(id);
+    }
+
 }

@@ -23,12 +23,30 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.lifecycle.Startable;
+import utils.test.container.JaegerAllInOneContainer;
+import utils.test.container.ZipkinContainer;
 
 @Configuration
 @ConditionalOnClass(Startable.class)
 @Role(ROLE_INFRASTRUCTURE)
 public class TestcontainersConfiguration {
+
+    @Bean
+    public ZipkinContainer zipkinContainer() {
+        return new ZipkinContainer();
+    }
+
+    @Bean
+    public JaegerAllInOneContainer jaegerContainer() {
+        return new JaegerAllInOneContainer();
+    }
+
+    @Bean
+    public KafkaContainer kafkaContainer() {
+        return new KafkaContainer();
+    }
 
     @Bean
     public TestcontainersLifecycle testcontainersLifecycle(ApplicationContext applicationContext) {

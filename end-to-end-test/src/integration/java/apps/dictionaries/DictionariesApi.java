@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-@NonNullApi
-@NonNullFields
-package apps.common.populate;
+package apps.dictionaries;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import java.util.Map;
+import java.util.Optional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+public interface DictionariesApi {
+
+    @GetMapping("/counterparties")
+    Map<Long, Counterparty> getCounterparties();
+
+    @GetMapping("/counterparties/{id}")
+    Optional<Counterparty> getCounterparty(@PathVariable long id);
+
+}

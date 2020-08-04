@@ -19,6 +19,7 @@ package test;
 import static java.util.Arrays.asList;
 
 import apps.dictionaries.DictionariesApplication;
+import apps.dictionaries.DictionariesClient;
 import apps.documents.DocumentsApplication;
 import apps.schemas.SchemasApplication;
 import apps.shared.SharedConfiguration;
@@ -34,6 +35,14 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 class EndToEndTest {
+
+    @Test
+    void test() {
+        val dictionariesClient = sharedContext.getBean(DictionariesClient.class);
+        val counterparties = dictionariesClient.getCounterparties();
+        System.out.println(counterparties);
+    }
+
 
     private static final AnnotationConfigApplicationContext sharedContext = new AnnotationConfigApplicationContext();
 
@@ -71,11 +80,6 @@ class EndToEndTest {
         if (context.isActive()) {
             context.close();
         }
-    }
-
-
-    @Test
-    void test() {
     }
 
 }

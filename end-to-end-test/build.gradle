@@ -7,18 +7,23 @@ apply plugin: 'java-library'
 apply plugin: 'name.remal.test-fixtures'
 
 dependencies {
-    integrationImplementation 'org.springframework.boot:spring-boot-starter-web'
-    integrationImplementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
-    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    integrationImplementation 'org.springframework.cloud:spring-cloud-starter-stream-kafka'
-    integrationImplementation 'org.testcontainers:mongodb'
-    integrationImplementation 'org.testcontainers:kafka'
+    implementation project(':utils-test')
+    implementation project(':tracing-spec-model')
+    implementation project(':tracing-spec-spring-sleuth')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
+    implementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
+    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.cloud:spring-cloud-starter-stream-kafka'
+    implementation 'org.testcontainers:kafka'
+    implementation 'com.github.javafaker:javafaker'
 }
+
 
 forBuildOnLocal {
     dependencies {
-        //integrationImplementation 'io.projectreactor:reactor-tools'
+        //runtimeOnly 'io.projectreactor:reactor-tools'
     }
 }
 

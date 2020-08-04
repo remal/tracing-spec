@@ -33,15 +33,16 @@ public class ServiceInstanceRegisterer implements ApplicationListener<WebServerI
         val context = event.getApplicationContext();
         val serviceId = context.getEnvironment().getRequiredProperty("spring.application.name");
         val server = event.getWebServer();
-        val sharedDiscoveryClient = context.getBean(SharedDiscoveryClient.class);
-        sharedDiscoveryClient.registerServiceInstance(new DefaultServiceInstance(
-            null,
-            serviceId,
-            "localhost",
-            server.getPort(),
-            false,
-            emptyMap()
-        ));
+        context.getBeanProvider(SharedDiscoveryClient.class).ifAvailable(sharedDiscoveryClient ->
+            sharedDiscoveryClient.registerServiceInstance(new DefaultServiceInstance(
+                null,
+                serviceId,
+                "localhost",
+                server.getPort(),
+                false,
+                emptyMap()
+            ))
+        );
     }
 
 }

@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package apps.common.populate;
+@NonNullApi
+@NonNullFields
+@TracingSpecValueStyle
+package apps;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import org.intellij.lang.annotations.Language;
-
-@Target(TYPE)
-@Retention(RUNTIME)
-public @interface PopulateJson {
-
-    @Language("file-reference")
-    String value();
-
-}
+import name.remal.tracingspec.model.internal.TracingSpecValueStyle;
+import org.springframework.lang.NonNullApi;
+import org.springframework.lang.NonNullFields;

@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package apps.dictionaries;
+package apps.common.repository;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import java.util.Map;
+import java.util.Optional;
 
-@SpringBootApplication
-@EnableFeignClients
-public class DictionariesApplication {
+public interface InMemoryRepository<Entity> {
+
+    Optional<Entity> findById(long id);
+
+    void save(long id, Entity entity);
+
+    Map<Long, Entity> getAll();
+
 }

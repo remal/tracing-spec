@@ -16,10 +16,16 @@
 
 package apps.dictionaries;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import apps.dictionaries.ImmutableCounterparty.CounterpartyBuilder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.immutables.value.Value;
 
-@SpringBootApplication
-@EnableFeignClients
-public class DictionariesApplication {
+@Value.Immutable
+@JsonDeserialize(builder = CounterpartyBuilder.class)
+public interface Counterparty {
+
+    String getTitle();
+
+    String getAddress();
+
 }

@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package apps.dictionaries;
+@NonNullApi
+@NonNullFields
+package apps.common.repository;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-
-@SpringBootApplication
-@EnableFeignClients
-public class DictionariesApplication {
-}
+import org.springframework.lang.NonNullApi;
+import org.springframework.lang.NonNullFields;

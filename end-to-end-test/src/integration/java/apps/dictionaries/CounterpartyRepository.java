@@ -16,10 +16,22 @@
 
 package apps.dictionaries;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import apps.common.repository.AbstractInMemoryRepository;
+import lombok.val;
+import org.springframework.stereotype.Service;
 
-@SpringBootApplication
-@EnableFeignClients
-public class DictionariesApplication {
+@Service
+@SuppressWarnings("java:S1171")
+public class CounterpartyRepository extends AbstractInMemoryRepository<Counterparty> {
+
+    {
+        for (long id = 1; id <= 9; ++id) {
+            val entity = ImmutableCounterparty.builder()
+                .title(FAKER.company().name())
+                .address(FAKER.address().fullAddress())
+                .build();
+            save(id, entity);
+        }
+    }
+
 }
