@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.schemas;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.openfeign.FeignClient;
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+@FeignClient("schemas-service")
+public interface SchemasClient extends SchemasApi {
 }

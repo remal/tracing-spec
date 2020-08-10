@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.schemas;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import apps.common.repository.Entity;
+import apps.schemas.ImmutableSchema.SchemaBuilder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.List;
+import org.immutables.value.Value;
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+@Value.Immutable
+@JsonDeserialize(builder = SchemaBuilder.class)
+public interface Schema extends Entity<String> {
+
+    List<SchemaReference> getReferences();
+
 }

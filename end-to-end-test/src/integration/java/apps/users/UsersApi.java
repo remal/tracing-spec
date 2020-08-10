@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package apps.dictionaries;
+package apps.users;
 
-import java.util.Map;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-public interface DictionariesApi {
+public interface UsersApi {
 
-    @GetMapping("/counterparties")
-    Map<Long, Counterparty> getCounterparties();
-
-    @GetMapping("/counterparties/{id}")
-    Optional<Counterparty> getCounterparty(@PathVariable long id);
+    @GetMapping("/users/{id}")
+    Optional<User> findUser(@PathVariable int id);
 
 }

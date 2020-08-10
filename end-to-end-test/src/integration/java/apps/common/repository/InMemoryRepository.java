@@ -16,15 +16,17 @@
 
 package apps.common.repository;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
+import org.jetbrains.annotations.Unmodifiable;
 
-public interface InMemoryRepository<Entity> {
+public interface InMemoryRepository<ID, EntityType extends Entity<ID>> {
 
-    Optional<Entity> findById(long id);
+    @Unmodifiable
+    List<EntityType> getAll();
 
-    void save(long id, Entity entity);
+    Optional<EntityType> findById(ID id);
 
-    Map<Long, Entity> getAll();
+    void save(EntityType entity);
 
 }

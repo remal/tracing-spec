@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.common.repository;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+public interface Entity<ID> {
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+    ID getId();
+
 }

@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.documents;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import apps.common.repository.Entity;
+import apps.documents.ImmutableDocument.DocumentBuilder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.immutables.value.Value;
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+@Value.Immutable
+@JsonDeserialize(builder = DocumentBuilder.class)
+public interface Document extends Entity<DocumentId> {
+
+    ObjectNode getContent();
+
 }

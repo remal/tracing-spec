@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.schemas;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import apps.schemas.ImmutableSchemaReference.SchemaReferenceBuilder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Map;
+import org.immutables.value.Value;
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+@Value.Immutable
+@JsonDeserialize(builder = SchemaReferenceBuilder.class)
+public interface SchemaReference {
+
+    String getDataType();
+
+    String getIdField();
+
+    Map<String, String> getFieldMappings();
+
 }

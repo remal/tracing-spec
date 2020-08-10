@@ -16,7 +16,7 @@
 
 @NonNullApi
 @NonNullFields
-package apps.dictionaries;
+package apps.users;
 
 import org.springframework.lang.NonNullApi;
 import org.springframework.lang.NonNullFields;

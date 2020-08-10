@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.documents;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import apps.common.repository.AbstractInMemoryRepository;
+import org.springframework.stereotype.Service;
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+@Service
+@SuppressWarnings("java:S1171")
+public class DocumentRepository extends AbstractInMemoryRepository<DocumentId, Document> {
+
+    {
+        for (long key = 1; key < 100; ++key) {
+            save(ImmutableDocument.builder()
+                .id(ImmutableDocumentId.builder()
+                    .type("tasks")
+                    .key(key)
+                    .build()
+                )
+                .build()
+            );
+        }
+    }
+
 }

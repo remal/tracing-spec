@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.schemas;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import apps.common.repository.AbstractInMemoryRepository;
+import org.springframework.stereotype.Service;
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+@Service
+@SuppressWarnings("java:S1171")
+public class SchemaRepository extends AbstractInMemoryRepository<String, Schema> {
+
+    {
+        save(ImmutableSchema.builder()
+            .id("task")
+            .addReference(ImmutableSchemaReference.builder()
+                .dataType("user")
+                .idField("userId")
+                .putFieldMapping("email", "userEmail")
+                .build()
+            )
+            .build()
+        );
+    }
+
 }

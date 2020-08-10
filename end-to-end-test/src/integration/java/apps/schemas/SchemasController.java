@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.schemas;
 
-import java.util.Optional;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 import lombok.RequiredArgsConstructor;
 import name.remal.tracingspec.spring.sleuth.SpecSpan;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
-public class UsersController implements UsersApi {
+public class SchemasController implements SchemasApi {
 
-    private final UserRepository repository;
+    private final SchemaRepository repository;
 
     @Override
-    @SpecSpan(description = "Find user by ID")
-    public Optional<User> findUser(int id) {
-        return repository.findById(id);
+    @SpecSpan(description = "Find schema by ID")
+    public Schema getSchema(String id) {
+        return repository.findById(id).orElseThrow(() ->
+            new ResponseStatusException(NOT_FOUND, "Schema can't by found by ID: '" + id + "'")
+        );
     }
 
 }

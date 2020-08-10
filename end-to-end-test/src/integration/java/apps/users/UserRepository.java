@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package apps.dictionaries;
+package apps.users;
 
 import apps.common.repository.AbstractInMemoryRepository;
 import lombok.val;
@@ -22,15 +22,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 @SuppressWarnings("java:S1171")
-public class CounterpartyRepository extends AbstractInMemoryRepository<Counterparty> {
+public class UserRepository extends AbstractInMemoryRepository<Integer, User> {
 
     {
-        for (long id = 1; id <= 9; ++id) {
-            val entity = ImmutableCounterparty.builder()
-                .title(FAKER.company().name())
-                .address(FAKER.address().fullAddress())
+        for (int id = 1; id <= 9; ++id) {
+            val entity = ImmutableUser.builder()
+                .id(id)
+                .fullName(FAKER.name().fullName())
+                .email(FAKER.internet().safeEmailAddress())
                 .build();
-            save(id, entity);
+            save(entity);
         }
     }
 

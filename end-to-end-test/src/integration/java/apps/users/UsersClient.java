@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package apps.dictionaries;
+package apps.users;
 
 import org.springframework.cloud.openfeign.FeignClient;
 
-@FeignClient("dictionaries-service")
-public interface DictionariesClient extends DictionariesApi {
+@FeignClient("users-service")
+public interface UsersClient extends UsersApi {
 }

@@ -17,33 +17,38 @@
 package apps.common.repository;
 
 import static java.util.Collections.synchronizedMap;
-import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableList;
 import static java.util.Locale.ENGLISH;
 
 import com.github.javafaker.Faker;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.jetbrains.annotations.Unmodifiable;
 
-public abstract class AbstractInMemoryRepository<Entity> implements InMemoryRepository<Entity> {
+public abstract class AbstractInMemoryRepository<ID, EntityType extends Entity<ID>>
+    implements InMemoryRepository<ID, EntityType> {
 
     protected static final Faker FAKER = new Faker(ENGLISH);
 
-    private final Map<Long, Entity> entities = synchronizedMap(new LinkedHashMap<>());
+    private final Map<ID, EntityType> entities = synchronizedMap(new LinkedHashMap<>());
 
     @Override
-    public final Optional<Entity> findById(long id) {
+    @Unmodifiable
+    public final List<EntityType> getAll() {
+        return unmodifiableList(new ArrayList<>(entities.values()));
+    }
+
+    @Override
+    public final Optional<EntityType> findById(ID id) {
         return Optional.ofNullable(entities.get(id));
     }
 
     @Override
-    public final void save(long id, Entity entity) {
-        entities.put(id, entity);
-    }
-
-    @Override
-    public final Map<Long, Entity> getAll() {
-        return unmodifiableMap(new LinkedHashMap<>(entities));
+    public final void save(EntityType entity) {
+        entities.put(entity.getId(), entity);
     }
 
 }

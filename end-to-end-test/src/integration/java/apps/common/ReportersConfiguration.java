@@ -44,8 +44,7 @@ public class ReportersConfiguration {
 
         return AsyncReporter.builder(sender)
             .queuedMaxSpans(1000)
-            .messageTimeout(100, MILLISECONDS)
-            .closeTimeout(100, MILLISECONDS)
+            .messageTimeout(1, MILLISECONDS)
             .build(JSON_V2);
     }
 
@@ -58,8 +57,7 @@ public class ReportersConfiguration {
 
         return AsyncReporter.builder(sender)
             .queuedMaxSpans(1000)
-            .messageTimeout(100, MILLISECONDS)
-            .closeTimeout(100, MILLISECONDS)
+            .messageTimeout(1, MILLISECONDS)
             .build(JSON_V2);
     }
 

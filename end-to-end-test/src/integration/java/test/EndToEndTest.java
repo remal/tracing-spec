@@ -18,11 +18,11 @@ package test;
 
 import static java.util.Arrays.asList;
 
-import apps.dictionaries.DictionariesApplication;
-import apps.dictionaries.DictionariesClient;
 import apps.documents.DocumentsApplication;
 import apps.schemas.SchemasApplication;
 import apps.shared.SharedConfiguration;
+import apps.users.UsersApplication;
+import apps.users.UsersClient;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.val;
@@ -38,9 +38,7 @@ class EndToEndTest {
 
     @Test
     void test() {
-        val dictionariesClient = sharedContext.getBean(DictionariesClient.class);
-        val counterparties = dictionariesClient.getCounterparties();
-        System.out.println(counterparties);
+        val usersClient = sharedContext.getBean(UsersClient.class);
     }
 
 
@@ -55,7 +53,7 @@ class EndToEndTest {
         sharedContext.start();
 
         asList(
-            DictionariesApplication.class,
+            UsersApplication.class,
             DocumentsApplication.class,
             SchemasApplication.class
         ).forEach(applicationClass -> {

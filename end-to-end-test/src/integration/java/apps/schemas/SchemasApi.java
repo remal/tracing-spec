@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.schemas;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-@SpringBootApplication
-@EnableFeignClients
-public class UsersApplication {
+public interface SchemasApi {
+
+    @GetMapping("/schemas/{id}")
+    Schema getSchema(@PathVariable String id);
+
 }
