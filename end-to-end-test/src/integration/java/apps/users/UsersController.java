@@ -19,6 +19,7 @@ package apps.dictionaries;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import name.remal.tracingspec.spring.sleuth.SpecSpan;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,11 +29,13 @@ public class DictionariesController implements DictionariesApi {
     private final CounterpartyRepository repository;
 
     @Override
+    @SpecSpan(description = "Get all counterparties")
     public Map<Long, Counterparty> getCounterparties() {
         return repository.getAll();
     }
 
     @Override
+    @SpecSpan(description = "Get counterparty by id")
     public Optional<Counterparty> getCounterparty(long id) {
         return repository.findById(id);
     }
