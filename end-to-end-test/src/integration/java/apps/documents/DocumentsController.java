@@ -16,20 +16,19 @@
 
 package apps.documents;
 
-import apps.common.repository.Entity;
-import apps.documents.ImmutableDocument.DocumentBuilder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.immutables.value.Value;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RestController;
 
-@Value.Immutable
-@JsonDeserialize(builder = DocumentBuilder.class)
-public interface Document extends Entity<DocumentId> {
+@RestController
+@RequiredArgsConstructor
+public class DocumentsController implements DocumentsApi {
 
-    @Value.Default
-    default ObjectNode getContent() {
-        return JsonNodeFactory.instance.objectNode();
+    private final DocumentRepository repository;
+
+    @Override
+    public List<Document> getAllDocumentsByType(String type) {
+        return repository.getAllByType(type);
     }
 
 }

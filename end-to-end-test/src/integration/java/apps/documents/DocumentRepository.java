@@ -16,7 +16,10 @@
 
 package apps.documents;
 
+import static java.util.stream.Collectors.toList;
+
 import apps.common.repository.AbstractInMemoryRepository;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,6 +37,12 @@ public class DocumentRepository extends AbstractInMemoryRepository<DocumentId, D
                 .build()
             );
         }
+    }
+
+    public List<Document> getAllByType(String type) {
+        return getAll().stream()
+            .filter(doc -> doc.getId().getType().equals(type))
+            .collect(toList());
     }
 
 }

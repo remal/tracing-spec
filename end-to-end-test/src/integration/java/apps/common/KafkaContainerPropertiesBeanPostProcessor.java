@@ -24,6 +24,7 @@ import lombok.val;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.cloud.stream.binder.kafka.properties.KafkaBinderConfigurationProperties;
 import org.springframework.context.annotation.Role;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.KafkaContainer;
@@ -39,11 +40,19 @@ public class KafkaContainerPropertiesBeanPostProcessor implements BeanPostProces
     public Object postProcessAfterInitialization(Object bean, String beanName) {
         if (bean instanceof KafkaProperties) {
             val props = (KafkaProperties) bean;
-
             val kafkaContainer = kafkaContainerProvider.getIfAvailable();
             if (kafkaContainer != null) {
                 kafkaContainer.start();
                 props.setBootstrapServers(singletonList(kafkaContainer.getBootstrapServers()));
+            }
+        }
+
+        if (bean instanceof KafkaBinderConfigurationProperties) {
+            val props = (KafkaBinderConfigurationProperties) bean;
+            val kafkaContainer = kafkaContainerProvider.getIfAvailable();
+            if (kafkaContainer != null) {
+                kafkaContainer.start();
+                props.setBrokers(kafkaContainer.getBootstrapServers());
             }
         }
 

@@ -16,20 +16,13 @@
 
 package apps.documents;
 
-import apps.common.repository.Entity;
-import apps.documents.ImmutableDocument.DocumentBuilder;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.immutables.value.Value;
+import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-@Value.Immutable
-@JsonDeserialize(builder = DocumentBuilder.class)
-public interface Document extends Entity<DocumentId> {
+public interface DocumentsApi {
 
-    @Value.Default
-    default ObjectNode getContent() {
-        return JsonNodeFactory.instance.objectNode();
-    }
+    @GetMapping("/documents/{type}")
+    List<Document> getAllDocumentsByType(@PathVariable String type);
 
 }

@@ -54,8 +54,11 @@ public class PropertiesApplicationRunListener implements SpringApplicationRunLis
         properties.put("spring.cloud.bootstrap.enabled", false);
         properties.put("server.port", 0);
         properties.put("spring.cloud.loadbalancer.cache.enabled", "false");
-        serviceName.ifPresent(it -> properties.put("spring.application.name", it));
-        serviceName.ifPresent(it -> properties.put("spring.kafka.clientId", it));
+        serviceName.ifPresent(it -> {
+            properties.put("spring.application.name", it);
+            properties.put("spring.kafka.clientId", it);
+            properties.put("spring.kafka.consumer.groupId", it);
+        });
 
         environment.getPropertySources().addLast(
             new MapPropertySource(

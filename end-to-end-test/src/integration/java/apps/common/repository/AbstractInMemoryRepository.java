@@ -26,6 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.val;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.Unmodifiable;
 
 public abstract class AbstractInMemoryRepository<ID, EntityType extends Entity<ID>>
@@ -48,7 +50,27 @@ public abstract class AbstractInMemoryRepository<ID, EntityType extends Entity<I
 
     @Override
     public final void save(EntityType entity) {
-        entities.put(entity.getId(), entity);
+        val prevEntity = entities.put(entity.getId(), entity);
+
+        onEntitySaved(entity);
+        if (prevEntity == null) {
+            onEntityCreated(entity);
+        } else {
+            onEntityChanged(entity);
+        }
+    }
+
+
+    @OverrideOnly
+    protected void onEntitySaved(EntityType entity) {
+    }
+
+    @OverrideOnly
+    protected void onEntityCreated(EntityType entity) {
+    }
+
+    @OverrideOnly
+    protected void onEntityChanged(EntityType entity) {
     }
 
 }

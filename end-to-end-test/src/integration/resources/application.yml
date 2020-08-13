@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    stream:
+      default-binder: kafka
+      bindings:
+        input:
+          destination: test
+        output:
+          destination: test
