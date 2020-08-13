@@ -22,7 +22,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.0.209'
+        classpath 'name.remal:gradle-plugins:1.0.211'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
@@ -69,7 +69,7 @@ allprojects {
         // BOMs:
         allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies:2.3.2.RELEASE')
         allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR6')
-        allResolvable platform('io.grpc:grpc-bom:1.31.0')
+        allResolvable platform('io.grpc:grpc-bom:1.31.1')
         allResolvable platform('com.google.protobuf:protobuf-bom:3.12.4')
         allResolvable platform('org.testcontainers:testcontainers-bom:1.14.3')
         allResolvable platform('io.opentracing:parent:0.33.0')
