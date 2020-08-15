@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-@NonNullApi
-@NonNullFields
-package apps.shared.testcontainers;
+package shared;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import brave.sampler.Sampler;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ComponentScan
+public class SharedConfiguration {
+
+    @Bean
+    public Sampler sleuthTraceSampler() {
+        return Sampler.ALWAYS_SAMPLE;
+    }
+
+}

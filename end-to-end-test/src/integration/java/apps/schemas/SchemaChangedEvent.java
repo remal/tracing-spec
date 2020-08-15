@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-@NonNullApi
-@NonNullFields
-package apps.shared;
+package apps.schemas;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import apps.schemas.ImmutableSchemaChangedEvent.SchemaChangedEventBuilder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.immutables.value.Value;
+
+@Value.Immutable
+@JsonDeserialize(builder = SchemaChangedEventBuilder.class)
+public interface SchemaChangedEvent {
+
+    String getId();
+
+}

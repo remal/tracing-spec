@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package apps.shared.testcontainers;
+package shared.testcontainers;
 
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 

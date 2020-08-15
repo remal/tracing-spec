@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package apps.shared;
+package shared;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;

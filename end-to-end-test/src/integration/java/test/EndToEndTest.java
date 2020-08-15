@@ -20,7 +20,6 @@ import static java.util.Arrays.asList;
 
 import apps.documents.DocumentsApplication;
 import apps.schemas.SchemasApplication;
-import apps.shared.SharedConfiguration;
 import apps.users.UsersApplication;
 import apps.users.UsersClient;
 import java.util.ArrayList;
@@ -33,6 +32,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.builder.ParentContextApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import shared.SharedConfiguration;
 
 class EndToEndTest {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package apps.shared.testcontainers;
+package shared.testcontainers;
 
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
