@@ -19,12 +19,15 @@ package test;
 import static java.util.Arrays.asList;
 
 import apps.documents.DocumentsApplication;
+import apps.schemas.ImmutableSchema;
+import apps.schemas.ImmutableSchemaReference;
 import apps.schemas.SchemasApplication;
+import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
-import apps.users.UsersClient;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.val;
+import org.apache.logging.log4j.LogManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -38,9 +41,19 @@ class EndToEndTest {
 
     @Test
     void test() {
-        val usersClient = sharedContext.getBean(UsersClient.class);
+        val schemas = sharedContext.getBean(SchemasClient.class);
+        schemas.saveSchema(ImmutableSchema.builder()
+            .id("task")
+            .addReference(ImmutableSchemaReference.builder()
+                .dataType("user")
+                .idField("userId")
+                .putFieldMapping("fullName", "userFullName")
+                .putFieldMapping("email", "userEmail")
+                .build()
+            )
+            .build()
+        );
     }
-
 
     private static final AnnotationConfigApplicationContext sharedContext = new AnnotationConfigApplicationContext();
 
@@ -57,10 +70,15 @@ class EndToEndTest {
             DocumentsApplication.class,
             SchemasApplication.class
         ).forEach(applicationClass -> {
+            LogManager.getLogger(applicationClass).info("Starting...");
+
             val application = new SpringApplication(applicationClass);
             application.addInitializers(new ParentContextApplicationContextInitializer(sharedContext));
+
             val applicationContext = application.run();
             applicationContexts.add(applicationContext);
+
+            LogManager.getLogger(applicationClass).info("Started");
         });
     }
 

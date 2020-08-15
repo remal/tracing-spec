@@ -17,11 +17,25 @@
 package apps.schemas;
 
 import apps.common.repository.AbstractInMemoryRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 @SuppressWarnings("java:S1171")
 public class SchemaRepository extends AbstractInMemoryRepository<String, Schema> {
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Override
+    protected void onEntityChanged(Schema entity) {
+        kafkaTemplate.send("schema-changed", ImmutableSchema.builder()
+            .id(entity.getId())
+            .build()
+        );
+    }
+
 
     {
         save(ImmutableSchema.builder()

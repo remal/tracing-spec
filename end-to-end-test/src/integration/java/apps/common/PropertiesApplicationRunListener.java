@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package apps.common.properties;
+package apps.common;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.val;
@@ -50,15 +50,10 @@ public class PropertiesApplicationRunListener implements SpringApplicationRunLis
 
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("spring.cloud.bootstrap.enabled", false);
+        Map<String, Object> properties = new LinkedHashMap<>();
         properties.put("server.port", 0);
-        properties.put("spring.cloud.loadbalancer.cache.enabled", "false");
-        serviceName.ifPresent(it -> {
-            properties.put("spring.application.name", it);
-            properties.put("spring.kafka.clientId", it);
-            properties.put("spring.kafka.consumer.groupId", it);
-        });
+        properties.put("spring.cloud.bootstrap.enabled", false);
+        serviceName.ifPresent(it -> properties.put("spring.application.name", it));
 
         environment.getPropertySources().addLast(
             new MapPropertySource(

@@ -18,12 +18,14 @@ package apps.common;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 import static org.springframework.cloud.sleuth.zipkin2.ZipkinAutoConfiguration.REPORTER_BEAN_NAME;
 import static zipkin2.codec.SpanBytesEncoder.JSON_V2;
 
 import lombok.val;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 import utils.test.container.JaegerAllInOneContainer;
 import utils.test.container.ZipkinContainer;
 import zipkin2.Span;
@@ -32,6 +34,7 @@ import zipkin2.reporter.Reporter;
 import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 @Configuration
+@Role(ROLE_INFRASTRUCTURE)
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ReportersConfiguration {
 

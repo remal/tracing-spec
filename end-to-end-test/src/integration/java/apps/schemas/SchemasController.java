@@ -30,6 +30,11 @@ public class SchemasController implements SchemasApi {
     private final SchemaRepository repository;
 
     @Override
+    public void saveSchema(Schema schema) {
+        repository.save(schema);
+    }
+
+    @Override
     @SpecSpan(description = "Find schema by ID")
     public Schema getSchema(String id) {
         return repository.findById(id).orElseThrow(() ->
