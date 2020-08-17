@@ -18,6 +18,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
+        submodules: recursive
         fetch-depth: 2
 
     # If this run was triggered by a pull request event, then checkout
