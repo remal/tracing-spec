@@ -7,7 +7,7 @@ on:
     # The branches below must be a subset of the branches above
     branches: [master]
   schedule:
-  - cron: '0 21 * * *'
+  - cron: '0 3 * * *'
 
 jobs:
   analyze:
@@ -24,7 +24,7 @@ jobs:
     # If this run was triggered by a pull request event, then checkout
     # the head of the pull request instead of the merge commit.
     - if: ${{ github.event_name == 'pull_request' }}
-      run: git checkout HEAD^2
+      run: git checkout --recurse-submodules HEAD^2
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
