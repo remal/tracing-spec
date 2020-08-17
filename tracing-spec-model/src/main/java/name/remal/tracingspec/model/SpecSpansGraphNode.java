@@ -55,7 +55,6 @@ public interface SpecSpansGraphNode extends DisconnectedSpecSpan, Comparable<Spe
     }
 
 
-    @SneakyThrows
     default void visit(SpecSpansGraphVisitor visitor) {
         visit(visitor, null);
     }

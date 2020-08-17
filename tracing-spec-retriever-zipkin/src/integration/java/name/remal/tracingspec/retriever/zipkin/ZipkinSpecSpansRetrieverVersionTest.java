@@ -18,6 +18,7 @@ package name.remal.tracingspec.retriever.zipkin;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -58,11 +59,9 @@ class ZipkinSpecSpansRetrieverVersionTest {
     void beforeEach() {
         zipkinContainer.start();
 
-        val sender = URLConnectionSender.create(
-            format("http://localhost:%d/api/v2/spans", zipkinContainer.getZipkinPort())
-        );
+        val sender = URLConnectionSender.create(zipkinContainer.getZipkinCollectorUrl());
         val reporter = AsyncReporter.builder(sender)
-            .messageTimeout(1, MICROSECONDS)
+            .messageTimeout(1, MILLISECONDS)
             .build();
         val spanHandler = ZipkinSpanHandler.create(reporter);
         val tracing = Tracing.newBuilder()

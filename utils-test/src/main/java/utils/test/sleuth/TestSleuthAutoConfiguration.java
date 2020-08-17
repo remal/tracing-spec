@@ -24,6 +24,7 @@ import brave.handler.SpanHandler;
 import brave.sampler.Sampler;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ import zipkin2.reporter.Reporter;
 @TestConfiguration
 @ConditionalOnClass(Tracer.class)
 @AutoConfigureBefore(TraceAutoConfiguration.class)
+@ConditionalOnMissingClass("org.springframework.cloud.sleuth.zipkin2.ZipkinAutoConfiguration")
 public class TestSleuthAutoConfiguration {
 
     @Bean
