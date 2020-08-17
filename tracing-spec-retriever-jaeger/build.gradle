@@ -26,6 +26,12 @@ TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
     from('jaeger-idl/proto/api_v2')
     into(protoFilesDir)
 
+    doFirst {
+        if (!file('jaeger-idl').isDirectory()) {
+            throw new GradleException("Jaeger IDL directory doesn't exist. Probably, Git submodule hasn't been cloned.")
+        }
+    }
+
     doFirst { protoFilesDir.deleteDir() }
 
     doLast {
