@@ -59,9 +59,7 @@ class ZipkinSpecSpansRetrieverVersionTest {
     void beforeEach() {
         zipkinContainer.start();
 
-        val sender = URLConnectionSender.create(
-            format("http://localhost:%d/api/v2/spans", zipkinContainer.getZipkinPort())
-        );
+        val sender = URLConnectionSender.create(zipkinContainer.getZipkinCollectorUrl());
         val reporter = AsyncReporter.builder(sender)
             .messageTimeout(1, MILLISECONDS)
             .build();

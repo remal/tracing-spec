@@ -16,24 +16,23 @@
 
 package apps.common;
 
-import static java.util.Collections.singletonList;
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.cloud.sleuth.zipkin2.ZipkinProperties;
 import org.springframework.context.annotation.Role;
 import org.springframework.stereotype.Component;
-import org.testcontainers.containers.KafkaContainer;
+import utils.test.container.ZipkinContainer;
 
 @Component
 @Role(ROLE_INFRASTRUCTURE)
-@RequiredArgsConstructor
-public class KafkaContainerPropertiesBeanPostProcessor
-    extends AbstractContainerPropertiesBeanPostProcessor<KafkaProperties, KafkaContainer> {
+public class ZipkinPropertiesBeanPostProcessor
+    extends AbstractContainerPropertiesBeanPostProcessor<ZipkinProperties, ZipkinContainer> {
 
     @Override
-    protected void configure(KafkaProperties props, KafkaContainer container) {
-        props.setBootstrapServers(singletonList(container.getBootstrapServers()));
+    protected void configure(ZipkinProperties props, ZipkinContainer container) {
+        props.setBaseUrl(container.getZipkinBaseUrl());
+        props.setDiscoveryClientEnabled(false);
+        props.setMessageTimeout(1);
     }
 
 }

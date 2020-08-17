@@ -324,8 +324,10 @@ ij_editorconfig_spaces_around_assignment_operators = true
 
 [{spring.schemas, spring.handlers, *.properties}]
 charset = latin1
+max_line_length = 999
 
 [*.{yml, yaml, xml, json, json5}]
+max_line_length = 999
 tab_width = 2
 indent_size = 2
 continuation_indent_size = 2
@@ -333,3 +335,4 @@ ij_continuation_indent_size = 2
 
 [*.{cmd, bat}]
 end_of_line = crlf
+max_line_length = 999

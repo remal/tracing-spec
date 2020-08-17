@@ -17,6 +17,7 @@
 package shared.testcontainers;
 
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
+import static org.testcontainers.containers.Network.SHARED;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.ApplicationContext;
@@ -35,17 +36,20 @@ public class TestcontainersConfiguration {
 
     @Bean
     public ZipkinContainer zipkinContainer() {
-        return new ZipkinContainer();
+        return new ZipkinContainer()
+            .withNetwork(SHARED);
     }
 
     @Bean
     public JaegerAllInOneContainer jaegerContainer() {
-        return new JaegerAllInOneContainer();
+        return new JaegerAllInOneContainer()
+            .withNetwork(SHARED);
     }
 
     @Bean
     public KafkaContainer kafkaContainer() {
-        return new KafkaContainer();
+        return new KafkaContainer()
+            .withNetwork(SHARED);
     }
 
     @Bean

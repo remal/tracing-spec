@@ -16,6 +16,7 @@
 
 package utils.test.container;
 
+import static java.lang.String.format;
 import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
 
 import org.testcontainers.containers.GenericContainer;
@@ -74,6 +75,14 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
 
     public int getZipkinPort() {
         return getMappedPort(ZIPKIN_PORT);
+    }
+
+    public String getZipkinBaseUrl() {
+        return format("http://localhost:%d/", getZipkinPort());
+    }
+
+    public String getZipkinCollectorUrl() {
+        return getZipkinBaseUrl() + "api/v2/spans";
     }
 
 }
