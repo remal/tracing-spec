@@ -61,18 +61,18 @@ class EndToEndTest {
             )
             .build();
 
-        val documents = sharedContext.getBean(DocumentsClient.class);
-        val oldSchemaDocuments = documents.getAllDocumentsBySchema(schema.getId());
+        val documentsClient = sharedContext.getBean(DocumentsClient.class);
+        val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
-        val schemas = sharedContext.getBean(SchemasClient.class);
-        schemas.saveSchema(schema);
+        val schemasClient = sharedContext.getBean(SchemasClient.class);
+        schemasClient.saveSchema(schema);
 
         await().atMost(Duration.ofSeconds(60)).until(
-            () -> documents.getAllDocumentsBySchema(schema.getId()),
+            () -> documentsClient.getAllDocumentsBySchema(schema.getId()),
             docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
         );
 
-        val newDocuments = documents.getAllDocumentsBySchema(schema.getId());
+        val newDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
         assertThat(newDocuments, not(empty()));
         logger.info("OLD DOCUMENTS: {}", oldSchemaDocuments);
         logger.info("NEW DOCUMENTS: {}", newDocuments);
