@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 public interface DocumentsApi {
 
-    @GetMapping("/documents/{type}")
-    List<Document> getAllDocumentsByType(@PathVariable String type);
+    @GetMapping("/documents/{schema}")
+    List<Document> getAllDocumentsBySchema(@PathVariable String schema);
 
 }

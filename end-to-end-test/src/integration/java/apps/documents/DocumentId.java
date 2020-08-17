@@ -24,7 +24,7 @@ import org.immutables.value.Value;
 @JsonDeserialize(builder = DocumentIdBuilder.class)
 public interface DocumentId {
 
-    String getType();
+    String getSchema();
 
     long getKey();
 

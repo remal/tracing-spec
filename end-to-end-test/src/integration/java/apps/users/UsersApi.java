@@ -16,13 +16,12 @@
 
 package apps.users;
 
-import java.util.Optional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 public interface UsersApi {
 
     @GetMapping("/users/{id}")
-    Optional<User> findUser(@PathVariable int id);
+    User getUser(@PathVariable int id);
 
 }

@@ -4,6 +4,8 @@ spring:
     consumer:
       group-id: ${spring.application.name}
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
     producer:
       batch-size: 0
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -18,4 +20,5 @@ logging:
     org.apache.kafka: ERROR
     org.jboss.threads: WARN
     org.xnio: WARN
+    org.springframework.context.support: WARN
     org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplierBuilder: ERROR

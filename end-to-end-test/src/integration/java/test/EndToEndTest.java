@@ -17,17 +17,21 @@
 package test;
 
 import static java.util.Arrays.asList;
+import static org.awaitility.Awaitility.await;
 
 import apps.documents.DocumentsApplication;
+import apps.documents.DocumentsClient;
 import apps.schemas.ImmutableSchema;
 import apps.schemas.ImmutableSchemaReference;
 import apps.schemas.SchemasApplication;
 import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.val;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -39,10 +43,11 @@ import shared.SharedConfiguration;
 
 class EndToEndTest {
 
+    private static final Logger logger = LogManager.getLogger(EndToEndTest.class);
+
     @Test
     void test() {
-        val schemas = sharedContext.getBean(SchemasClient.class);
-        schemas.saveSchema(ImmutableSchema.builder()
+        val schema = ImmutableSchema.builder()
             .id("task")
             .addReference(ImmutableSchemaReference.builder()
                 .dataType("user")
@@ -51,8 +56,21 @@ class EndToEndTest {
                 .putFieldMapping("email", "userEmail")
                 .build()
             )
-            .build()
+            .build();
+
+        val documents = sharedContext.getBean(DocumentsClient.class);
+        val oldSchemaDocuments = documents.getAllDocumentsBySchema(schema.getId());
+
+        val schemas = sharedContext.getBean(SchemasClient.class);
+        schemas.saveSchema(schema);
+
+        await().atMost(Duration.ofSeconds(60)).until(
+            () -> documents.getAllDocumentsBySchema(schema.getId()),
+            docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
         );
+
+        logger.info("OLD DOCUMENTS: {}", oldSchemaDocuments);
+        logger.info("NEW DOCUMENTS: {}", documents.getAllDocumentsBySchema(schema.getId()));
     }
 
     private static final AnnotationConfigApplicationContext sharedContext = new AnnotationConfigApplicationContext();
@@ -70,15 +88,11 @@ class EndToEndTest {
             DocumentsApplication.class,
             SchemasApplication.class
         ).forEach(applicationClass -> {
-            LogManager.getLogger(applicationClass).info("Starting...");
-
             val application = new SpringApplication(applicationClass);
             application.addInitializers(new ParentContextApplicationContextInitializer(sharedContext));
 
             val applicationContext = application.run();
             applicationContexts.add(applicationContext);
-
-            LogManager.getLogger(applicationClass).info("Started");
         });
     }
 

@@ -27,8 +27,8 @@ public class DocumentsController implements DocumentsApi {
     private final DocumentRepository repository;
 
     @Override
-    public List<Document> getAllDocumentsByType(String type) {
-        return repository.getAllByType(type);
+    public List<Document> getAllDocumentsBySchema(String schema) {
+        return repository.getAllBySchema(schema);
     }
 
 }

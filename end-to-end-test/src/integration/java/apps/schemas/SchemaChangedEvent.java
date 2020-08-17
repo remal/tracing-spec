@@ -24,6 +24,8 @@ import org.immutables.value.Value;
 @JsonDeserialize(builder = SchemaChangedEventBuilder.class)
 public interface SchemaChangedEvent {
 
+    String SCHEMA_CHANGED_TOPIC = "schema-changed";
+
     String getId();
 
 }

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 public class UserRepository extends AbstractInMemoryRepository<Integer, User> {
 
     {
-        for (int id = 1; id <= 9; ++id) {
+        for (int id = 1; id <= 99; ++id) {
             val entity = ImmutableUser.builder()
                 .id(id)
                 .fullName(FAKER.name().fullName())

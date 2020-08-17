@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package apps.users;
+package apps.common;
 
-import lombok.RequiredArgsConstructor;
-import name.remal.tracingspec.spring.sleuth.SpecSpan;
-import org.springframework.web.bind.annotation.RestController;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-@RestController
-@RequiredArgsConstructor
-public class UsersController implements UsersApi {
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-    private final UserRepository repository;
+@ResponseStatus(NOT_FOUND)
+public class NotFoundException extends RuntimeException {
 
-    @Override
-    @SpecSpan(description = "Get user by ID")
-    public User getUser(int id) {
-        return repository.getById(id);
+    public NotFoundException(String message) {
+        super(message);
     }
 
 }

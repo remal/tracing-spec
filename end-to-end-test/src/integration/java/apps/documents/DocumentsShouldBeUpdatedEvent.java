@@ -14,34 +14,28 @@
  * limitations under the License.
  */
 
-package apps.schemas;
+package apps.documents;
 
-import apps.schemas.ImmutableSchemaReference.SchemaReferenceBuilder;
+import apps.documents.ImmutableDocumentsShouldBeUpdatedEvent.DocumentsShouldBeUpdatedEventBuilder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.HashSet;
-import java.util.Map;
-import lombok.val;
+import java.util.List;
 import org.immutables.value.Value;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @Value.Immutable
-@JsonDeserialize(builder = SchemaReferenceBuilder.class)
-public interface SchemaReference {
+@JsonDeserialize(builder = DocumentsShouldBeUpdatedEventBuilder.class)
+public interface DocumentsShouldBeUpdatedEvent {
 
-    String getDataType();
+    String DOCUMENTS_SHOULD_BE_UPDATED_TOPIC = "documents-should-be-updated";
 
-    String getIdField();
-
-    Map<String, String> getFieldMappings();
+    List<DocumentId> getIds();
 
 
     @Value.Check
+    @OverrideOnly
     default void validate() {
-        val targetFields = getFieldMappings().values();
-        if (targetFields.contains(getIdField())) {
-            throw new IllegalStateException("fieldMappings targets contain idField: " + getIdField());
-        }
-        if (new HashSet<>(targetFields).size() != targetFields.size()) {
-            throw new IllegalStateException("fieldMappings targets are not unique");
+        if (getIds().isEmpty()) {
+            throw new IllegalStateException("ids must not be empty");
         }
     }
 

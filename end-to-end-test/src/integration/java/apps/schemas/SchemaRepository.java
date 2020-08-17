@@ -16,6 +16,8 @@
 
 package apps.schemas;
 
+import static apps.schemas.SchemaChangedEvent.SCHEMA_CHANGED_TOPIC;
+
 import apps.common.repository.AbstractInMemoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -30,7 +32,7 @@ public class SchemaRepository extends AbstractInMemoryRepository<String, Schema>
 
     @Override
     protected void onEntityChanged(Schema entity) {
-        kafkaTemplate.send("schema-changed", ImmutableSchema.builder()
+        kafkaTemplate.send(SCHEMA_CHANGED_TOPIC, ImmutableSchemaChangedEvent.builder()
             .id(entity.getId())
             .build()
         );

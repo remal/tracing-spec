@@ -17,39 +17,41 @@
 package shared.testcontainers;
 
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
-import static org.testcontainers.containers.Network.SHARED;
 
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.lifecycle.Startable;
 import utils.test.container.JaegerAllInOneContainer;
 import utils.test.container.ZipkinContainer;
 
 @Configuration
-@ConditionalOnClass(Startable.class)
+@ConditionalOnClass(Container.class)
 @Role(ROLE_INFRASTRUCTURE)
 public class TestcontainersConfiguration {
 
     @Bean
     public ZipkinContainer zipkinContainer() {
-        return new ZipkinContainer()
-            .withNetwork(SHARED);
+        return new ZipkinContainer();
     }
 
     @Bean
     public JaegerAllInOneContainer jaegerContainer() {
-        return new JaegerAllInOneContainer()
-            .withNetwork(SHARED);
+        return new JaegerAllInOneContainer();
     }
 
     @Bean
     public KafkaContainer kafkaContainer() {
-        return new KafkaContainer()
-            .withNetwork(SHARED);
+        return new KafkaContainer();
+    }
+
+    @Bean
+    public static BeanPostProcessor containerNetworkBeanPostProcessor() {
+        return new ContainerNetworkBeanPostProcessor();
     }
 
     @Bean

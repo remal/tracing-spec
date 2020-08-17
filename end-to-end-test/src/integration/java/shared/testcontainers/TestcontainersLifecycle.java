@@ -16,8 +16,9 @@
 
 package shared.testcontainers;
 
-import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
@@ -32,24 +33,18 @@ class TestcontainersLifecycle implements DisposableBean {
     private final ApplicationContext applicationContext;
 
 
-    private volatile boolean isStopped = false;
+    private final AtomicBoolean isStopped = new AtomicBoolean(false);
 
     private void stopContainers() {
-        if (!isStopped) {
-            synchronized (this) {
-                if (!isStopped) {
+        if (isStopped.compareAndSet(false, true)) {
 
-                    Collection<Startable> startableBeans = applicationContext.getBeansOfType(Startable.class).values();
-                    if (!startableBeans.isEmpty()) {
-                        logger.info("Stopping {} containers", startableBeans.size());
-                    }
-
-                    startableBeans.forEach(Startable::stop);
-
-                    isStopped = true;
-
-                }
+            val startableBeans = applicationContext.getBeansOfType(Startable.class).values();
+            if (!startableBeans.isEmpty()) {
+                logger.info("Stopping {} containers", startableBeans.size());
             }
+
+            startableBeans.forEach(Startable::stop);
+
         }
     }
 

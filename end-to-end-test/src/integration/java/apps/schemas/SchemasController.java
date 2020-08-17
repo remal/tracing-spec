@@ -16,12 +16,9 @@
 
 package apps.schemas;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
 import lombok.RequiredArgsConstructor;
 import name.remal.tracingspec.spring.sleuth.SpecSpan;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,11 +32,9 @@ public class SchemasController implements SchemasApi {
     }
 
     @Override
-    @SpecSpan(description = "Find schema by ID")
+    @SpecSpan(description = "Get schema by ID")
     public Schema getSchema(String id) {
-        return repository.findById(id).orElseThrow(() ->
-            new ResponseStatusException(NOT_FOUND, "Schema can't by found by ID: '" + id + "'")
-        );
+        return repository.getById(id);
     }
 
 }
