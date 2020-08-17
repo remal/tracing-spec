@@ -18,6 +18,9 @@ package test;
 
 import static java.util.Arrays.asList;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.not;
 
 import apps.documents.DocumentsApplication;
 import apps.documents.DocumentsClient;
@@ -69,8 +72,10 @@ class EndToEndTest {
             docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
         );
 
+        val newDocuments = documents.getAllDocumentsBySchema(schema.getId());
+        assertThat(newDocuments, not(empty()));
         logger.info("OLD DOCUMENTS: {}", oldSchemaDocuments);
-        logger.info("NEW DOCUMENTS: {}", documents.getAllDocumentsBySchema(schema.getId()));
+        logger.info("NEW DOCUMENTS: {}", newDocuments);
     }
 
     private static final AnnotationConfigApplicationContext sharedContext = new AnnotationConfigApplicationContext();
