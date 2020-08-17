@@ -7,7 +7,7 @@ on:
     # The branches below must be a subset of the branches above
     branches: [master]
   schedule:
-    - cron: '0 21 * * *'
+  - cron: '0 21 * * *'
 
 jobs:
   analyze:
@@ -29,6 +29,11 @@ jobs:
       uses: github/codeql-action/init@v1
       with:
         languages: java
+
+    - name: Setup Java 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
 
     - name: Build
       run: ./gradlew allClasses
