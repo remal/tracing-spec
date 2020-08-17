@@ -265,6 +265,11 @@ allprojects {
             )
         }
 
+        sourceSets.all { SourceSet sourceSet ->
+            Task allClasses = tasks.maybeCreate('allClasses')
+            allClasses.dependsOn(sourceSet.classesTaskName)
+        }
+
         testSourceSets.create('component')
 
         tasks.withType(Test) {
