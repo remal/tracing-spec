@@ -16,7 +16,6 @@
 
 package name.remal.tracingspec.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
@@ -25,7 +24,6 @@ import name.remal.tracingspec.model.ImmutableSpecSpansGraphNode.SpecSpansGraphNo
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(builder = SpecSpansGraphNodeBuilder.class)
 public interface SpecSpansGraphNode extends DisconnectedSpecSpan, Comparable<SpecSpansGraphNode> {
 
     static SpecSpansGraphNodeBuilder builder() {

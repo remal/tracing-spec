@@ -19,18 +19,14 @@ package name.remal.tracingspec.retriever.jaeger;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
+import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties("tracingspec.retriever.jaeger")
-@EqualsAndHashCode
-@ToString
-@ExcludeFromCodeCoverage
+@Data
 @SuppressWarnings("java:S109")
 public class JaegerSpecSpansRetrieverProperties {
 
@@ -53,31 +49,5 @@ public class JaegerSpecSpansRetrieverProperties {
      */
     @Min(1)
     private long timeoutMillis = 60_000;
-
-
-    @Nullable
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(@Nullable String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public long getTimeoutMillis() {
-        return timeoutMillis;
-    }
-
-    public void setTimeoutMillis(long timeoutMillis) {
-        this.timeoutMillis = timeoutMillis;
-    }
 
 }

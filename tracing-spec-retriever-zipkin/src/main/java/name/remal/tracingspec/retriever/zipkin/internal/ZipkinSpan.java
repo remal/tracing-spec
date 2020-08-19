@@ -16,11 +16,8 @@
 
 package name.remal.tracingspec.retriever.zipkin.internal;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
 import static java.util.Collections.emptyMap;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -33,8 +30,6 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 @Internal
 @Value.Immutable
 @Gson.TypeAdapters
-@JsonDeserialize(builder = ZipkinSpanBuilder.class)
-@JsonInclude(NON_ABSENT)
 public interface ZipkinSpan {
 
     static ZipkinSpanBuilder builder() {
