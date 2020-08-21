@@ -17,12 +17,14 @@
 package name.remal.tracingspec.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Optional;
 import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
 import org.immutables.value.Value;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @Value.Immutable
+@JsonDeserialize(builder = SpecSpanBuilder.class)
 public interface SpecSpan extends DisconnectedSpecSpan {
 
     static SpecSpanBuilder builder() {
