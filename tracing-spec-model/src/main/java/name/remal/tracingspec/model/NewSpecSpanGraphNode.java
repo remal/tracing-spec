@@ -16,25 +16,29 @@
 
 package name.remal.tracingspec.model;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
-import lombok.Data;
 
-@Data
-public class NewSpecSpanEvent {
+public class NewSpecSpanGraphNode implements NewSpecSpanInfo {
 
     @Nullable
-    final String key;
+    String name;
 
-    final String value;
+    @Nullable
+    String serviceName;
 
-    public NewSpecSpanEvent(String key, String value) {
-        this.key = key;
-        this.value = value;
-    }
+    @Nullable
+    String remoteServiceName;
 
-    public NewSpecSpanEvent(String value) {
-        this.key = null;
-        this.value = value;
-    }
+    @Nullable
+    Instant startedAt;
+
+    final Map<String, String> tags = new LinkedHashMap<>();
+
+    final List<NewSpecSpanEvent> events = new ArrayList<>();
 
 }

@@ -21,16 +21,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 @Data
-@ToString(doNotUseGetters = true)
-@EqualsAndHashCode(doNotUseGetters = true)
-public class NewSpecSpan {
+public class NewSpecSpan implements NewSpecSpanInfo {
 
     final String spanId;
 
@@ -44,27 +39,13 @@ public class NewSpecSpan {
     String serviceName;
 
     @Nullable
+    String remoteServiceName;
+
+    @Nullable
     Instant startedAt;
 
     final Map<String, String> tags = new LinkedHashMap<>();
 
     final List<NewSpecSpanEvent> events = new ArrayList<>();
-
-
-    public Optional<String> getParentSpanId() {
-        return Optional.ofNullable(parentSpanId);
-    }
-
-    public Optional<String> getName() {
-        return Optional.ofNullable(name);
-    }
-
-    public Optional<String> getServiceName() {
-        return Optional.ofNullable(serviceName);
-    }
-
-    public Optional<Instant> getStartedAt() {
-        return Optional.ofNullable(startedAt);
-    }
 
 }
