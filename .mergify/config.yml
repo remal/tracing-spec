@@ -11,6 +11,7 @@ pull_request_rules:
 - name: Auto merge approved
   conditions:
   - "#approved-reviews-by>=1"
+  - -closed
   - -conflict
   - -draft
   - -locked
@@ -31,5 +32,18 @@ pull_request_rules:
 - name: Auto approve dependencies
   conditions:
   - author~=^(dependabot(-preview)?|renovate)\[bot\]$
+  - -closed
   actions:
     review: {}
+
+- name: Update all PRs to master
+  conditions:
+  - base=master
+  - "#approved-reviews-by=0"
+  - -author~=^(dependabot(-preview)?|renovate)\[bot\]$
+  - -closed
+  - -conflict
+  - -locked
+  - "#approved-reviews-by=0"
+  actions:
+    update: {}
