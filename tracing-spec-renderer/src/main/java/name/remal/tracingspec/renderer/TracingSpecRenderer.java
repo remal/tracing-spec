@@ -18,7 +18,6 @@ package name.remal.tracingspec.renderer;
 
 import java.util.List;
 import javax.annotation.Nullable;
-import name.remal.tracingspec.model.SpecSpan;
 
 public interface TracingSpecRenderer<Result> {
 

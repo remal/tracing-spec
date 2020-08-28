@@ -23,7 +23,6 @@ import static name.remal.tracingspec.model.SpecSpanTag.processAllTagsIntoBuilder
 import java.time.Instant;
 import java.util.Optional;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
 import org.jetbrains.annotations.ApiStatus.Internal;

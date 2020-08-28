@@ -21,14 +21,12 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanBuilder;
 
-import com.google.common.reflect.TypeToken;
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpan;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"java:S5786", "java:S2699"})
@@ -39,17 +37,8 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     @SneakyThrows
     @SuppressWarnings("unchecked")
     protected TracingSpecRendererTestBase() {
-        val typeToken = TypeToken.of(this.getClass());
-        val testType = typeToken.getSupertype(TracingSpecRendererTestBase.class).getType();
-        if (testType instanceof ParameterizedType) {
-            val parameterizedTestType = (ParameterizedType) testType;
-            val rendererType = parameterizedTestType.getActualTypeArguments()[1];
-            Class<?> rendererClass = TypeToken.of(rendererType).getRawType();
-            val ctor = rendererClass.getConstructor();
-            this.renderer = (Renderer) ctor.newInstance();
-        } else {
-            throw new IllegalStateException(this.getClass() + " isn't parameterized");
-        }
+        Class<?> rendererClass = getParameterizedTypeArgumentClass(getClass(), TracingSpecRendererTestBase.class, 1);
+        this.renderer = (Renderer) rendererClass.getConstructor().newInstance();
     }
 
 

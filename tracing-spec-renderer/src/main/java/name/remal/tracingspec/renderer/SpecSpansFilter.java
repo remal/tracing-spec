@@ -16,8 +16,6 @@
 
 package name.remal.tracingspec.renderer;
 
-import name.remal.tracingspec.model.SpecSpan;
-
 @FunctionalInterface
 public interface SpecSpansFilter {
 

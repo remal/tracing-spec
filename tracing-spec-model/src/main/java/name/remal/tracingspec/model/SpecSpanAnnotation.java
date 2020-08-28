@@ -17,16 +17,24 @@
 package name.remal.tracingspec.model;
 
 import javax.annotation.Nullable;
+import lombok.Data;
 
-public interface SpecSpansGraphVisitor {
+@Data
+public class SpecSpanAnnotation {
 
-    default void visitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) throws Throwable {
-        // Should be overridden
+    @Nullable
+    final String key;
+
+    final String value;
+
+    public SpecSpanAnnotation(String key, String value) {
+        this.key = key;
+        this.value = value;
     }
 
-    default void postVisitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) throws Throwable {
-        // Should be overridden
+    public SpecSpanAnnotation(String value) {
+        this.key = null;
+        this.value = value;
     }
-
 
 }

@@ -1,1 +1,5 @@
 apply plugin: 'java-library'
+
+dependencies {
+    optional 'org.apache.logging.log4j:log4j-api'
+}

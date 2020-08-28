@@ -16,29 +16,17 @@
 
 package name.remal.tracingspec.model;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
+public interface SpecSpanNodeVisitor {
 
-public class NewSpecSpanGraphNode implements NewSpecSpanInfo {
+    default void visit(SpecSpanNode node) throws Throwable {
+        // Should be overridden
+    }
 
-    @Nullable
-    String name;
-
-    @Nullable
-    String serviceName;
-
-    @Nullable
-    String remoteServiceName;
-
-    @Nullable
-    Instant startedAt;
-
-    final Map<String, String> tags = new LinkedHashMap<>();
-
-    final List<NewSpecSpanEvent> events = new ArrayList<>();
+    /**
+     * Executed when the node and all its children is visited
+     */
+    default void postVisit(SpecSpanNode node) throws Throwable {
+        // Should be overridden
+    }
 
 }

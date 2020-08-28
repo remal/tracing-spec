@@ -14,17 +14,31 @@
  * limitations under the License.
  */
 
-package utils.test.tracing;
+package name.remal.tracingspec.model;
 
-import static utils.test.tracing.SpanIdGenerator.nextSpanId;
+import static com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING;
 
-import name.remal.tracingspec.model.ImmutableSpecSpansGraphNode.SpecSpansGraphNodeBuilder;
-import name.remal.tracingspec.model.SpecSpansGraphNode;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import javax.annotation.Nullable;
+import lombok.val;
 
-public interface SpecSpanGraphNodeGenerator {
+public enum SpecSpanKind {
 
-    static SpecSpansGraphNodeBuilder nextSpecSpansGraphNodeBuilder() {
-        return SpecSpansGraphNode.builder().spanId(nextSpanId());
+    CLIENT,
+    SERVER,
+    PRODUCER,
+    CONSUMER,
+    ;
+
+    @Nullable
+    @JsonCreator(mode = DELEGATING)
+    public static SpecSpanKind parseSpecSpanKind(String value) {
+        for (val kind : values()) {
+            if (kind.name().equalsIgnoreCase(value)) {
+                return kind;
+            }
+        }
+        return null;
     }
 
 }

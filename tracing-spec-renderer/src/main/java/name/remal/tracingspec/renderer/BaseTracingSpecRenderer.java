@@ -23,8 +23,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpan;
-import name.remal.tracingspec.model.SpecSpansGraph;
 
 public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
 

@@ -1,14 +1,11 @@
 [
   {
-    "spanId": "1",
     "name": "root",
     "children": [
       {
-        "spanId": "2",
         "name": "parent",
         "children": [
           {
-            "spanId": "3",
             "name": "child"
           }
         ]

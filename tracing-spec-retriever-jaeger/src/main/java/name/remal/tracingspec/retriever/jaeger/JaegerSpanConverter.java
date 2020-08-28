@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRefType;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.ValueType;

@@ -16,46 +16,43 @@
 
 package name.remal.tracingspec.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.Optional;
-import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
-import org.immutables.value.Value;
-import org.jetbrains.annotations.ApiStatus.OverrideOnly;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import lombok.Data;
 
-@Value.Immutable
-@JsonDeserialize(builder = SpecSpanBuilder.class)
-public interface SpecSpan extends DisconnectedSpecSpan {
+@NotThreadSafe
+@Data
+public class SpecSpan implements SpecSpanInfo<SpecSpan> {
 
-    static SpecSpanBuilder builder() {
-        return ImmutableSpecSpan.builder();
-    }
+    final String spanId;
 
+    @Nullable
+    String parentSpanId;
 
-    Optional<String> getParentSpanId();
+    @Nullable
+    String name;
 
-    @JsonIgnore
-    default boolean hasParentSpanId() {
-        return getParentSpanId().isPresent();
-    }
+    @Nullable
+    SpecSpanKind kind;
 
-    @JsonIgnore
-    default boolean hasNoParentSpanId() {
-        return !hasParentSpanId();
-    }
+    boolean async;
 
+    @Nullable
+    String serviceName;
 
-    @Override
-    @OverrideOnly
-    @Value.Check
-    default void validate() {
-        DisconnectedSpecSpan.super.validate();
+    @Nullable
+    String remoteServiceName;
 
-        getParentSpanId().ifPresent(parentSpanId -> {
-            if (parentSpanId.isEmpty()) {
-                throw new IllegalStateException("parentSpanId must not be empty");
-            }
-        });
-    }
+    @Nullable
+    Instant startedAt;
+
+    final Map<String, String> tags = new LinkedHashMap<>();
+
+    final Set<SpecSpanAnnotation> annotations = new LinkedHashSet<>();
 
 }

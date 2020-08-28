@@ -23,9 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpansGraph;
-import name.remal.tracingspec.model.SpecSpansGraphNode;
-import name.remal.tracingspec.model.SpecSpansGraphVisitor;
 import name.remal.tracingspec.renderer.plantuml.BaseTracingSpecPlantumlRenderer;
 
 public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantumlRenderer {
