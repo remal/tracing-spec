@@ -27,8 +27,23 @@ public enum SpecSpanKind {
     CLIENT,
     SERVER,
     PRODUCER,
-    CONSUMER,
+    CONSUMER(true),
     ;
+
+    private final boolean alwaysAsync;
+
+    SpecSpanKind(boolean alwaysAsync) {
+        this.alwaysAsync = alwaysAsync;
+    }
+
+    SpecSpanKind() {
+        this(false);
+    }
+
+    public boolean isAlwaysAsync() {
+        return alwaysAsync;
+    }
+
 
     @Nullable
     @JsonCreator(mode = DELEGATING)

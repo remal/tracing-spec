@@ -20,6 +20,8 @@ import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.testcontainers.images.PullPolicy.ageBased;
 
@@ -32,6 +34,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpan;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,6 +92,7 @@ class JaegerSpecSpansRetrieverVersionTest {
         childSpan.finish();
         rootSpan.finish();
 
+
         val traceId = rootSpan.context().getTraceId();
         List<SpecSpan> specSpans = new ArrayList<>();
         await().atMost(Duration.ofSeconds(30)).until(
@@ -100,29 +104,34 @@ class JaegerSpecSpansRetrieverVersionTest {
             hasSize(2)
         );
 
-        assertThat(specSpans, containsInAnyOrder(
-            SpecSpan.builder()
-                .spanId(rootSpan.context().toSpanId())
-                .name("root")
-                .serviceName(SERVICE_NAME)
-                .startedAt(Instant.ofEpochSecond(
-                    0,
-                    NANOSECONDS.convert(rootSpan.getStart(), MICROSECONDS)
-                ))
-                .build(),
+        specSpans.forEach(specSpan -> {
+            specSpan.getTags().clear();
+            specSpan.getAnnotations().clear();
+        });
 
-            SpecSpan.builder()
-                .spanId(childSpan.context().toSpanId())
-                .parentSpanId(rootSpan.context().toSpanId())
-                .name("child")
-                .serviceName(SERVICE_NAME)
-                .startedAt(Instant.ofEpochSecond(
-                    0,
-                    NANOSECONDS.convert(childSpan.getStart(), MICROSECONDS)
-                ))
-                .description("some text")
-                .async(true)
-                .build()
+
+        val expectedRootSpecSpan = new SpecSpan(rootSpan.context().toSpanId());
+        expectedRootSpecSpan.setName("root");
+        expectedRootSpecSpan.setServiceName(SERVICE_NAME);
+        expectedRootSpecSpan.setStartedAt(Instant.ofEpochSecond(
+            0,
+            NANOSECONDS.convert(rootSpan.getStart(), MICROSECONDS)
+        ));
+
+        val expectedChildSpecSpan = new SpecSpan(childSpan.context().toSpanId());
+        expectedChildSpecSpan.setParentSpanId(rootSpan.context().toSpanId());
+        expectedChildSpecSpan.setName("child");
+        expectedChildSpecSpan.setAsync(true);
+        expectedChildSpecSpan.setServiceName(SERVICE_NAME);
+        expectedChildSpecSpan.setStartedAt(Instant.ofEpochSecond(
+            0,
+            NANOSECONDS.convert(childSpan.getStart(), MICROSECONDS)
+        ));
+        expectedChildSpecSpan.setDescription("some text");
+
+        assertThat(specSpans, containsInAnyOrder(
+            expectedRootSpecSpan,
+            expectedChildSpecSpan
         ));
     }
 

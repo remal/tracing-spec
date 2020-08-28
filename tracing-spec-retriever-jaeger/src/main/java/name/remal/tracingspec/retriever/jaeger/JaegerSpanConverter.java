@@ -16,14 +16,14 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
-import static name.remal.tracingspec.model.SpecSpanTag.processAllTagsIntoBuilder;
 import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerId;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.retriever.jaeger.internal.grpc.KeyValue;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRefType;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.ValueType;
@@ -31,68 +31,20 @@ import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
-interface JaegerSpanConverter {
+abstract class JaegerSpanConverter {
 
-    static SpecSpan convertJaegerSpanToSpecSpan(Span jaegerSpan) {
-        val builder = SpecSpan.builder();
+    @SuppressWarnings("java:S3776")
+    public static SpecSpan convertJaegerSpanToSpecSpan(Span jaegerSpan) {
 
         val spanId = decodeJaegerId(jaegerSpan.getSpanId().toByteArray());
-        builder.spanId(spanId);
-
-        Optional.ofNullable(jaegerSpan.getOperationName())
-            .filter(it -> !it.isEmpty())
-            .ifPresent(builder::name);
-
-        if (jaegerSpan.hasProcess()) {
-            Optional.ofNullable(jaegerSpan.getProcess().getServiceName())
-                .filter(it -> !it.isEmpty())
-                .ifPresent(builder::serviceName);
-        }
-
-        if (jaegerSpan.hasStartTime()) {
-            val startTime = jaegerSpan.getStartTime();
-            builder.startedAt(Instant.ofEpochSecond(
-                startTime.getSeconds(),
-                startTime.getNanos()
-            ));
-        }
-
-        Map<String, Object> tags = new HashMap<>();
-        jaegerSpan.getTagsList().forEach(tag -> {
-            val tagKey = tag.getKey();
-
-            final String tagValue;
-            val valueType = tag.getVType();
-            if (valueType == ValueType.STRING) {
-                tagValue = tag.getVStr();
-            } else if (valueType == ValueType.BOOL) {
-                tagValue = tag.getVBool() + "";
-            } else if (valueType == ValueType.INT64) {
-                tagValue = tag.getVInt64() + "";
-            } else if (valueType == ValueType.FLOAT64) {
-                tagValue = tag.getVFloat64() + "";
-            } else if (valueType == ValueType.BINARY) {
-                tagValue = tag.getVBinary().toString();
-            } else {
-                LogManager.getLogger(JaegerSpanConverter.class).warn(
-                    "Span {}: Unsupported value type for tag {}: {}",
-                    spanId,
-                    tagKey,
-                    valueType
-                );
-                return;
-            }
-
-            tags.put(tagKey, tagValue);
-        });
-        processAllTagsIntoBuilder(tags, builder);
+        val specSpan = new SpecSpan(spanId);
 
         jaegerSpan.getReferencesList().forEach(ref -> {
             val refSpanId = decodeJaegerId(ref.getSpanId().toByteArray());
 
             val refType = ref.getRefType();
             if (refType == SpanRefType.CHILD_OF) {
-                builder.parentSpanId(refSpanId);
+                specSpan.setParentSpanId(refSpanId);
             } else {
                 LogManager.getLogger(JaegerSpanConverter.class).warn(
                     "Span {}: Unsupported ref type: {}",
@@ -102,7 +54,68 @@ interface JaegerSpanConverter {
             }
         });
 
-        return builder.build();
+        Optional.ofNullable(jaegerSpan.getOperationName())
+            .filter(it -> !it.isEmpty())
+            .ifPresent(specSpan::setName);
+
+        if (jaegerSpan.hasProcess()) {
+            Optional.ofNullable(jaegerSpan.getProcess().getServiceName())
+                .filter(it -> !it.isEmpty())
+                .ifPresent(specSpan::setServiceName);
+        }
+
+        if (jaegerSpan.hasStartTime()) {
+            val startTime = jaegerSpan.getStartTime();
+            specSpan.setStartedAt(Instant.ofEpochSecond(
+                startTime.getSeconds(),
+                startTime.getNanos()
+            ));
+        }
+
+        jaegerSpan.getTagsList().forEach(tag ->
+            processKeyValue(spanId, tag, specSpan::putTag)
+        );
+
+        jaegerSpan.getLogsList().forEach(log ->
+            log.getFieldsList().forEach(field ->
+                processKeyValue(spanId, field, specSpan::addAnnotation)
+            )
+        );
+
+        return specSpan;
+    }
+
+    private static void processKeyValue(String spanId, KeyValue keyValue, BiConsumer<String, String> consumer) {
+        val key = keyValue.getKey();
+
+        final String value;
+        val valueType = keyValue.getVType();
+        if (valueType == ValueType.STRING) {
+            value = keyValue.getVStr();
+        } else if (valueType == ValueType.BOOL) {
+            value = keyValue.getVBool() + "";
+        } else if (valueType == ValueType.INT64) {
+            value = keyValue.getVInt64() + "";
+        } else if (valueType == ValueType.FLOAT64) {
+            value = keyValue.getVFloat64() + "";
+        } else if (valueType == ValueType.BINARY) {
+            value = keyValue.getVBinary().toString();
+        } else {
+            LogManager.getLogger(JaegerSpanConverter.class).warn(
+                "Span {}: Unsupported value type for key {} of {}: {}",
+                spanId,
+                key,
+                keyValue,
+                valueType
+            );
+            return;
+        }
+
+        consumer.accept(key, value);
+    }
+
+
+    private JaegerSpanConverter() {
     }
 
 }

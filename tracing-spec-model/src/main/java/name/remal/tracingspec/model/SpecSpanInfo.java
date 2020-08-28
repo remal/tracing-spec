@@ -18,6 +18,7 @@ package name.remal.tracingspec.model;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static name.remal.tracingspec.model.SpecSpanInfoTagsProcessor.processTags;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -72,12 +73,31 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
     void setStartedAt(@Nullable Instant startedAt);
 
 
+    @Nullable
+    String getDescription();
+
+    void setDescription(@Nullable String description);
+
+
     Map<String, String> getTags();
+
+    default void setTags(Map<String, Object> tags) {
+        val tagsMap = getTags();
+        tagsMap.clear();
+        tags.forEach((key, value) -> {
+            if (key != null && value != null) {
+                tagsMap.put(key, value.toString());
+            }
+        });
+        processTags(this);
+    }
 
     @Contract("_, _ -> this")
     default Self putTag(String key, @Nullable String value) {
         if (value != null) {
             getTags().put(key, value);
+            processTags(this);
+
         } else {
             getTags().remove(key);
         }
@@ -87,17 +107,14 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
         return self;
     }
 
-    @Contract("_ -> this")
-    default Self removeTag(String key) {
-        getTags().remove(key);
-
-        @SuppressWarnings("unchecked")
-        val self = (Self) this;
-        return self;
-    }
-
 
     Set<SpecSpanAnnotation> getAnnotations();
+
+    default void setAnnotations(Iterable<? extends SpecSpanAnnotation> annotations) {
+        val annotationsList = getAnnotations();
+        annotationsList.clear();
+        annotations.forEach(annotationsList::add);
+    }
 
     @Contract("_, _ -> this")
     default Self addAnnotation(String key, String value) {

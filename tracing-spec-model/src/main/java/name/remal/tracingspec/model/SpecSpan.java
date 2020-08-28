@@ -51,8 +51,18 @@ public class SpecSpan implements SpecSpanInfo<SpecSpan> {
     @Nullable
     Instant startedAt;
 
+    @Nullable
+    String description;
+
     final Map<String, String> tags = new LinkedHashMap<>();
 
     final Set<SpecSpanAnnotation> annotations = new LinkedHashSet<>();
+
+
+    @Override
+    public boolean isAsync() {
+        return async
+            || (kind != null && kind.isAlwaysAsync());
+    }
 
 }

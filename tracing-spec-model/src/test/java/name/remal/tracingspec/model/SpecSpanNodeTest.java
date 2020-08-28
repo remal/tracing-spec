@@ -18,12 +18,15 @@ package name.remal.tracingspec.model;
 
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Collections.singletonList;
+import static name.remal.tracingspec.model.SpecSpanKind.CONSUMER;
+import static name.remal.tracingspec.model.SpecSpanKind.PRODUCER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static utils.test.json.ObjectMapperProvider.readJsonResource;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
 import java.util.ArrayList;
@@ -253,6 +256,30 @@ class SpecSpanNodeTest extends SpecSpanInfoTest<SpecSpanNode> {
             new MethodInvocation("postVisit", child2),
             new MethodInvocation("postVisit", parent)
         ));
+    }
+
+    @Test
+    void deserialization() {
+        val parent = new SpecSpanNode();
+        parent.setName("1");
+        parent.setKind(PRODUCER);
+        val child = new SpecSpanNode();
+        child.setName("2");
+        child.setKind(CONSUMER);
+        child.setParent(parent);
+
+        val deserialized = readJsonResource("spec-span-node.json", SpecSpanNode.class);
+        deserialized.visit(new SpecSpanNodeVisitor() {
+            @Override
+            public void visit(SpecSpanNode node) {
+                node.getTags().clear();
+            }
+        });
+
+        assertThat(
+            deserialized,
+            equalTo(parent)
+        );
     }
 
 }

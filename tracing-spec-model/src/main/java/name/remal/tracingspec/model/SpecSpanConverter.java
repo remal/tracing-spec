@@ -37,7 +37,6 @@ interface SpecSpanConverter {
 
     @Mapping(target = "parent", ignore = true)
     @Mapping(target = "children", ignore = true)
-    @Mapping(target = "removeTag", ignore = true)
     @Mapping(target = "removeChild", ignore = true)
     SpecSpanNode toNode(SpecSpan specSpan);
 

@@ -1,0 +1,15 @@
+{
+  "spanId": "12345678",
+  "parentSpanId": "87654321",
+  "name": "name",
+  "kind": "client",
+  "description": "description",
+  "tags": {
+    "spec.async": true
+  },
+  "annotations": [
+    {
+      "value": "annotation"
+    }
+  ]
+}

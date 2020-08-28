@@ -16,6 +16,33 @@
 
 package name.remal.tracingspec.model;
 
-@SuppressWarnings("java:S2187")
+import static name.remal.tracingspec.model.SpecSpanKind.CLIENT;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static utils.test.json.ObjectMapperProvider.readJsonResource;
+
+import lombok.val;
+import org.junit.jupiter.api.Test;
+
 class SpecSpanTest extends SpecSpanInfoTest<SpecSpan> {
+
+    @Test
+    void deserialization() {
+        val expected = new SpecSpan("12345678");
+        expected.setParentSpanId("87654321");
+        expected.setName("name");
+        expected.setKind(CLIENT);
+        expected.setAsync(true);
+        expected.setDescription("description");
+        expected.addAnnotation("annotation");
+
+        val deserialized = readJsonResource("spec-span.json", SpecSpan.class);
+        deserialized.getTags().clear();
+
+        assertThat(
+            deserialized,
+            equalTo(expected)
+        );
+    }
+
 }

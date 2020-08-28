@@ -30,64 +30,96 @@ import org.junit.jupiter.api.Test;
 
 abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
 
-    private final T span;
+    private final T instance;
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
     protected SpecSpanInfoTest() {
         val type = getParameterizedTypeArgumentClass(getClass(), SpecSpanInfoTest.class, 0);
         if (type == SpecSpan.class) {
-            span = (T) nextSpecSpan();
+            instance = (T) nextSpecSpan();
         } else {
-            span = (T) type.getConstructor().newInstance();
+            instance = (T) type.getConstructor().newInstance();
         }
     }
 
 
     @Test
-    void isSync() {
+    void isAsync() {
         assertThat(
-            span.isSync(),
-            equalTo(true)
-        );
-
-        span.setAsync(true);
-        assertThat(
-            span.isSync(),
+            instance.isAsync(),
             equalTo(false)
         );
 
-        span.setAsync(false);
+        instance.setAsync(true);
         assertThat(
-            span.isSync(),
+            instance.isAsync(),
             equalTo(true)
         );
+
+        instance.setAsync(false);
+        assertThat(
+            instance.isAsync(),
+            equalTo(false)
+        );
+
+        for (val kind : SpecSpanKind.values()) {
+            instance.setKind(kind);
+            assertThat(
+                "Kind " + kind,
+                instance.isAsync(),
+                equalTo(kind.isAlwaysAsync())
+            );
+        }
+    }
+
+    @Test
+    void isSync() {
+        assertThat(
+            instance.isSync(),
+            equalTo(true)
+        );
+
+        instance.setAsync(true);
+        assertThat(
+            instance.isSync(),
+            equalTo(false)
+        );
+
+        instance.setAsync(false);
+        assertThat(
+            instance.isSync(),
+            equalTo(true)
+        );
+
+        for (val kind : SpecSpanKind.values()) {
+            instance.setKind(kind);
+            assertThat(
+                "Kind " + kind,
+                instance.isSync(),
+                equalTo(!kind.isAlwaysAsync())
+            );
+        }
     }
 
     @Test
     void putTag() {
-        span.putTag("key", "value");
-        assertThat(span.getTags(), equalTo(singletonMap("key", "value")));
+        instance.putTag("key", "value");
+        assertThat(instance.getTags(), equalTo(singletonMap("key", "value")));
 
-        span.putTag("key", null);
-        assertThat(span.getTags(), equalTo(emptyMap()));
-    }
+        instance.putTag("key", null);
+        assertThat(instance.getTags(), equalTo(emptyMap()));
 
-    @Test
-    void removeTag() {
-        span.getTags().put("key", "value");
-
-        span.removeTag("key");
-        assertThat(span.getTags(), equalTo(emptyMap()));
+        instance.putTag("spec.kind", "server");
     }
 
     @Test
     void addAnnotation() {
-        span.addAnnotation("value");
-        assertThat(span.getAnnotations(), hasItem(new SpecSpanAnnotation("value")));
+        instance.addAnnotation("value");
+        assertThat(instance.getAnnotations(), hasItem(new SpecSpanAnnotation("value")));
 
-        span.addAnnotation("key", "value");
-        assertThat(span.getAnnotations(), hasItem(new SpecSpanAnnotation("key", "value")));
+        instance.addAnnotation("key", "value");
+        assertThat(instance.getAnnotations(), hasItem(new SpecSpanAnnotation("key", "value")));
     }
 
 }
