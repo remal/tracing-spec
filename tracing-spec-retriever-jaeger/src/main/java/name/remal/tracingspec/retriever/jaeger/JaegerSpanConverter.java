@@ -16,13 +16,21 @@
 
 package name.remal.tracingspec.retriever.jaeger;
 
+import static name.remal.tracingspec.model.SpecSpanKind.CLIENT;
+import static name.remal.tracingspec.model.SpecSpanKind.CONSUMER;
+import static name.remal.tracingspec.model.SpecSpanKind.PRODUCER;
+import static name.remal.tracingspec.model.SpecSpanKind.SERVER;
+import static name.remal.tracingspec.model.SpecSpanKind.parseSpecSpanKind;
 import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerId;
 
+import com.google.common.collect.ImmutableMap;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.model.SpecSpanKind;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.KeyValue;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRefType;
@@ -82,6 +90,22 @@ abstract class JaegerSpanConverter {
             )
         );
 
+        if (specSpan.getKind() == null) {
+            specSpan.setKind(parseSpecSpanKind(specSpan.getTag("span.kind")));
+        }
+
+        if (specSpan.getKind() == null) {
+            EVENT_TO_KIND_MAPPINGS.forEach((event, kind) ->
+                specSpan.getAnnotations().forEach(annotation -> {
+                    if ("event".equals(annotation.getKey())
+                        && event.equals(annotation.getValue())
+                    ) {
+                        specSpan.setKind(kind);
+                    }
+                })
+            );
+        }
+
         return specSpan;
     }
 
@@ -113,6 +137,15 @@ abstract class JaegerSpanConverter {
 
         consumer.accept(key, value);
     }
+
+    private static final Map<String, SpecSpanKind> EVENT_TO_KIND_MAPPINGS = ImmutableMap.<String, SpecSpanKind>builder()
+        .put("ms", PRODUCER)
+        .put("mr", CONSUMER)
+        .put("sr", SERVER)
+        .put("ss", SERVER)
+        .put("cs", CLIENT)
+        .put("cr", CLIENT)
+        .build();
 
 
     private JaegerSpanConverter() {

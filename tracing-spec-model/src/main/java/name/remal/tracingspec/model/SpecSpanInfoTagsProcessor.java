@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import lombok.val;
 
-@SuppressWarnings({"UnnecessaryReturnStatement", "java:S3626", "java:S1157"})
+@SuppressWarnings({"java:S1157"})
 abstract class SpecSpanInfoTagsProcessor {
 
     public static void processTags(SpecSpanInfo<?> info) {

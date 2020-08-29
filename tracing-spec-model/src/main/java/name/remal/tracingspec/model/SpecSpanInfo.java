@@ -92,6 +92,11 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
         processTags(this);
     }
 
+    @Nullable
+    default String getTag(String key) {
+        return getTags().get(key);
+    }
+
     @Contract("_, _ -> this")
     default Self putTag(String key, @Nullable String value) {
         if (value != null) {

@@ -21,6 +21,7 @@ import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.nullValue;
 import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
 
@@ -100,6 +101,15 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
                 equalTo(!kind.isAlwaysAsync())
             );
         }
+    }
+
+    @Test
+    void getTag() {
+        instance.putTag("key", "value");
+        assertThat(instance.getTag("key"), equalTo("value"));
+
+        instance.putTag("key", null);
+        assertThat(instance.getTag("key"), nullValue());
     }
 
     @Test

@@ -17,6 +17,11 @@
 package name.remal.tracingspec.retriever.jaeger;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static name.remal.tracingspec.model.SpecSpanKind.CLIENT;
+import static name.remal.tracingspec.model.SpecSpanKind.CONSUMER;
+import static name.remal.tracingspec.model.SpecSpanKind.PRODUCER;
+import static name.remal.tracingspec.model.SpecSpanKind.SERVER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -24,6 +29,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasProperty;
 import static utils.test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import java.time.Instant;
 import lombok.val;
@@ -35,6 +41,8 @@ import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRef;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRefType;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.ValueType;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("java:S109")
@@ -193,6 +201,66 @@ class JaegerSpanConverterTest {
                 hasProperty("annotations", contains(new SpecSpanAnnotation(valueType.name(), expectedValue)))
             );
         }
+    }
+
+
+    @Nested
+    class Kind {
+
+        @Test
+        void from_tags() {
+            assertThat(
+                JaegerSpanConverter.convertJaegerSpanToSpecSpan(
+                    Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
+                        .addTags(
+                            KeyValue.newBuilder()
+                                .setKey("span.kind")
+                                .setVType(ValueType.STRING)
+                                .setVStr("client")
+                                .build()
+                        )
+                        .build()
+                ),
+                hasProperty("kind", equalTo(CLIENT))
+            );
+        }
+
+        @Test
+        void from_annotations() {
+            val allPairs = ImmutableList.of(
+                ImmutablePair.of("ms", PRODUCER),
+                ImmutablePair.of("mr", CONSUMER),
+                ImmutablePair.of("ss", SERVER),
+                ImmutablePair.of("sr", SERVER),
+                ImmutablePair.of("cs", CLIENT),
+                ImmutablePair.of("cr", CLIENT)
+            );
+            for (int pairsCount = 1; pairsCount <= allPairs.size(); ++pairsCount) {
+                val pairs = allPairs.subList(0, pairsCount);
+                val lastPair = allPairs.get(pairsCount - 1);
+                assertThat(
+                    lastPair.toString(),
+                    JaegerSpanConverter.convertJaegerSpanToSpecSpan(
+                        Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
+                            .addAllLogs(pairs.stream()
+                                .map(pair ->
+                                    Log.newBuilder().addFields(
+                                        KeyValue.newBuilder()
+                                            .setKey("event")
+                                            .setVType(ValueType.STRING)
+                                            .setVStr(pair.getLeft())
+                                            .build()
+                                    ).build()
+                                )
+                                .collect(toList())
+                            )
+                            .build()
+                    ),
+                    hasProperty("kind", equalTo(lastPair.getRight()))
+                );
+            }
+        }
+
     }
 
 }

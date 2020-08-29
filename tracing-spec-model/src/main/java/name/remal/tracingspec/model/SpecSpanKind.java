@@ -21,6 +21,7 @@ import static com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import javax.annotation.Nullable;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 
 public enum SpecSpanKind {
 
@@ -46,8 +47,9 @@ public enum SpecSpanKind {
 
 
     @Nullable
+    @Contract("null -> null")
     @JsonCreator(mode = DELEGATING)
-    public static SpecSpanKind parseSpecSpanKind(String value) {
+    public static SpecSpanKind parseSpecSpanKind(@Nullable String value) {
         for (val kind : values()) {
             if (kind.name().equalsIgnoreCase(value)) {
                 return kind;

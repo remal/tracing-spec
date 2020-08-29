@@ -19,6 +19,7 @@ package name.remal.tracingspec.model;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static utils.test.json.ObjectMapperProvider.readJsonString;
 import static utils.test.json.ObjectMapperProvider.writeJsonString;
 
@@ -29,6 +30,7 @@ class SpecSpanKindTest {
 
     @Test
     void parseSpecSpanKind() {
+        assertThat("null", SpecSpanKind.parseSpecSpanKind(null), nullValue());
         for (val kind : SpecSpanKind.values()) {
             for (val string : asList(kind.name(), kind.name().toUpperCase(), kind.name().toLowerCase())) {
                 assertThat(string, SpecSpanKind.parseSpecSpanKind(string), equalTo(kind));
