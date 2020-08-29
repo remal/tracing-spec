@@ -25,7 +25,6 @@ import static name.remal.tracingspec.model.SpecSpanConverter.SPEC_SPAN_CONVERTER
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.StreamSupport;
 import lombok.val;
 import org.apache.logging.log4j.LogManager;
@@ -89,7 +88,7 @@ public abstract class SpecSpansGraphs {
             "Parent span can't be found for %s in [%s]",
             specSpan,
             StreamSupport.stream(specSpans.spliterator(), false)
-                .map(Objects::toString)
+                .map(Object::toString)
                 .collect(joining(", "))
         ));
     }

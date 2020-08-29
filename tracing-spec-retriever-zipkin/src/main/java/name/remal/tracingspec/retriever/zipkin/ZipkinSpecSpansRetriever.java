@@ -28,6 +28,7 @@ import javax.validation.Valid;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
 import okhttp3.HttpUrl;
