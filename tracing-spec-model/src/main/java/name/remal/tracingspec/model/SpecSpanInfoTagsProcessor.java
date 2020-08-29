@@ -19,77 +19,45 @@ package name.remal.tracingspec.model;
 import static name.remal.tracingspec.model.SpecSpanKind.parseSpecSpanKind;
 
 import java.util.Map;
-import java.util.function.Consumer;
 import lombok.val;
 
 @SuppressWarnings({"java:S1157"})
 abstract class SpecSpanInfoTagsProcessor {
 
-    public static void processTags(SpecSpanInfo<?> info) {
-        val tags = info.getTags();
-
-        if (info.getKind() == null) {
-            processTagValue(
-                value -> info.setKind(parseSpecSpanKind(value)),
-                tags,
-                "spec.kind"
-            );
-        }
-
-        if (!info.isAsync()) {
-            processTagValue(
-                value -> info.setAsync("1".equals(value) || "true".equals(value.toLowerCase())),
-                tags,
-                "spec.async",
-                "spec.isAsync",
-                "spec.is-async"
-            );
-        }
-
-        if (info.getServiceName() == null) {
-            processTagValue(
-                info::setServiceName,
-                tags,
-                "spec.serviceName",
-                "spec.service-name"
-            );
-        }
-
-        if (info.getRemoteServiceName() == null) {
-            processTagValue(
-                info::setRemoteServiceName,
-                tags,
-                "spec.remoteServiceName",
-                "spec.remote-service-name"
-            );
-        }
-
-        if (info.getDescription() == null) {
-            processTagValue(
-                info::setDescription,
-                tags,
-                "spec.description"
-            );
+    @SuppressWarnings({"java:S131", "checkstyle:MissingSwitchDefault"})
+    public static void processTag(SpecSpanInfo<?> info, String key, String value) {
+        switch (key) {
+            case "spec.kind":
+                if (info.getKind() == null) {
+                    info.setKind(parseSpecSpanKind(value));
+                }
+                break;
+            case "spec.async":
+                if (!info.isAsync()) {
+                    info.setAsync("1".equals(value) || "true".equals(value.toLowerCase()));
+                }
+                break;
+            case "spec.serviceName":
+                if (info.getServiceName() == null) {
+                    info.setServiceName(value);
+                }
+                break;
+            case "spec.remoteServiceName":
+                if (info.getRemoteServiceName() == null) {
+                    info.setRemoteServiceName(value);
+                }
+                break;
+            case "spec.description":
+                if (info.getDescription() == null) {
+                    info.setDescription(value);
+                }
+                break;
         }
     }
 
-    private static void processTagValue(
-        Consumer<String> consumer,
-        Map<String, String> tags,
-        String key,
-        String... alternativeKeys
-    ) {
-        String value = tags.get(key);
-        if (value != null) {
-            consumer.accept(value);
-            return;
-        }
-        for (val alternativeKey : alternativeKeys) {
-            value = tags.get(alternativeKey);
-            if (value != null) {
-                consumer.accept(value);
-                return;
-            }
+    public static void processTags(SpecSpanInfo<?> info, Map<String, String> map) {
+        for (val entry : map.entrySet()) {
+            processTag(info, entry.getKey(), entry.getValue());
         }
     }
 

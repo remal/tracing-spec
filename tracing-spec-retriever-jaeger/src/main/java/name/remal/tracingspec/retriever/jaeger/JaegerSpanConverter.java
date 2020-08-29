@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.model.SpecSpanAnnotation;
 import name.remal.tracingspec.model.SpecSpanKind;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.KeyValue;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
@@ -86,7 +87,18 @@ abstract class JaegerSpanConverter {
 
         jaegerSpan.getLogsList().forEach(log ->
             log.getFieldsList().forEach(field ->
-                processKeyValue(spanId, field, specSpan::addAnnotation)
+                processKeyValue(spanId, field, (key, value) -> {
+                    if (log.hasTimestamp()) {
+                        val jaegerTimestamp = log.getTimestamp();
+                        val instant = Instant.ofEpochSecond(
+                            jaegerTimestamp.getSeconds(),
+                            jaegerTimestamp.getNanos()
+                        );
+                        specSpan.addAnnotation(new SpecSpanAnnotation(instant, key, value));
+                    } else {
+                        specSpan.addAnnotation(new SpecSpanAnnotation(key, value));
+                    }
+                })
             )
         );
 

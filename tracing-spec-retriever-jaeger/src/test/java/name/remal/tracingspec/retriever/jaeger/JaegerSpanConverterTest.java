@@ -162,6 +162,7 @@ class JaegerSpanConverterTest {
 
     @Test
     void annotations() {
+        val now = withMicrosecondsPrecision(Instant.now());
         val baseTag = KeyValue.newBuilder()
             .setVStr("string value")
             .setVBool(true)
@@ -192,13 +193,27 @@ class JaegerSpanConverterTest {
                 JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                     Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                         .addLogs(
-                            Log.newBuilder().addFields(
-                                KeyValue.newBuilder(baseTag).setKey(valueType.name()).setVType(valueType).build()
-                            )
+                            Log.newBuilder()
+                                .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+                                    .setSeconds(now.getEpochSecond())
+                                    .setNanos(now.getNano())
+                                )
+                                .addFields(
+                                    KeyValue.newBuilder(baseTag).setKey(valueType.name()).setVType(valueType).build()
+                                )
+                        )
+                        .addLogs(
+                            Log.newBuilder()
+                                .addFields(
+                                    KeyValue.newBuilder(baseTag).setKey(valueType.name()).setVType(valueType).build()
+                                )
                         )
                         .build()
                 ),
-                hasProperty("annotations", contains(new SpecSpanAnnotation(valueType.name(), expectedValue)))
+                hasProperty("annotations", contains(
+                    new SpecSpanAnnotation(now, valueType.name(), expectedValue),
+                    new SpecSpanAnnotation(valueType.name(), expectedValue)
+                ))
             );
         }
     }

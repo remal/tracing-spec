@@ -17,10 +17,9 @@
 package name.remal.tracingspec.model;
 
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Data;
@@ -54,15 +53,15 @@ public class SpecSpan implements SpecSpanInfo<SpecSpan> {
     @Nullable
     String description;
 
-    final Map<String, String> tags = new LinkedHashMap<>();
+    final Map<String, String> tags = new TagsMap(this);
 
-    final Set<SpecSpanAnnotation> annotations = new LinkedHashSet<>();
+    final List<SpecSpanAnnotation> annotations = new ArrayList<>();
 
 
     @Override
     public boolean isAsync() {
         return async
-            || (kind != null && kind.isAlwaysAsync());
+            || (kind != null && kind.isAsync());
     }
 
 }

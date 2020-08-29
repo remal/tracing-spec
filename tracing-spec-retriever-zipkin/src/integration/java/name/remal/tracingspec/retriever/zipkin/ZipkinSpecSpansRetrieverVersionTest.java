@@ -96,7 +96,7 @@ class ZipkinSpecSpansRetrieverVersionTest {
             .start(start);
         val childSpan = tracer.newChild(rootSpan.context()).name("child")
             .tag("spec.description", "some text")
-            .tag("spec.is-async", "true")
+            .tag("spec.async", "true")
             .start(start + 5);
         childSpan.finish(start + 8);
         rootSpan.finish(start + 11);

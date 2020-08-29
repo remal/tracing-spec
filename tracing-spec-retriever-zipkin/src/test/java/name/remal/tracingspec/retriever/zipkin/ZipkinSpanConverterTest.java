@@ -159,12 +159,25 @@ class ZipkinSpanConverterTest {
                 ZipkinSpan.builder().id("0")
                     .addAnnotation(ZipkinSpanAnnotation.builder()
                         .timestamp(123)
-                        .value("annotation")
+                        .value("annotation 1")
+                        .build()
+                    )
+                    .addAnnotation(ZipkinSpanAnnotation.builder()
+                        .value("annotation 2")
+                        .build()
+                    )
+                    .addAnnotation(ZipkinSpanAnnotation.builder()
                         .build()
                     )
                     .build()
             ),
-            hasProperty("annotations", contains(new SpecSpanAnnotation("annotation")))
+            hasProperty("annotations", contains(
+                new SpecSpanAnnotation(
+                    Instant.ofEpochSecond(0, NANOSECONDS.convert(123, MICROSECONDS)),
+                    "annotation 1"
+                ),
+                new SpecSpanAnnotation("annotation 2")
+            ))
         );
     }
 

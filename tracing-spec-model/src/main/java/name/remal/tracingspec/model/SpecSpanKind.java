@@ -41,7 +41,7 @@ public enum SpecSpanKind {
         this(false);
     }
 
-    public boolean isAlwaysAsync() {
+    public boolean isAsync() {
         return alwaysAsync;
     }
 

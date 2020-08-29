@@ -23,11 +23,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Data;
@@ -42,7 +39,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 
 @NotThreadSafe
 @Data
-public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode>, Comparable<SpecSpanNode> {
+public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode> {
 
     @Nullable
     String name;
@@ -64,15 +61,18 @@ public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode>, Comparable<Spec
     @Nullable
     String description;
 
-    final Map<String, String> tags = new LinkedHashMap<>();
+    final Map<String, String> tags = new TagsMap(this);
 
-    final Set<SpecSpanAnnotation> annotations = new LinkedHashSet<>();
+    final List<SpecSpanAnnotation> annotations = new ArrayList<>();
 
 
     @Override
     public boolean isAsync() {
-        return async
-            || (kind != null && kind.isAlwaysAsync());
+        if (async) {
+            return true;
+        }
+        val curKind = getKind();
+        return curKind != null && curKind.isAsync();
     }
 
 
@@ -164,21 +164,6 @@ public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode>, Comparable<Spec
             }
         }
         return -1;
-    }
-
-
-    @Override
-    public int compareTo(SpecSpanNode other) {
-        val otherStartedAt = other.startedAt;
-        if (startedAt == null && otherStartedAt == null) {
-            return 0;
-        } else if (startedAt != null && otherStartedAt != null) {
-            return startedAt.compareTo(otherStartedAt);
-        } else if (startedAt == null) {
-            return 1;
-        } else {
-            return -1;
-        }
     }
 
 

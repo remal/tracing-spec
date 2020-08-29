@@ -158,32 +158,6 @@ class SpecSpanNodeTest extends SpecSpanInfoTest<SpecSpanNode> {
     }
 
     @Test
-    void compareTo() {
-        assertThat(
-            nextSpecSpanNode().compareTo(nextSpecSpanNode()),
-            equalTo(0)
-        );
-        assertThat(
-            nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(1))).compareTo(nextSpecSpanNode()),
-            equalTo(-1)
-        );
-        assertThat(
-            nextSpecSpanNode().compareTo(nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(1)))),
-            equalTo(1)
-        );
-        assertThat(
-            nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(2)))
-                .compareTo(nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(1)))),
-            equalTo(1)
-        );
-        assertThat(
-            nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(1)))
-                .compareTo(nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(2)))),
-            equalTo(-1)
-        );
-    }
-
-    @Test
     void sortChildren() {
         val parent = nextSpecSpanNode();
 

@@ -16,10 +16,11 @@
 
 package name.remal.tracingspec.model;
 
+import static java.time.Instant.ofEpochSecond;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.nullValue;
 import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
@@ -31,16 +32,16 @@ import org.junit.jupiter.api.Test;
 
 abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
 
-    private final T instance;
+    private final T instance = newInstance();
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    protected SpecSpanInfoTest() {
+    protected final T newInstance() {
         val type = getParameterizedTypeArgumentClass(getClass(), SpecSpanInfoTest.class, 0);
         if (type == SpecSpan.class) {
-            instance = (T) nextSpecSpan();
+            return (T) nextSpecSpan();
         } else {
-            instance = (T) type.getConstructor().newInstance();
+            return (T) type.getConstructor().newInstance();
         }
     }
 
@@ -69,7 +70,7 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
             assertThat(
                 "Kind " + kind,
                 instance.isAsync(),
-                equalTo(kind.isAlwaysAsync())
+                equalTo(kind.isAsync())
             );
         }
     }
@@ -98,7 +99,7 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
             assertThat(
                 "Kind " + kind,
                 instance.isSync(),
-                equalTo(!kind.isAlwaysAsync())
+                equalTo(!kind.isAsync())
             );
         }
     }
@@ -115,21 +116,51 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
     @Test
     void putTag() {
         instance.putTag("key", "value");
-        assertThat(instance.getTags(), equalTo(singletonMap("key", "value")));
+        assertThat(instance.getTags(), hasEntry("key", "value"));
 
         instance.putTag("key", null);
         assertThat(instance.getTags(), equalTo(emptyMap()));
+    }
 
-        instance.putTag("spec.kind", "server");
+    @Test
+    void specSpanInfoTagsProcessor_is_executed() {
+        instance.putTag("spec.description", "description");
+        assertThat(instance.getDescription(), equalTo("description"));
     }
 
     @Test
     void addAnnotation() {
-        instance.addAnnotation("value");
+        instance.addAnnotation(new SpecSpanAnnotation("value"));
         assertThat(instance.getAnnotations(), hasItem(new SpecSpanAnnotation("value")));
+    }
 
-        instance.addAnnotation("key", "value");
-        assertThat(instance.getAnnotations(), hasItem(new SpecSpanAnnotation("key", "value")));
+    @Test
+    void compareTo() {
+        val otherInstance = newInstance();
+
+        instance.setStartedAt(null);
+        otherInstance.setStartedAt(null);
+        assertThat(instance.compareTo(otherInstance), equalTo(0));
+
+        instance.setStartedAt(ofEpochSecond(1));
+        otherInstance.setStartedAt(null);
+        assertThat(instance.compareTo(otherInstance), equalTo(-1));
+
+        instance.setStartedAt(null);
+        otherInstance.setStartedAt(ofEpochSecond(1));
+        assertThat(instance.compareTo(otherInstance), equalTo(1));
+
+        instance.setStartedAt(ofEpochSecond(1));
+        otherInstance.setStartedAt(ofEpochSecond(1));
+        assertThat(instance.compareTo(otherInstance), equalTo(0));
+
+        instance.setStartedAt(ofEpochSecond(1));
+        otherInstance.setStartedAt(ofEpochSecond(2));
+        assertThat(instance.compareTo(otherInstance), equalTo(-1));
+
+        instance.setStartedAt(ofEpochSecond(2));
+        otherInstance.setStartedAt(ofEpochSecond(1));
+        assertThat(instance.compareTo(otherInstance), equalTo(1));
     }
 
 }

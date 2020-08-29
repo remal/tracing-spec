@@ -87,7 +87,7 @@ class JaegerSpecSpansRetrieverVersionTest {
         val rootSpan = tracer.buildSpan("root").start();
         val childSpan = tracer.buildSpan("child").asChildOf(rootSpan)
             .withTag("spec.description", "some text")
-            .withTag("spec.is-async", true)
+            .withTag("spec.async", true)
             .start();
         childSpan.finish();
         rootSpan.finish();

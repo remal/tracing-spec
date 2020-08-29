@@ -34,7 +34,7 @@ class SpecSpanTest extends SpecSpanInfoTest<SpecSpan> {
         expected.setKind(CLIENT);
         expected.setAsync(true);
         expected.setDescription("description");
-        expected.addAnnotation("annotation");
+        expected.addAnnotation(new SpecSpanAnnotation("annotation"));
 
         val deserialized = readJsonResource("spec-span.json", SpecSpan.class);
         deserialized.getTags().clear();

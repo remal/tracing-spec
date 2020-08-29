@@ -18,19 +18,19 @@ package name.remal.tracingspec.model;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
-import static name.remal.tracingspec.model.SpecSpanInfoTagsProcessor.processTags;
+import static name.remal.tracingspec.model.ComparatorUtils.compareNullLast;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @JsonInclude(NON_EMPTY)
-interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
+interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> extends Comparable<Self> {
 
     @Nullable
     String getName();
@@ -89,7 +89,6 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
                 tagsMap.put(key, value.toString());
             }
         });
-        processTags(this);
     }
 
     @Nullable
@@ -101,7 +100,6 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
     default Self putTag(String key, @Nullable String value) {
         if (value != null) {
             getTags().put(key, value);
-            processTags(this);
 
         } else {
             getTags().remove(key);
@@ -113,7 +111,7 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
     }
 
 
-    Set<SpecSpanAnnotation> getAnnotations();
+    List<SpecSpanAnnotation> getAnnotations();
 
     default void setAnnotations(Iterable<? extends SpecSpanAnnotation> annotations) {
         val annotationsList = getAnnotations();
@@ -121,22 +119,20 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> {
         annotations.forEach(annotationsList::add);
     }
 
-    @Contract("_, _ -> this")
-    default Self addAnnotation(String key, String value) {
-        getAnnotations().add(new SpecSpanAnnotation(key, value));
+    @Contract("_ -> this")
+    default Self addAnnotation(SpecSpanAnnotation annotation) {
+        val annotationsList = getAnnotations();
+        annotationsList.add(annotation);
 
         @SuppressWarnings("unchecked")
         val self = (Self) this;
         return self;
     }
 
-    @Contract("_ -> this")
-    default Self addAnnotation(String value) {
-        getAnnotations().add(new SpecSpanAnnotation(value));
 
-        @SuppressWarnings("unchecked")
-        val self = (Self) this;
-        return self;
+    @Override
+    default int compareTo(Self other) {
+        return compareNullLast(getStartedAt(), other.getStartedAt());
     }
 
 }

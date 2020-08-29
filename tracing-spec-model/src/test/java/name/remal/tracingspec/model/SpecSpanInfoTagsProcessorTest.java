@@ -19,135 +19,47 @@ package name.remal.tracingspec.model;
 import static name.remal.tracingspec.model.SpecSpanKind.SERVER;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class SpecSpanInfoTagsProcessorTest {
 
     private final SpecSpanInfo<?> info = mock(SpecSpanInfo.class);
 
-    private final Map<String, String> tags = new HashMap<>();
-
-    {
-        when(info.getTags()).thenReturn(tags);
+    @Test
+    void kind() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.kind", "server");
+        verify(info).setKind(SERVER);
     }
 
-
-    @Nested
-    class Kind {
-
-        @Test
-        void kind() {
-            tags.put("spec.kind", "server");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setKind(SERVER);
-        }
-
+    @Test
+    void async_1() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.async", "1");
+        verify(info).setAsync(true);
     }
 
-
-    @Nested
-    class Async {
-
-        @Test
-        void async_1() {
-            tags.put("spec.async", "1");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setAsync(true);
-        }
-
-        @Test
-        void async_true() {
-            tags.put("spec.async", "tRuE");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setAsync(true);
-        }
-
-        @Test
-        void isAsync_1() {
-            tags.put("spec.isAsync", "1");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setAsync(true);
-        }
-
-        @Test
-        void isAsync_true() {
-            tags.put("spec.isAsync", "tRuE");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setAsync(true);
-        }
-
-        @Test
-        void is_async_1() {
-            tags.put("spec.is-async", "1");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setAsync(true);
-        }
-
-        @Test
-        void is_async_true() {
-            tags.put("spec.is-async", "tRuE");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setAsync(true);
-        }
-
+    @Test
+    void async_true() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.async", "tRuE");
+        verify(info).setAsync(true);
     }
 
-
-    @Nested
-    class ServiceName {
-
-        @Test
-        void serviceName() {
-            tags.put("spec.serviceName", "service name");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setServiceName("service name");
-        }
-
-        @Test
-        void service_name() {
-            tags.put("spec.service-name", "service name");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setServiceName("service name");
-        }
-
+    @Test
+    void serviceName() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.serviceName", "service name");
+        verify(info).setServiceName("service name");
     }
 
-
-    @Nested
-    class RemoteServiceName {
-
-        @Test
-        void serviceName() {
-            tags.put("spec.remoteServiceName", "remote service name");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setRemoteServiceName("remote service name");
-        }
-
-        @Test
-        void remote_service_name() {
-            tags.put("spec.remote-service-name", "remote service name");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setRemoteServiceName("remote service name");
-        }
-
+    @Test
+    void remoteServiceName() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.remoteServiceName", "remote service name");
+        verify(info).setRemoteServiceName("remote service name");
     }
 
-
-    @Nested
-    class Description {
-
-        @Test
-        void description() {
-            tags.put("spec.description", "description");
-            SpecSpanInfoTagsProcessor.processTags(info);
-            verify(info).setDescription("description");
-        }
-
+    @Test
+    void description() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.description", "description");
+        verify(info).setDescription("description");
     }
 
 }
