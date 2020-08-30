@@ -4,7 +4,6 @@ apply plugin: 'name.remal.test-fixtures'
 dependencies {
     implementation project(':utils-test')
     implementation project(':tracing-spec-model')
-    implementation project(':tracing-spec-spring-sleuth')
     implementation project(':tracing-spec-retriever-jaeger')
     implementation project(':tracing-spec-retriever-zipkin')
     implementation 'org.springframework.boot:spring-boot-starter-web'
