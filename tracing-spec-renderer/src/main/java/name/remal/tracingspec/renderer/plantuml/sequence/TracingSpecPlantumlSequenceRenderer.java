@@ -63,7 +63,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
                     ));
                 }
 
-                if (!isNotEmpty(node.getDescription())) {
+                if (isNotEmpty(node.getDescription())) {
                     diagram.add(format("note right: %s", escapeString(node.getDescription())));
                 }
 

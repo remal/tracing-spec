@@ -202,19 +202,19 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     @Test
     final void async_children() {
-        val parent = nextSpecSpan("inner", span -> span.setServiceName("service A"));
-        val inner = nextSpecSpan("root", span -> {
-            span.setParentSpanId(parent.getSpanId());
+        val root = nextSpecSpan("root", span -> span.setServiceName("service A"));
+        val inner = nextSpecSpan("inner", span -> {
+            span.setParentSpanId(root.getSpanId());
             span.setAsync(true);
             span.setServiceName("service A");
         });
         val child = nextSpecSpan("child", span -> {
-            span.setParentSpanId(parent.getSpanId());
+            span.setParentSpanId(root.getSpanId());
             span.setAsync(true);
             span.setServiceName("service B");
         });
         Result result = renderer.renderTracingSpec(asList(
-            parent,
+            root,
             inner,
             child
         ));
