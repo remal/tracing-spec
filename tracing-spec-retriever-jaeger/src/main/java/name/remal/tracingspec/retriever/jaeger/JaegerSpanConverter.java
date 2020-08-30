@@ -26,6 +26,7 @@ import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaeger
 import com.google.common.collect.ImmutableMap;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import lombok.val;
@@ -44,7 +45,6 @@ abstract class JaegerSpanConverter {
 
     @SuppressWarnings("java:S3776")
     public static SpecSpan convertJaegerSpanToSpecSpan(Span jaegerSpan) {
-
         val spanId = decodeJaegerId(jaegerSpan.getSpanId().toByteArray());
         val specSpan = new SpecSpan(spanId);
 
@@ -107,15 +107,15 @@ abstract class JaegerSpanConverter {
         }
 
         if (specSpan.getKind() == null) {
-            EVENT_TO_KIND_MAPPINGS.forEach((event, kind) ->
-                specSpan.getAnnotations().forEach(annotation -> {
-                    if ("event".equals(annotation.getKey())
-                        && event.equals(annotation.getValue())
-                    ) {
-                        specSpan.setKind(kind);
-                    }
-                })
-            );
+            specSpan.getAnnotations().stream()
+                .sorted()
+                .filter(annotation -> "event".equals(annotation.getKey()))
+                .map(SpecSpanAnnotation::getValue)
+                .filter(Objects::nonNull)
+                .map(EVENT_TO_KIND_MAPPINGS::get)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .ifPresent(specSpan::setKind);
         }
 
         return specSpan;
@@ -153,9 +153,9 @@ abstract class JaegerSpanConverter {
     private static final Map<String, SpecSpanKind> EVENT_TO_KIND_MAPPINGS = ImmutableMap.<String, SpecSpanKind>builder()
         .put("ms", PRODUCER)
         .put("mr", CONSUMER)
+        .put("cs", CLIENT)
         .put("sr", SERVER)
         .put("ss", SERVER)
-        .put("cs", CLIENT)
         .put("cr", CLIENT)
         .build();
 

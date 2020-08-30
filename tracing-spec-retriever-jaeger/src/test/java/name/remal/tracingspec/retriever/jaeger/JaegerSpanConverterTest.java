@@ -17,7 +17,6 @@
 package name.remal.tracingspec.retriever.jaeger;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static name.remal.tracingspec.model.SpecSpanKind.CLIENT;
 import static name.remal.tracingspec.model.SpecSpanKind.CONSUMER;
 import static name.remal.tracingspec.model.SpecSpanKind.PRODUCER;
@@ -242,7 +241,7 @@ class JaegerSpanConverterTest {
 
         @Test
         void from_annotations() {
-            val allPairs = ImmutableList.of(
+            val pairs = ImmutableList.of(
                 ImmutablePair.of("ms", PRODUCER),
                 ImmutablePair.of("mr", CONSUMER),
                 ImmutablePair.of("ss", SERVER),
@@ -250,28 +249,22 @@ class JaegerSpanConverterTest {
                 ImmutablePair.of("cs", CLIENT),
                 ImmutablePair.of("cr", CLIENT)
             );
-            for (int pairsCount = 1; pairsCount <= allPairs.size(); ++pairsCount) {
-                val pairs = allPairs.subList(0, pairsCount);
-                val lastPair = allPairs.get(pairsCount - 1);
+            for (val pair : pairs) {
                 assertThat(
-                    lastPair.toString(),
+                    pair.toString(),
                     JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                         Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
-                            .addAllLogs(pairs.stream()
-                                .map(pair ->
-                                    Log.newBuilder().addFields(
-                                        KeyValue.newBuilder()
-                                            .setKey("event")
-                                            .setVType(ValueType.STRING)
-                                            .setVStr(pair.getLeft())
-                                            .build()
-                                    ).build()
+                            .addLogs(
+                                Log.newBuilder().addFields(
+                                    KeyValue.newBuilder()
+                                        .setKey("event")
+                                        .setVType(ValueType.STRING)
+                                        .setVStr(pair.getLeft())
                                 )
-                                .collect(toList())
                             )
                             .build()
                     ),
-                    hasProperty("kind", equalTo(lastPair.getRight()))
+                    hasProperty("kind", equalTo(pair.getRight()))
                 );
             }
         }
