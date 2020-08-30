@@ -17,7 +17,6 @@
 package apps.users;
 
 import lombok.RequiredArgsConstructor;
-import name.remal.tracingspec.spring.sleuth.SpecSpan;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,7 +26,6 @@ public class UsersController implements UsersApi {
     private final UserRepository repository;
 
     @Override
-    @SpecSpan(description = "Get user by ID")
     public User getUser(int id) {
         return repository.getById(id);
     }

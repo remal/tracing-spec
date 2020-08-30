@@ -22,11 +22,12 @@ import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
-import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanBuilder;
+import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
 
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpan;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"java:S5786", "java:S2699"})
@@ -53,18 +54,10 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
 
     @Test
-    final void all_spans_were_filtered_out() {
-        renderer.setSpecSpansFilter(span -> false);
-        List<SpecSpan> specSpans = singletonList(nextSpecSpanBuilder().build());
-        assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans));
-    }
-
-
-    @Test
     final void all_spans_without_service_name() {
         List<SpecSpan> specSpans = asList(
-            nextSpecSpanBuilder().build(),
-            nextSpecSpanBuilder().build()
+            nextSpecSpan(),
+            nextSpecSpan()
         );
         assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
     }
@@ -73,12 +66,8 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     @Test
     final void all_spans_with_service_name() {
         List<SpecSpan> specSpans = asList(
-            nextSpecSpanBuilder()
-                .serviceName("service A")
-                .build(),
-            nextSpecSpanBuilder()
-                .serviceName("service B")
-                .build()
+            nextSpecSpan(span -> span.setServiceName("service A")),
+            nextSpecSpan(span -> span.setServiceName("service B"))
         );
         assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
     }
@@ -87,11 +76,8 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     @Test
     final void some_spans_have_service_name_and_some_not() {
         List<SpecSpan> specSpans = asList(
-            nextSpecSpanBuilder()
-                .serviceName("service A")
-                .build(),
-            nextSpecSpanBuilder()
-                .build()
+            nextSpecSpan(span -> span.setServiceName("service A")),
+            nextSpecSpan()
         );
         assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans));
     }
@@ -102,10 +88,7 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     @Test
     final void one_simple_span() {
         Result result = renderer.renderTracingSpec(singletonList(
-            nextSpecSpanBuilder()
-                .name("name")
-                .serviceName("service")
-                .build()
+            nextSpecSpan("name", span -> span.setServiceName("service"))
         ));
         one_simple_span(normalizeResult(result));
     }
@@ -116,25 +99,12 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     @Test
     final void one_simple_span_with_description() {
         Result result = renderer.renderTracingSpec(singletonList(
-            nextSpecSpanBuilder()
-                .name("name")
-                .serviceName("service")
-                .description("description")
-                .build()
+            nextSpecSpan("name", span -> {
+                span.setServiceName("service");
+                span.setDescription("description");
+            })
         ));
         one_simple_span_with_description(normalizeResult(result));
-    }
-
-    @Test
-    final void one_simple_span_with_service_name_transformation() {
-        renderer.setServiceNameTransformer(String::trim);
-        Result result = renderer.renderTracingSpec(singletonList(
-            nextSpecSpanBuilder()
-                .name("name")
-                .serviceName("  service  ")
-                .build()
-        ));
-        one_simple_span(normalizeResult(result));
     }
 
 
@@ -142,14 +112,8 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     @Test
     final void two_parents() {
-        val parent1 = nextSpecSpanBuilder()
-            .name("parent1")
-            .serviceName("service")
-            .build();
-        val parent2 = nextSpecSpanBuilder()
-            .name("parent2")
-            .serviceName("service")
-            .build();
+        val parent1 = nextSpecSpan("parent1", span -> span.setServiceName("service"));
+        val parent2 = nextSpecSpan("parent2", span -> span.setServiceName("service"));
         Result result = renderer.renderTracingSpec(asList(
             parent1,
             parent2
@@ -162,15 +126,11 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     @Test
     final void parent_child() {
-        val parent = nextSpecSpanBuilder()
-            .name("parent")
-            .serviceName("service")
-            .build();
-        val child = nextSpecSpanBuilder()
-            .parentSpanId(parent.getSpanId())
-            .name("child")
-            .serviceName("service")
-            .build();
+        val parent = nextSpecSpan("parent", span -> span.setServiceName("service"));
+        val child = nextSpecSpan("child", span -> {
+            span.setParentSpanId(parent.getSpanId());
+            span.setServiceName("service");
+        });
         Result result = renderer.renderTracingSpec(asList(
             parent,
             child
@@ -183,20 +143,15 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     @Test
     final void parent_children() {
-        val parent = nextSpecSpanBuilder()
-            .name("parent")
-            .serviceName("service")
-            .build();
-        val child1 = nextSpecSpanBuilder()
-            .parentSpanId(parent.getSpanId())
-            .name("child1")
-            .serviceName("service")
-            .build();
-        val child2 = nextSpecSpanBuilder()
-            .parentSpanId(parent.getSpanId())
-            .name("child2")
-            .serviceName("service")
-            .build();
+        val parent = nextSpecSpan("parent", span -> span.setServiceName("service"));
+        val child1 = nextSpecSpan("child1", span -> {
+            span.setParentSpanId(parent.getSpanId());
+            span.setServiceName("service");
+        });
+        val child2 = nextSpecSpan("child2", span -> {
+            span.setParentSpanId(parent.getSpanId());
+            span.setServiceName("service");
+        });
         Result result = renderer.renderTracingSpec(asList(
             parent,
             child1,
@@ -210,20 +165,15 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     @Test
     final void root_parent_child() {
-        val root = nextSpecSpanBuilder()
-            .name("root")
-            .serviceName("root")
-            .build();
-        val parent = nextSpecSpanBuilder()
-            .parentSpanId(root.getSpanId())
-            .name("parent")
-            .serviceName("parent")
-            .build();
-        val child = nextSpecSpanBuilder()
-            .parentSpanId(parent.getSpanId())
-            .name("child")
-            .serviceName("child")
-            .build();
+        val root = nextSpecSpan("root", span -> span.setServiceName("root"));
+        val parent = nextSpecSpan("parent", span -> {
+            span.setParentSpanId(root.getSpanId());
+            span.setServiceName("parent");
+        });
+        val child = nextSpecSpan("child", span -> {
+            span.setParentSpanId(parent.getSpanId());
+            span.setServiceName("child");
+        });
         Result result = renderer.renderTracingSpec(asList(
             root,
             parent,
@@ -237,11 +187,10 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     @Test
     final void async_one_span() {
-        val span = nextSpecSpanBuilder()
-            .async(true)
-            .name("name")
-            .serviceName("service")
-            .build();
+        val span = nextSpecSpan("name", it -> {
+            it.setAsync(true);
+            it.setServiceName("service");
+        });
         Result result = renderer.renderTracingSpec(singletonList(
             span
         ));
@@ -253,22 +202,17 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     @Test
     final void async_children() {
-        val parent = nextSpecSpanBuilder()
-            .name("root")
-            .serviceName("service A")
-            .build();
-        val inner = nextSpecSpanBuilder()
-            .async(true)
-            .parentSpanId(parent.getSpanId())
-            .name("inner")
-            .serviceName("service A")
-            .build();
-        val child = nextSpecSpanBuilder()
-            .async(true)
-            .parentSpanId(parent.getSpanId())
-            .name("child")
-            .serviceName("service B")
-            .build();
+        val parent = nextSpecSpan("inner", span -> span.setServiceName("service A"));
+        val inner = nextSpecSpan("root", span -> {
+            span.setParentSpanId(parent.getSpanId());
+            span.setAsync(true);
+            span.setServiceName("service A");
+        });
+        val child = nextSpecSpan("child", span -> {
+            span.setParentSpanId(parent.getSpanId());
+            span.setAsync(true);
+            span.setServiceName("service B");
+        });
         Result result = renderer.renderTracingSpec(asList(
             parent,
             inner,

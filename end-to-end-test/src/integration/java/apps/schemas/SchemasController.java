@@ -17,7 +17,6 @@
 package apps.schemas;
 
 import lombok.RequiredArgsConstructor;
-import name.remal.tracingspec.spring.sleuth.SpecSpan;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,7 +31,6 @@ public class SchemasController implements SchemasApi {
     }
 
     @Override
-    @SpecSpan(description = "Get schema by ID")
     public Schema getSchema(String id) {
         return repository.getById(id);
     }
