@@ -16,6 +16,8 @@
 
 package name.remal.tracingspec.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Data;
 
@@ -24,5 +26,21 @@ import lombok.Data;
 public class SpecSpan extends SpecSpanInfo<SpecSpan> {
 
     final String spanId;
+
+    @Nullable
+    String parentSpanId;
+
+
+    public SpecSpan(@JsonProperty("spanId") String spanId) {
+        if (spanId.isEmpty()) {
+            throw new IllegalArgumentException("spanId must not be empty");
+        }
+        this.spanId = spanId;
+    }
+
+
+    public void setParentSpanId(@Nullable String parentSpanId) {
+        this.parentSpanId = parentSpanId == null || parentSpanId.isEmpty() ? null : parentSpanId;
+    }
 
 }

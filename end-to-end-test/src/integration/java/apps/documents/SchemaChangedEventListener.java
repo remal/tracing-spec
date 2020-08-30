@@ -39,7 +39,7 @@ public class SchemaChangedEventListener {
     @KafkaListener(topics = SCHEMA_CHANGED_TOPIC)
     public void onSchemaChangedEvent(SchemaChangedEvent event) {
         val docs = repository.getAllBySchema(event.getId());
-        for (val partitionDocs : partition(docs, 10)) {
+        for (val partitionDocs : partition(docs, 50)) {
             kafkaTemplate.send(DOCUMENTS_SHOULD_BE_UPDATED_TOPIC, ImmutableDocumentsShouldBeUpdatedEvent.builder()
                 .ids(partitionDocs.stream().map(Document::getId).collect(toList()))
                 .build()

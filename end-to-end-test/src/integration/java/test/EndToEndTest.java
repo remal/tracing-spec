@@ -32,6 +32,7 @@ import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
 import brave.Tracer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.Flushable;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +53,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import shared.SharedConfiguration;
 import utils.test.container.JaegerAllInOneContainer;
 import utils.test.container.ZipkinContainer;
+import zipkin2.reporter.Reporter;
 
 class EndToEndTest {
 
@@ -89,6 +91,14 @@ class EndToEndTest {
             () -> documentsClient.getAllDocumentsBySchema(schema.getId()),
             docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
         );
+
+        for (val context : applicationContexts.values()) {
+            for (val reporter : context.getBeansOfType(Reporter.class).values()) {
+                if (reporter instanceof Flushable) {
+                    ((Flushable) reporter).flush();
+                }
+            }
+        }
 
         val newSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
         assertThat(newSchemaDocuments, not(empty()));
