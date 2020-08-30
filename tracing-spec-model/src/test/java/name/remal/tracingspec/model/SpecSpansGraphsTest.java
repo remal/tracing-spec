@@ -19,9 +19,10 @@ package name.remal.tracingspec.model;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static name.remal.tracingspec.model.SpecSpanConverter.SPEC_SPAN_CONVERTER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanBuilder;
+import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
 
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
@@ -38,48 +39,28 @@ class SpecSpansGraphsTest {
         void empty() {
             assertThat(
                 SpecSpansGraphs.createSpecSpansGraph(emptyList()),
-                equalTo(SpecSpansGraph.builder()
-                    .build()
-                )
+                equalTo(new SpecSpansGraph())
             );
         }
 
         @Test
         void one() {
-            val span1 = nextSpecSpanBuilder()
-                .name("name")
-                .build();
+            val span1 = nextSpecSpan("name");
 
             assertThat(
                 SpecSpansGraphs.createSpecSpansGraph(singletonList(span1)),
-                equalTo(SpecSpansGraph.builder()
-                    .addRoot(SpecSpansGraphNode.builder()
-                        .spanId(span1.getSpanId())
-                        .name(span1.getName())
-                        .build()
-                    )
-                    .build()
+                equalTo(new SpecSpansGraph()
+                    .addRoot(SPEC_SPAN_CONVERTER.toNode(span1))
                 )
             );
         }
 
         @Test
         void hierarchy() {
-            val root = nextSpecSpanBuilder()
-                .name("root")
-                .build();
-            val parent = nextSpecSpanBuilder()
-                .parentSpanId(root.getSpanId())
-                .name("parent")
-                .build();
-            val child1 = nextSpecSpanBuilder()
-                .parentSpanId(parent.getSpanId())
-                .name("child A")
-                .build();
-            val child2 = nextSpecSpanBuilder()
-                .parentSpanId(parent.getSpanId())
-                .name("child B")
-                .build();
+            val root = nextSpecSpan("root");
+            val parent = nextSpecSpan("parent", span -> span.setParentSpanId(root.getSpanId()));
+            val child1 = nextSpecSpan("child1", span -> span.setParentSpanId(parent.getSpanId()));
+            val child2 = nextSpecSpan("child2", span -> span.setParentSpanId(parent.getSpanId()));
 
             assertThat(
                 SpecSpansGraphs.createSpecSpansGraph(asList(
@@ -88,28 +69,13 @@ class SpecSpansGraphsTest {
                     child1,
                     child2
                 )),
-                equalTo(SpecSpansGraph.builder()
-                    .addRoot(SpecSpansGraphNode.builder()
-                        .spanId(root.getSpanId())
-                        .name(root.getName())
-                        .addChild(SpecSpansGraphNode.builder()
-                            .spanId(parent.getSpanId())
-                            .name(parent.getName())
-                            .addChild(SpecSpansGraphNode.builder()
-                                .spanId(child1.getSpanId())
-                                .name(child1.getName())
-                                .build()
-                            )
-                            .addChild(SpecSpansGraphNode.builder()
-                                .spanId(child2.getSpanId())
-                                .name(child2.getName())
-                                .build()
-                            )
-                            .build()
+                equalTo(new SpecSpansGraph()
+                    .addRoot(SPEC_SPAN_CONVERTER.toNode(root)
+                        .addChild(SPEC_SPAN_CONVERTER.toNode(parent)
+                            .addChild(SPEC_SPAN_CONVERTER.toNode(child1))
+                            .addChild(SPEC_SPAN_CONVERTER.toNode(child2))
                         )
-                        .build()
                     )
-                    .build()
                 )
             );
         }

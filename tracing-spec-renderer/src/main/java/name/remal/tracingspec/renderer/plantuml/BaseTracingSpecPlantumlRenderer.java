@@ -20,7 +20,7 @@ import static java.lang.Character.isWhitespace;
 import static java.util.Arrays.binarySearch;
 import static java.util.Arrays.sort;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 import lombok.val;
 import name.remal.tracingspec.renderer.BaseTracingSpecRenderer;
 
@@ -44,7 +44,11 @@ public abstract class BaseTracingSpecPlantumlRenderer extends BaseTracingSpecRen
         sort(CHARACTERS_TO_ESCAPE_WITH_CODEPOINT);
     }
 
-    protected static String escapeString(String string) {
+    protected static String escapeString(@Nullable String string) {
+        if (string == null || string.isEmpty()) {
+            return "";
+        }
+
         val sb = new StringBuilder();
         for (int pos = 0; pos < string.length(); ++pos) {
             val ch = string.charAt(pos);
@@ -65,25 +69,9 @@ public abstract class BaseTracingSpecPlantumlRenderer extends BaseTracingSpecRen
         return sb.toString();
     }
 
-    protected static String escapeString(Optional<String> optionalString) {
-        return escapeString(optionalString.orElse(""));
-    }
 
-
-    private static boolean shouldBeQuoted(String string) {
-        for (int pos = 0; pos < string.length(); ++pos) {
-            val ch = string.charAt(pos);
-            if (ch == ':'
-                || isWhitespace(ch)
-            ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected static String quoteString(String string) {
-        if (string.isEmpty()) {
+    protected static String quoteString(@Nullable String string) {
+        if (string == null || string.isEmpty()) {
             return "\" \"";
         }
 
@@ -95,8 +83,16 @@ public abstract class BaseTracingSpecPlantumlRenderer extends BaseTracingSpecRen
         }
     }
 
-    protected static String quoteString(Optional<String> optionalString) {
-        return quoteString(optionalString.orElse(""));
+    private static boolean shouldBeQuoted(String string) {
+        for (int pos = 0; pos < string.length(); ++pos) {
+            val ch = string.charAt(pos);
+            if (ch == ':'
+                || isWhitespace(ch)
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

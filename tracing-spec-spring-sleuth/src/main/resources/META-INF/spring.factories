@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration = \
-name.remal.tracingspec.spring.sleuth.TracingSpecSpringSleuthAutoConfiguration

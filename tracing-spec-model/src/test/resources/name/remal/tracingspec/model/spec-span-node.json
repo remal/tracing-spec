@@ -1,0 +1,14 @@
+{
+  "name": "1",
+  "tags": {
+    "spec.kind": "producer"
+  },
+  "children": [
+    {
+      "name": "2",
+      "tags": {
+        "spec.kind": "consumer"
+      }
+    }
+  ]
+}

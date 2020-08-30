@@ -27,14 +27,14 @@ pull_request_rules:
       method: squash
       strict: smart+fasttrack
     #backport: {}
-    delete_head_branch: {}
+    delete_head_branch: { }
 
 - name: Auto approve dependencies
   conditions:
   - author~=^(dependabot(-preview)?|renovate)\[bot\]$
   - -closed
   actions:
-    review: {}
+    review: { }
 
 - name: Update all PRs to master
   conditions:
@@ -45,4 +45,4 @@ pull_request_rules:
   - -conflict
   - -locked
   actions:
-    update: {}
+    update: { }

@@ -17,37 +17,36 @@
 package name.remal.tracingspec.renderer.plantuml.sequence;
 
 import static java.lang.String.format;
-import static name.remal.tracingspec.model.SpecSpansGraphUtils.getPreviousNodeFor;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
+import java.util.Objects;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpanNode;
+import name.remal.tracingspec.model.SpecSpanNodeVisitor;
 import name.remal.tracingspec.model.SpecSpansGraph;
-import name.remal.tracingspec.model.SpecSpansGraphNode;
-import name.remal.tracingspec.model.SpecSpansGraphVisitor;
 import name.remal.tracingspec.renderer.plantuml.BaseTracingSpecPlantumlRenderer;
 
 public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantumlRenderer {
 
     @Override
     @SuppressWarnings("java:S3776")
-    protected String renderFilteredTracingSpec(SpecSpansGraph specSpansGraph) {
+    protected String renderSpecSpansGraph(SpecSpansGraph specSpansGraph) {
         List<String> diagram = new ArrayList<>();
         diagram.add("@startuml");
-        specSpansGraph.visit(new SpecSpansGraphVisitor() {
+        specSpansGraph.visit(new SpecSpanNodeVisitor() {
             @Override
-            public void visitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) {
+            public void visit(SpecSpanNode node) {
                 val serviceName = node.getServiceName();
 
-                val previousNode = getPreviousNodeFor(node, parentNode);
+                val previousNode = node.getPrevious();
                 if (previousNode != null) {
-                    if (previousNode.getServiceName().equals(serviceName)) {
+                    if (Objects.equals(previousNode.getServiceName(), serviceName)) {
                         diagram.add("|||");
                     }
                 }
 
-                if (parentNode == null) {
+                if (node.getParent() == null) {
                     diagram.add(format(
                         "[%s %s: %s",
                         node.isSync() ? "->" : "->>",
@@ -57,22 +56,22 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
                 } else {
                     diagram.add(format(
                         "%s %s %s: %s",
-                        quoteString(parentNode.getServiceName()),
+                        quoteString(node.getParent().getServiceName()),
                         node.isSync() ? "->" : "->>",
                         quoteString(serviceName),
                         escapeString(node.getName())
                     ));
                 }
 
-                node.getDescription().ifPresent(description ->
-                    diagram.add(format("note right: %s", escapeString(description)))
-                );
+                if (isNotEmpty(node.getDescription())) {
+                    diagram.add(format("note right: %s", escapeString(node.getDescription())));
+                }
 
                 diagram.add(format("activate %s", quoteString(serviceName)));
             }
 
             @Override
-            public void postVisitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) {
+            public void postVisit(SpecSpanNode node) {
                 if (node.isSync()) {
                     diagram.add("return");
                 } else {

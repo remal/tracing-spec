@@ -87,10 +87,11 @@ class JaegerSpecSpansRetrieverVersionTest {
         val rootSpan = tracer.buildSpan("root").start();
         val childSpan = tracer.buildSpan("child").asChildOf(rootSpan)
             .withTag("spec.description", "some text")
-            .withTag("spec.is-async", true)
+            .withTag("spec.async", true)
             .start();
         childSpan.finish();
         rootSpan.finish();
+
 
         val traceId = rootSpan.context().getTraceId();
         List<SpecSpan> specSpans = new ArrayList<>();
@@ -103,29 +104,34 @@ class JaegerSpecSpansRetrieverVersionTest {
             hasSize(2)
         );
 
-        assertThat(specSpans, containsInAnyOrder(
-            SpecSpan.builder()
-                .spanId(rootSpan.context().toSpanId())
-                .name("root")
-                .serviceName(SERVICE_NAME)
-                .startedAt(Instant.ofEpochSecond(
-                    0,
-                    NANOSECONDS.convert(rootSpan.getStart(), MICROSECONDS)
-                ))
-                .build(),
+        specSpans.forEach(specSpan -> {
+            specSpan.getTags().clear();
+            specSpan.getAnnotations().clear();
+        });
 
-            SpecSpan.builder()
-                .spanId(childSpan.context().toSpanId())
-                .parentSpanId(rootSpan.context().toSpanId())
-                .name("child")
-                .serviceName(SERVICE_NAME)
-                .startedAt(Instant.ofEpochSecond(
-                    0,
-                    NANOSECONDS.convert(childSpan.getStart(), MICROSECONDS)
-                ))
-                .description("some text")
-                .async(true)
-                .build()
+
+        val expectedRootSpecSpan = new SpecSpan(rootSpan.context().toSpanId());
+        expectedRootSpecSpan.setName("root");
+        expectedRootSpecSpan.setServiceName(SERVICE_NAME);
+        expectedRootSpecSpan.setStartedAt(Instant.ofEpochSecond(
+            0,
+            NANOSECONDS.convert(rootSpan.getStart(), MICROSECONDS)
+        ));
+
+        val expectedChildSpecSpan = new SpecSpan(childSpan.context().toSpanId());
+        expectedChildSpecSpan.setParentSpanId(rootSpan.context().toSpanId());
+        expectedChildSpecSpan.setName("child");
+        expectedChildSpecSpan.setAsync(true);
+        expectedChildSpecSpan.setServiceName(SERVICE_NAME);
+        expectedChildSpecSpan.setStartedAt(Instant.ofEpochSecond(
+            0,
+            NANOSECONDS.convert(childSpan.getStart(), MICROSECONDS)
+        ));
+        expectedChildSpecSpan.setDescription("some text");
+
+        assertThat(specSpans, containsInAnyOrder(
+            expectedRootSpecSpan,
+            expectedChildSpecSpan
         ));
     }
 

@@ -19,16 +19,22 @@ package name.remal.tracingspec.retriever.zipkin;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static name.remal.tracingspec.model.SpecSpanKind.parseSpecSpanKind;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.notNullValue;
 import static utils.test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
 import java.time.Instant;
-import java.util.Optional;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpanAnnotation;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
+import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanAnnotation;
 import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanEndpoint;
+import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpanKind;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("java:S109")
@@ -54,7 +60,7 @@ class ZipkinSpanConverterTest {
                     .parentId("4213435656")
                     .build()
             ),
-            hasProperty("parentSpanId", equalTo(Optional.of("4213435656")))
+            hasProperty("parentSpanId", equalTo("4213435656"))
         );
     }
 
@@ -66,56 +72,55 @@ class ZipkinSpanConverterTest {
                     .name("test name")
                     .build()
             ),
-            hasProperty("name", equalTo(Optional.of("test name")))
+            hasProperty("name", equalTo("test name"))
         );
     }
 
     @Test
-    void serviceName_only_remoteEndpoint() {
-        assertThat(
-            ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().id("0")
-                    .remoteEndpoint(ZipkinSpanEndpoint.builder()
-                        .serviceName("remote service")
+    void kind() {
+        for (val zipkinKind : ZipkinSpanKind.values()) {
+            val kind = parseSpecSpanKind(zipkinKind.name());
+            assertThat(zipkinKind.name(), kind, notNullValue());
+
+            assertThat(
+                zipkinKind.name(),
+                ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
+                    ZipkinSpan.builder().id("0")
+                        .kind(zipkinKind)
                         .build()
-                    )
-                    .build()
-            ),
-            hasProperty("serviceName", equalTo(Optional.of("remote service")))
-        );
+                ),
+                hasProperty("kind", equalTo(kind))
+            );
+        }
     }
 
     @Test
-    void serviceName_only_localEndpoint() {
+    void serviceName() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().id("0")
                     .localEndpoint(ZipkinSpanEndpoint.builder()
-                        .serviceName("local service")
+                        .serviceName("service")
                         .build()
                     )
                     .build()
             ),
-            hasProperty("serviceName", equalTo(Optional.of("local service")))
+            hasProperty("serviceName", equalTo("service"))
         );
     }
 
     @Test
-    void serviceName_both_endpoints() {
+    void remoteServiceName() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().id("0")
                     .remoteEndpoint(ZipkinSpanEndpoint.builder()
-                        .serviceName("remote service")
-                        .build()
-                    )
-                    .localEndpoint(ZipkinSpanEndpoint.builder()
-                        .serviceName("local service")
+                        .serviceName("service")
                         .build()
                     )
                     .build()
             ),
-            hasProperty("serviceName", equalTo(Optional.of("remote service")))
+            hasProperty("remoteServiceName", equalTo("service"))
         );
     }
 
@@ -131,48 +136,48 @@ class ZipkinSpanConverterTest {
                     )
                     .build()
             ),
-            hasProperty("startedAt", equalTo(Optional.of(now)))
+            hasProperty("startedAt", equalTo(now))
         );
     }
 
     @Test
-    void description() {
+    void tags() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().id("0")
-                    .putTag("spec.description", "some text")
+                    .putTag("key", "value")
                     .build()
             ),
-            hasProperty("description", equalTo(Optional.of("some text")))
+            hasProperty("tags", hasEntry("key", "value"))
         );
     }
 
     @Test
-    void async() {
+    void annotations() {
         assertThat(
             ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
                 ZipkinSpan.builder().id("0")
+                    .addAnnotation(ZipkinSpanAnnotation.builder()
+                        .timestamp(123)
+                        .value("annotation 1")
+                        .build()
+                    )
+                    .addAnnotation(ZipkinSpanAnnotation.builder()
+                        .value("annotation 2")
+                        .build()
+                    )
+                    .addAnnotation(ZipkinSpanAnnotation.builder()
+                        .build()
+                    )
                     .build()
             ),
-            hasProperty("async", equalTo(false))
-        );
-
-        assertThat(
-            ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().id("0")
-                    .putTag("spec.is-async", "1")
-                    .build()
-            ),
-            hasProperty("async", equalTo(true))
-        );
-
-        assertThat(
-            ZipkinSpanConverter.convertZipkinSpanToSpecSpan(
-                ZipkinSpan.builder().id("0")
-                    .putTag("spec.is-async", "TrUe")
-                    .build()
-            ),
-            hasProperty("async", equalTo(true))
+            hasProperty("annotations", contains(
+                new SpecSpanAnnotation(
+                    Instant.ofEpochSecond(0, NANOSECONDS.convert(123, MICROSECONDS)),
+                    "annotation 1"
+                ),
+                new SpecSpanAnnotation("annotation 2")
+            ))
         );
     }
 

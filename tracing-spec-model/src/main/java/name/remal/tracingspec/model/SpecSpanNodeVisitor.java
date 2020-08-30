@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.renderer;
+package name.remal.tracingspec.model;
 
-@FunctionalInterface
-public interface ServiceNameTransformer {
+public interface SpecSpanNodeVisitor {
 
-    String transform(String serviceName) throws Throwable;
+    default void visit(SpecSpanNode node) throws Throwable {
+        // Should be overridden
+    }
 
-
-    default ServiceNameTransformer then(ServiceNameTransformer other) {
-        return serviceName -> {
-            serviceName = transform(serviceName);
-            serviceName = other.transform(serviceName);
-            return serviceName;
-        };
+    /**
+     * Executed when the node and all its children is visited
+     */
+    default void postVisit(SpecSpanNode node) throws Throwable {
+        // Should be overridden
     }
 
 }

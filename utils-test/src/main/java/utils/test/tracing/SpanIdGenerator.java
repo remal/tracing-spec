@@ -33,7 +33,7 @@ public abstract class SpanIdGenerator {
     private static long nextLongSpanId() {
         while (true) {
             val id = RANDOM.nextInt();
-            if (id < 0) {
+            if (id <= 0) {
                 continue;
             }
             if (GENERATED_IDS.add(id)) {

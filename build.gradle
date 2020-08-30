@@ -78,6 +78,7 @@ allprojects {
         allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.15.1')
 
         String immutablesVersion = '2.8.8'
+        String mapstructVersion = '1.4.0.Beta3'
 
         configurations.matching { it.canBeResolved }.all { Configuration conf ->
             conf.dependencyConstraints.addAll(
@@ -90,8 +91,10 @@ allprojects {
                     // Annotation processors
                     "org.immutables:value:$immutablesVersion",
                     "org.immutables:gson:$immutablesVersion",
+                    "org.mapstruct:mapstruct-processor:$mapstructVersion",
 
                     // Compile
+                    "org.mapstruct:mapstruct:$mapstructVersion",
                     'com.google.guava:guava:29.0-jre',
                     'net.sourceforge.plantuml:plantuml:1.2020.16',
 
@@ -158,19 +161,20 @@ allprojects {
             staticAnalysis 'com.google.errorprone:error_prone_annotations'
             staticAnalysis 'org.jetbrains:annotations'
 
-            annotationProcessing 'name.remal:gradle-plugins-api'
-            annotationProcessing 'org.projectlombok:lombok'
-            annotationProcessing 'org.immutables:value'
-
             apt 'org.springframework.boot:spring-boot-configuration-processor'
             apt 'org.springframework.boot:spring-boot-autoconfigure-processor'
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
+            apt 'org.mapstruct:mapstruct-processor'
+
+            compileOnlyAll 'org.mapstruct:mapstruct'
+
+            annotationProcessing 'name.remal:gradle-plugins-api'
+            annotationProcessing 'org.immutables:value'
+            annotationProcessing 'org.projectlombok:lombok'
 
             optional 'com.fasterxml.jackson.core:jackson-databind'
             optional 'org.hibernate.validator:hibernate-validator'
-            optional('org.springframework.boot:spring-boot') { transitive = false }
-            optional('org.springframework:spring-core') { transitive = false }
-            optional('org.springframework:spring-context') { transitive = false }
+            optional 'org.springframework.boot:spring-boot-autoconfigure'
 
             runtimeOnly 'org.springframework.boot:spring-boot-properties-migrator'
 
@@ -477,19 +481,6 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 apply plugin: 'org.sonarqube'
-
-allprojects {
-    sonarqube {
-        properties {
-            property(
-                'sonar.coverage.exclusions',
-                [
-                    '**/*Properties.java',
-                ].join(',')
-            )
-        }
-    }
-}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

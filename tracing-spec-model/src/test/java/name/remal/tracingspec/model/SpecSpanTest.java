@@ -16,129 +16,33 @@
 
 package name.remal.tracingspec.model;
 
+import static name.remal.tracingspec.model.SpecSpanKind.CLIENT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static utils.test.tracing.SpanIdGenerator.nextSpanId;
-import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanBuilder;
+import static utils.test.json.ObjectMapperProvider.readJsonResource;
 
 import lombok.val;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class SpecSpanTest {
+class SpecSpanTest extends SpecSpanInfoTest<SpecSpan> {
 
     @Test
-    void can_be_built_with_spanId_only() {
-        val builder = SpecSpan.builder()
-            .spanId("0");
-        assertDoesNotThrow(builder::build);
-    }
+    void deserialization() {
+        val expected = new SpecSpan("12345678");
+        expected.setParentSpanId("87654321");
+        expected.setName("name");
+        expected.setKind(CLIENT);
+        expected.setAsync(true);
+        expected.setDescription("description");
+        expected.addAnnotation(new SpecSpanAnnotation("annotation"));
 
-    @Test
-    void async_is_false_by_default() {
-        val specSpan = nextSpecSpanBuilder()
-            .build();
-        assertThat(specSpan.isAsync(), equalTo(false));
-    }
+        val deserialized = readJsonResource("spec-span.json", SpecSpan.class);
+        deserialized.getTags().clear();
 
-    @Test
-    void isSync() {
         assertThat(
-            nextSpecSpanBuilder()
-                .build()
-                .isSync(),
-            equalTo(true)
+            deserialized,
+            equalTo(expected)
         );
-        assertThat(
-            nextSpecSpanBuilder()
-                .async(false)
-                .build()
-                .isSync(),
-            equalTo(true)
-        );
-        assertThat(
-            nextSpecSpanBuilder()
-                .async(true)
-                .build()
-                .isSync(),
-            equalTo(false)
-        );
-    }
-
-    @Test
-    void hasParentSpanId() {
-        assertThat(
-            nextSpecSpanBuilder()
-                .build()
-                .hasParentSpanId(),
-            equalTo(false)
-        );
-        assertThat(
-            nextSpecSpanBuilder()
-                .parentSpanId(nextSpanId())
-                .build()
-                .hasParentSpanId(),
-            equalTo(true)
-        );
-    }
-
-    @Test
-    void hasNoParentSpanId() {
-        assertThat(
-            nextSpecSpanBuilder()
-                .build()
-                .hasNoParentSpanId(),
-            equalTo(true)
-        );
-        assertThat(
-            nextSpecSpanBuilder()
-                .parentSpanId(nextSpanId())
-                .build()
-                .hasNoParentSpanId(),
-            equalTo(false)
-        );
-    }
-
-    @Nested
-    class Validation {
-
-        @Test
-        void spanId_cannot_be_empty() {
-            val builder = SpecSpan.builder()
-                .spanId("");
-            assertThrows(IllegalStateException.class, builder::build);
-        }
-
-        @Test
-        void parentSpanId_cannot_be_empty() {
-            val builder = nextSpecSpanBuilder()
-                .parentSpanId("");
-            assertThrows(IllegalStateException.class, builder::build);
-        }
-
-        @Test
-        void name_cannot_be_empty() {
-            val builder = nextSpecSpanBuilder()
-                .name("");
-            assertThrows(IllegalStateException.class, builder::build);
-        }
-
-        @Test
-        void serviceName_cannot_be_empty() {
-            val builder = nextSpecSpanBuilder()
-                .serviceName("");
-            assertThrows(IllegalStateException.class, builder::build);
-        }
-
-        @Test
-        void description_cannot_be_empty() {
-            val builder = nextSpecSpanBuilder()
-                .description("");
-            assertThrows(IllegalStateException.class, builder::build);
-        }
-
     }
 
 }

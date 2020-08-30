@@ -17,21 +17,31 @@
 package name.remal.tracingspec.retriever.jaeger;
 
 import static java.util.Collections.singletonList;
+import static name.remal.tracingspec.model.SpecSpanKind.CLIENT;
+import static name.remal.tracingspec.model.SpecSpanKind.CONSUMER;
+import static name.remal.tracingspec.model.SpecSpanKind.PRODUCER;
+import static name.remal.tracingspec.model.SpecSpanKind.SERVER;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasProperty;
 import static utils.test.datetime.DateTimePrecisionUtils.withMicrosecondsPrecision;
 
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import java.time.Instant;
-import java.util.Optional;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpanAnnotation;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.KeyValue;
+import name.remal.tracingspec.retriever.jaeger.internal.grpc.Log;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.Process;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRef;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRefType;
 import name.remal.tracingspec.retriever.jaeger.internal.grpc.ValueType;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("java:S109")
@@ -62,7 +72,7 @@ class JaegerSpanConverterTest {
                     ))
                     .build()
             ),
-            hasProperty("parentSpanId", equalTo(Optional.of("1ff09")))
+            hasProperty("parentSpanId", equalTo("1ff09"))
         );
     }
 
@@ -74,7 +84,7 @@ class JaegerSpanConverterTest {
                     .setOperationName("test name")
                     .build()
             ),
-            hasProperty("name", equalTo(Optional.of("test name")))
+            hasProperty("name", equalTo("test name"))
         );
     }
 
@@ -88,7 +98,7 @@ class JaegerSpanConverterTest {
                     )
                     .build()
             ),
-            hasProperty("serviceName", equalTo(Optional.of("test name")))
+            hasProperty("serviceName", equalTo("test name"))
         );
     }
 
@@ -104,12 +114,12 @@ class JaegerSpanConverterTest {
                     )
                     .build()
             ),
-            hasProperty("startedAt", equalTo(Optional.of(now)))
+            hasProperty("startedAt", equalTo(now))
         );
     }
 
     @Test
-    void description() {
+    void tags() {
         val baseTag = KeyValue.newBuilder()
             .setVStr("string value")
             .setVBool(true)
@@ -140,36 +150,37 @@ class JaegerSpanConverterTest {
                 JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                     Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
                         .addTags(
-                            KeyValue.newBuilder(baseTag).setKey("spec.description").setVType(valueType).build()
+                            KeyValue.newBuilder(baseTag).setKey(valueType.name()).setVType(valueType).build()
                         )
                         .build()
                 ),
-                hasProperty("description", equalTo(Optional.ofNullable(expectedValue)))
+                hasProperty("tags", hasEntry(valueType.name(), expectedValue))
             );
         }
     }
 
     @Test
-    void async() {
+    void annotations() {
+        val now = withMicrosecondsPrecision(Instant.now());
         val baseTag = KeyValue.newBuilder()
-            .setVStr("tRuE")
+            .setVStr("string value")
             .setVBool(true)
-            .setVInt64(1L)
-            .setVFloat64(1.0D)
-            .setVBinary(ByteString.copyFrom(new byte[]{1}))
+            .setVInt64(Integer.MAX_VALUE + 10L)
+            .setVFloat64(Float.MAX_VALUE + 10.0D)
+            .setVBinary(ByteString.copyFrom(new byte[]{1, -1, 9}))
             .build();
         for (val valueType : ValueType.values()) {
-            final boolean expectedValue;
+            final String expectedValue;
             if (valueType == ValueType.STRING) {
-                expectedValue = true;
+                expectedValue = baseTag.getVStr();
             } else if (valueType == ValueType.BOOL) {
-                expectedValue = true;
+                expectedValue = String.valueOf(baseTag.getVBool());
             } else if (valueType == ValueType.INT64) {
-                expectedValue = true;
+                expectedValue = String.valueOf(baseTag.getVInt64());
             } else if (valueType == ValueType.FLOAT64) {
-                expectedValue = false;
+                expectedValue = String.valueOf(baseTag.getVFloat64());
             } else if (valueType == ValueType.BINARY) {
-                expectedValue = false;
+                expectedValue = String.valueOf(baseTag.getVBinary());
             } else if (valueType == ValueType.UNRECOGNIZED) {
                 continue;
             } else {
@@ -180,14 +191,84 @@ class JaegerSpanConverterTest {
                 "Value type " + valueType,
                 JaegerSpanConverter.convertJaegerSpanToSpecSpan(
                     Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
-                        .addTags(
-                            KeyValue.newBuilder(baseTag).setKey("spec.is-async").setVType(valueType).build()
+                        .addLogs(
+                            Log.newBuilder()
+                                .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
+                                    .setSeconds(now.getEpochSecond())
+                                    .setNanos(now.getNano())
+                                )
+                                .addFields(
+                                    KeyValue.newBuilder(baseTag).setKey(valueType.name()).setVType(valueType).build()
+                                )
+                        )
+                        .addLogs(
+                            Log.newBuilder()
+                                .addFields(
+                                    KeyValue.newBuilder(baseTag).setKey(valueType.name()).setVType(valueType).build()
+                                )
                         )
                         .build()
                 ),
-                hasProperty("async", equalTo(expectedValue))
+                hasProperty("annotations", contains(
+                    new SpecSpanAnnotation(now, valueType.name(), expectedValue),
+                    new SpecSpanAnnotation(valueType.name(), expectedValue)
+                ))
             );
         }
+    }
+
+
+    @Nested
+    class Kind {
+
+        @Test
+        void from_tags() {
+            assertThat(
+                JaegerSpanConverter.convertJaegerSpanToSpecSpan(
+                    Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
+                        .addTags(
+                            KeyValue.newBuilder()
+                                .setKey("span.kind")
+                                .setVType(ValueType.STRING)
+                                .setVStr("client")
+                                .build()
+                        )
+                        .build()
+                ),
+                hasProperty("kind", equalTo(CLIENT))
+            );
+        }
+
+        @Test
+        void from_annotations() {
+            val pairs = ImmutableList.of(
+                ImmutablePair.of("ms", PRODUCER),
+                ImmutablePair.of("mr", CONSUMER),
+                ImmutablePair.of("ss", SERVER),
+                ImmutablePair.of("sr", SERVER),
+                ImmutablePair.of("cs", CLIENT),
+                ImmutablePair.of("cr", CLIENT)
+            );
+            for (val pair : pairs) {
+                assertThat(
+                    pair.toString(),
+                    JaegerSpanConverter.convertJaegerSpanToSpecSpan(
+                        Span.newBuilder().setSpanId(ByteString.copyFrom(new byte[]{0}))
+                            .addLogs(
+                                Log.newBuilder().addFields(
+                                    KeyValue.newBuilder()
+                                        .setKey("event")
+                                        .setVType(ValueType.STRING)
+                                        .setVStr(pair.getLeft())
+                                )
+                            )
+                            .build()
+                    ),
+                    hasProperty("kind", equalTo(pair.getRight()))
+                );
+            }
+        }
+
     }
 
 }

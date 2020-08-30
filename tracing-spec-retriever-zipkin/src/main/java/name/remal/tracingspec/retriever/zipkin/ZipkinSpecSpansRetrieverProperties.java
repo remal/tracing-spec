@@ -19,18 +19,15 @@ package name.remal.tracingspec.retriever.zipkin;
 import java.net.URL;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
-import lombok.EqualsAndHashCode;
+import lombok.Data;
 import lombok.SneakyThrows;
-import lombok.ToString;
-import name.remal.gradle_plugins.api.ExcludeFromCodeCoverage;
+import lombok.experimental.Tolerate;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties("tracingspec.retriever.zipkin")
-@EqualsAndHashCode
-@ToString
-@ExcludeFromCodeCoverage
+@Data
 @SuppressWarnings("java:S109")
 public class ZipkinSpecSpansRetrieverProperties {
 
@@ -59,15 +56,7 @@ public class ZipkinSpecSpansRetrieverProperties {
     private long readTimeoutMillis = 60_000;
 
 
-    @Nullable
-    public URL getUrl() {
-        return url;
-    }
-
-    public void setUrl(@Nullable URL url) {
-        this.url = url;
-    }
-
+    @Tolerate
     @SneakyThrows
     public void setUrl(@Nullable String url) {
         if (url != null) {
@@ -75,30 +64,6 @@ public class ZipkinSpecSpansRetrieverProperties {
         } else {
             setUrl((URL) null);
         }
-    }
-
-    public long getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
-    }
-
-    public void setConnectTimeoutMillis(long connectTimeoutMillis) {
-        this.connectTimeoutMillis = connectTimeoutMillis;
-    }
-
-    public long getWriteTimeoutMillis() {
-        return writeTimeoutMillis;
-    }
-
-    public void setWriteTimeoutMillis(long writeTimeoutMillis) {
-        this.writeTimeoutMillis = writeTimeoutMillis;
-    }
-
-    public long getReadTimeoutMillis() {
-        return readTimeoutMillis;
-    }
-
-    public void setReadTimeoutMillis(long readTimeoutMillis) {
-        this.readTimeoutMillis = readTimeoutMillis;
     }
 
 }

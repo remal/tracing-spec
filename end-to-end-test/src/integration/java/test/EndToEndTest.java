@@ -29,10 +29,13 @@ import apps.schemas.ImmutableSchemaReference;
 import apps.schemas.SchemasApplication;
 import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
+import brave.Tracer;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.val;
+import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetriever;
+import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetrieverProperties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
@@ -43,6 +46,7 @@ import org.springframework.boot.builder.ParentContextApplicationContextInitializ
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import shared.SharedConfiguration;
+import utils.test.container.JaegerAllInOneContainer;
 
 class EndToEndTest {
 
@@ -64,8 +68,17 @@ class EndToEndTest {
         val documentsClient = sharedContext.getBean(DocumentsClient.class);
         val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
-        val schemasClient = sharedContext.getBean(SchemasClient.class);
-        schemasClient.saveSchema(schema);
+        val tracer = applicationContexts.get(SchemasApplication.class).getBean(Tracer.class);
+        val testSpan = tracer.startScopedSpan("test");
+        try {
+            val schemasClient = sharedContext.getBean(SchemasClient.class);
+            schemasClient.saveSchema(schema);
+        } catch (Throwable e) {
+            testSpan.error(e);
+            throw e;
+        } finally {
+            testSpan.finish();
+        }
 
         await().atMost(Duration.ofSeconds(60)).until(
             () -> documentsClient.getAllDocumentsBySchema(schema.getId()),
@@ -76,11 +89,20 @@ class EndToEndTest {
         assertThat(newDocuments, not(empty()));
         logger.info("OLD DOCUMENTS: {}", oldSchemaDocuments);
         logger.info("NEW DOCUMENTS: {}", newDocuments);
+
+        {
+            val retrieverProperties = new JaegerSpecSpansRetrieverProperties();
+            retrieverProperties.setHost("localhost");
+            retrieverProperties.setPort(sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort());
+            val jaegerRetriever = new JaegerSpecSpansRetriever(retrieverProperties);
+            val specSpans = jaegerRetriever.retrieveSpecSpansForTrace(testSpan.context().traceIdString());
+            logger.info("Jaeger spec spans: {}", specSpans);
+        }
     }
 
     private static final AnnotationConfigApplicationContext sharedContext = new AnnotationConfigApplicationContext();
 
-    private static final List<ConfigurableApplicationContext> applicationContexts = new ArrayList<>();
+    private static final Map<Class<?>, ConfigurableApplicationContext> applicationContexts = new HashMap<>();
 
     @BeforeAll
     static void startApplications() {
@@ -97,13 +119,13 @@ class EndToEndTest {
             application.addInitializers(new ParentContextApplicationContextInitializer(sharedContext));
 
             val applicationContext = application.run();
-            applicationContexts.add(applicationContext);
+            applicationContexts.put(applicationClass, applicationContext);
         });
     }
 
     @AfterAll
     static void stopApplications() {
-        applicationContexts.forEach(EndToEndTest::closeContext);
+        applicationContexts.values().forEach(EndToEndTest::closeContext);
         closeContext(sharedContext);
     }
 

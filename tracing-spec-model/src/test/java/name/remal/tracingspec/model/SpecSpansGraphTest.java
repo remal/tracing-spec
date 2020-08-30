@@ -16,17 +16,19 @@
 
 package name.remal.tracingspec.model;
 
-import static java.util.Arrays.asList;
+import static java.time.Instant.ofEpochSecond;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static utils.test.json.ObjectMapperProvider.readJsonResource;
 import static utils.test.json.ObjectMapperProvider.writeJsonString;
-import static utils.test.tracing.SpecSpanGraphNodeGenerator.nextSpecSpansGraphNodeBuilder;
+import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
-import lombok.Value;
 import lombok.val;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Nested;
@@ -34,119 +36,130 @@ import org.junit.jupiter.api.Test;
 
 class SpecSpansGraphTest {
 
+    private final SpecSpansGraph graph = new SpecSpansGraph();
+
+    @Test
+    @SuppressWarnings("ConstantConditions")
+    void getRoots() {
+        val roots = graph.getRoots();
+        val root = nextSpecSpanNode();
+        assertThrows(UnsupportedOperationException.class, () -> roots.add(root));
+    }
+
+    @Test
+    void setRoots() {
+        val root1 = nextSpecSpanNode();
+        graph.setRoots(singletonList(root1));
+        assertThat(graph.getRoots(), contains(root1));
+
+        val root2 = nextSpecSpanNode();
+        graph.setRoots(singletonList(root2));
+        assertThat(graph.getRoots(), contains(root2));
+    }
+
+    @Test
+    void addRoot() {
+        val root = nextSpecSpanNode();
+        val rootInitialParent = nextSpecSpanNode();
+        root.setParent(rootInitialParent);
+
+        graph.addRoot(root);
+        assertThat(graph.getRoots(), contains(root));
+        assertThat(root.getParent(), nullValue());
+
+        val otherRoot = nextSpecSpanNode();
+        graph.addRoot(otherRoot);
+        assertThat(graph.getRoots(), contains(root, otherRoot));
+
+        graph.addRoot(root);
+        assertThat(graph.getRoots(), contains(otherRoot, root));
+    }
+
+    @Test
+    void removeRoot() {
+        val root1 = nextSpecSpanNode();
+        graph.addRoot(root1);
+        val root2 = nextSpecSpanNode();
+        graph.addRoot(root2);
+
+        graph.removeRoot(root1);
+        assertThat(graph.getRoots(), contains(root2));
+    }
+
+    @Test
+    void sortChildren() {
+        val root2 = nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(2)));
+        graph.addRoot(root2);
+
+        val root1 = nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(1)));
+        graph.addRoot(root1);
+
+        val child12 = nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(12)));
+        child12.setParent(root1);
+
+        val child11 = nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(11)));
+        child11.setParent(root1);
+        val child112 = nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(112)));
+        child112.setParent(child11);
+        val child111 = nextSpecSpanNode(node -> node.setStartedAt(ofEpochSecond(111)));
+        child111.setParent(child11);
+
+        graph.sort();
+
+        assertThat(graph.getRoots(), contains(root1, root2));
+        assertThat(root1.getChildren(), contains(child11, child12));
+        assertThat(child11.getChildren(), contains(child111, child112));
+    }
+
     @Test
     void visit() {
-        val graph = SpecSpansGraph.builder()
-            .addRoot(
-                nextSpecSpansGraphNodeBuilder()
-                    .name("root")
-                    .addChild(
-                        nextSpecSpansGraphNodeBuilder()
-                            .name("parent")
-                            .addChild(nextSpecSpansGraphNodeBuilder()
-                                .name("child 1")
-                                .build()
-                            )
-                            .addChild(nextSpecSpansGraphNodeBuilder()
-                                .name("child 2")
-                                .build()
-                            )
-                            .build()
-                    )
-                    .build()
-            )
-            .build();
-        val root = graph.getRoots().get(0);
-        val parent = root.getChildren().get(0);
-        val child1 = parent.getChildren().get(0);
-        val child2 = parent.getChildren().get(1);
+        val root1 = nextSpecSpanNode();
+        graph.addRoot(root1);
 
-        @Value
-        class MethodInvocation {
-            String methodName;
-            List<Object> parameters;
-        }
+        val child1 = nextSpecSpanNode();
+        root1.addChild(child1);
 
-        List<MethodInvocation> invocations = new ArrayList<>();
-        SpecSpansGraphVisitor visitor = new SpecSpansGraphVisitor() {
+        val root2 = nextSpecSpanNode();
+        graph.addRoot(root2);
+
+        List<SpecSpanNode> visitedNodes = new ArrayList<>();
+        graph.visit(new SpecSpanNodeVisitor() {
             @Override
-            public void visitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) {
-                invocations.add(new MethodInvocation("visitNode", asList(node, parentNode)));
+            public void visit(SpecSpanNode node) {
+                visitedNodes.add(node);
             }
+        });
 
-            @Override
-            public void postVisitNode(SpecSpansGraphNode node, @Nullable SpecSpansGraphNode parentNode) {
-                invocations.add(new MethodInvocation("postVisitNode", asList(node, parentNode)));
-            }
-        };
-
-        graph.visit(visitor);
-
-        assertThat(invocations, equalTo(asList(
-            new MethodInvocation("visitNode", asList(root, null)),
-            new MethodInvocation("visitNode", asList(parent, root)),
-            new MethodInvocation("visitNode", asList(child1, parent)),
-            new MethodInvocation("postVisitNode", asList(child1, parent)),
-            new MethodInvocation("visitNode", asList(child2, parent)),
-            new MethodInvocation("postVisitNode", asList(child2, parent)),
-            new MethodInvocation("postVisitNode", asList(parent, root)),
-            new MethodInvocation("postVisitNode", asList(root, null))
-        )));
+        assertThat(visitedNodes, contains(root1, child1, root2));
     }
+
 
     @Nested
     class Json {
 
         @Test
         void empty() {
-            match(
-                "graph-empty.json",
-                SpecSpansGraph.builder()
-                    .build()
-            );
+            val graph = new SpecSpansGraph();
+            match("graph-empty.json", graph);
         }
 
         @Test
         void roots_only() {
-            match(
-                "graph-roots-only.json",
-                SpecSpansGraph.builder()
-                    .addRoot(SpecSpansGraphNode.builder()
-                        .spanId("1")
-                        .name("name A")
-                        .build()
-                    )
-                    .addRoot(SpecSpansGraphNode.builder()
-                        .spanId("2")
-                        .name("name B")
-                        .build()
-                    )
-                    .build()
-            );
+            val graph = new SpecSpansGraph()
+                .addRoot(nextSpecSpanNode("name A"))
+                .addRoot(nextSpecSpanNode("name B"));
+            match("graph-roots-only.json", graph);
         }
 
         @Test
         void with_children() {
-            match(
-                "graph-with-children.json",
-                SpecSpansGraph.builder()
-                    .addRoot(SpecSpansGraphNode.builder()
-                        .spanId("1")
-                        .name("root")
-                        .addChild(SpecSpansGraphNode.builder()
-                            .spanId("2")
-                            .name("parent")
-                            .addChild(SpecSpansGraphNode.builder()
-                                .spanId("3")
-                                .name("child")
-                                .build()
-                            )
-                            .build()
-                        )
-                        .build()
-                    )
-                    .build()
-            );
+            val graph = new SpecSpansGraph();
+            graph.addRoot(nextSpecSpanNode("root", root ->
+                root.addChild(nextSpecSpanNode("parent", parent ->
+                    parent.addChild(nextSpecSpanNode("child")))
+                )
+            ));
+            match("graph-with-children.json", graph);
         }
 
         private void match(

@@ -18,33 +18,16 @@ package name.remal.tracingspec.renderer;
 
 import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
-import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.model.SpecSpansGraph;
+import org.jetbrains.annotations.Contract;
 
 public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
 
-    @Nullable
-    private ServiceNameTransformer serviceNameTransformer;
-
-    @Override
-    public final void setServiceNameTransformer(@Nullable ServiceNameTransformer serviceNameTransformer) {
-        this.serviceNameTransformer = serviceNameTransformer;
-    }
-
-
-    @Nullable
-    private SpecSpansFilter specSpansFilter;
-
-    @Override
-    public final void setSpecSpansFilter(@Nullable SpecSpansFilter specSpansFilter) {
-        this.specSpansFilter = specSpansFilter;
-    }
-
+    protected abstract Result renderSpecSpansGraph(SpecSpansGraph specSpansGraph);
 
     @Override
     public final Result renderTracingSpec(List<SpecSpan> specSpans) {
@@ -53,76 +36,33 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
         }
 
 
-        specSpans = transformServiceNames(specSpans);
-
-
-        specSpans = filterSpecSpans(specSpans);
-        if (specSpans.isEmpty()) {
-            throw new IllegalStateException("All specSpans were filtered out");
-        }
-
-
         boolean haveSpansWithServiceName = false;
         boolean haveSpansWithoutServiceName = false;
         for (val span : specSpans) {
-            if (span.getServiceName().isPresent()) {
+            if (span.getServiceName() != null) {
                 haveSpansWithServiceName = true;
             } else {
                 haveSpansWithoutServiceName = true;
             }
         }
         if (haveSpansWithServiceName && haveSpansWithoutServiceName) {
-            throw new IllegalStateException("Some filtered specSpans have serviceName and some - not");
+            throw new IllegalStateException("Some specSpans do have serviceName and some - not");
         }
 
 
         val specSpansGraph = createSpecSpansGraph(specSpans);
-        return renderFilteredTracingSpec(specSpansGraph);
+        return renderSpecSpansGraph(specSpansGraph);
     }
 
-    @SneakyThrows
-    private List<SpecSpan> transformServiceNames(List<SpecSpan> specSpans) {
-        val currentServiceNameTransformer = this.serviceNameTransformer;
-        if (currentServiceNameTransformer == null) {
-            return specSpans;
-        }
 
-        List<SpecSpan> result = new ArrayList<>();
-        for (val specSpan : specSpans) {
-            val serviceName = specSpan.getServiceName();
-            if (serviceName.isPresent()) {
-                val transformedServiceName = currentServiceNameTransformer.transform(serviceName.get());
-                val transformedSpecSpan = SpecSpan.builder()
-                    .from(specSpan)
-                    .serviceName(transformedServiceName)
-                    .build();
-                result.add(transformedSpecSpan);
-
-            } else {
-                result.add(specSpan);
-            }
-        }
-
-        return result;
+    @Contract("null -> true")
+    protected static boolean isEmpty(@Nullable CharSequence charSequence) {
+        return charSequence == null || charSequence.length() == 0;
     }
 
-    @SneakyThrows
-    private List<SpecSpan> filterSpecSpans(List<SpecSpan> specSpans) {
-        val currentSpecSpansFilter = this.specSpansFilter;
-        if (currentSpecSpansFilter == null) {
-            return specSpans;
-        }
-
-        List<SpecSpan> result = new ArrayList<>();
-        for (val specSpan : specSpans) {
-            if (currentSpecSpansFilter.test(specSpan)) {
-                result.add(specSpan);
-            }
-        }
-
-        return result;
+    @Contract("null -> false")
+    protected static boolean isNotEmpty(@Nullable CharSequence charSequence) {
+        return !isEmpty(charSequence);
     }
-
-    protected abstract Result renderFilteredTracingSpec(SpecSpansGraph specSpansGraph);
 
 }

@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package utils.test.tracing;
+package name.remal.tracingspec.model;
 
-import static utils.test.tracing.SpanIdGenerator.nextSpanId;
+import javax.annotation.Nullable;
 
-import name.remal.tracingspec.model.ImmutableSpecSpansGraphNode.SpecSpansGraphNodeBuilder;
-import name.remal.tracingspec.model.SpecSpansGraphNode;
+interface ComparatorUtils {
 
-public interface SpecSpanGraphNodeGenerator {
-
-    static SpecSpansGraphNodeBuilder nextSpecSpansGraphNodeBuilder() {
-        return SpecSpansGraphNode.builder().spanId(nextSpanId());
+    static <T extends Comparable<T>> int compareNullLast(@Nullable T obj1, @Nullable T obj2) {
+        if (obj1 == null && obj2 == null) {
+            return 0;
+        } else if (obj1 != null && obj2 != null) {
+            return obj1.compareTo(obj2);
+        } else if (obj1 == null) {
+            return 1;
+        } else {
+            return -1;
+        }
     }
 
 }

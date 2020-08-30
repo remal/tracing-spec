@@ -16,46 +16,13 @@
 
 package name.remal.tracingspec.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.Optional;
-import name.remal.tracingspec.model.ImmutableSpecSpan.SpecSpanBuilder;
-import org.immutables.value.Value;
-import org.jetbrains.annotations.ApiStatus.OverrideOnly;
+import javax.annotation.concurrent.NotThreadSafe;
+import lombok.Data;
 
-@Value.Immutable
-@JsonDeserialize(builder = SpecSpanBuilder.class)
-public interface SpecSpan extends DisconnectedSpecSpan {
+@NotThreadSafe
+@Data
+public class SpecSpan extends SpecSpanInfo<SpecSpan> {
 
-    static SpecSpanBuilder builder() {
-        return ImmutableSpecSpan.builder();
-    }
-
-
-    Optional<String> getParentSpanId();
-
-    @JsonIgnore
-    default boolean hasParentSpanId() {
-        return getParentSpanId().isPresent();
-    }
-
-    @JsonIgnore
-    default boolean hasNoParentSpanId() {
-        return !hasParentSpanId();
-    }
-
-
-    @Override
-    @OverrideOnly
-    @Value.Check
-    default void validate() {
-        DisconnectedSpecSpan.super.validate();
-
-        getParentSpanId().ifPresent(parentSpanId -> {
-            if (parentSpanId.isEmpty()) {
-                throw new IllegalStateException("parentSpanId must not be empty");
-            }
-        });
-    }
+    final String spanId;
 
 }

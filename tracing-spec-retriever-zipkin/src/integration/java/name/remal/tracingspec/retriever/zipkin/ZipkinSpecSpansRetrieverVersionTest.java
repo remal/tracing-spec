@@ -92,13 +92,11 @@ class ZipkinSpecSpansRetrieverVersionTest {
             start = MICROSECONDS.convert(now.getEpochSecond(), SECONDS)
                 + MICROSECONDS.convert(now.getNano(), NANOSECONDS);
         }
-        val rootSpan = tracer.newTrace()
-            .name("root")
+        val rootSpan = tracer.newTrace().name("root")
             .start(start);
-        val childSpan = tracer.newChild(rootSpan.context())
-            .name("child")
+        val childSpan = tracer.newChild(rootSpan.context()).name("child")
             .tag("spec.description", "some text")
-            .tag("spec.is-async", "true")
+            .tag("spec.async", "true")
             .start(start + 5);
         childSpan.finish(start + 8);
         rootSpan.finish(start + 11);
@@ -114,29 +112,34 @@ class ZipkinSpecSpansRetrieverVersionTest {
             hasSize(2)
         );
 
-        assertThat(specSpans, containsInAnyOrder(
-            SpecSpan.builder()
-                .spanId(rootSpan.context().spanIdString())
-                .name("root")
-                .serviceName(SERVICE_NAME)
-                .startedAt(Instant.ofEpochSecond(
-                    0,
-                    NANOSECONDS.convert(start, MICROSECONDS)
-                ))
-                .build(),
+        specSpans.forEach(specSpan -> {
+            specSpan.getTags().clear();
+            specSpan.getAnnotations().clear();
+        });
 
-            SpecSpan.builder()
-                .spanId(childSpan.context().spanIdString())
-                .parentSpanId(rootSpan.context().spanIdString())
-                .name("child")
-                .serviceName(SERVICE_NAME)
-                .startedAt(Instant.ofEpochSecond(
-                    0,
-                    NANOSECONDS.convert(start + 5, MICROSECONDS)
-                ))
-                .description("some text")
-                .async(true)
-                .build()
+
+        val expectedRootSpecSpan = new SpecSpan(rootSpan.context().spanIdString());
+        expectedRootSpecSpan.setName("root");
+        expectedRootSpecSpan.setServiceName(SERVICE_NAME);
+        expectedRootSpecSpan.setStartedAt(Instant.ofEpochSecond(
+            0,
+            NANOSECONDS.convert(start, MICROSECONDS)
+        ));
+
+        val expectedChildSpecSpan = new SpecSpan(childSpan.context().spanIdString());
+        expectedChildSpecSpan.setParentSpanId(rootSpan.context().spanIdString());
+        expectedChildSpecSpan.setName("child");
+        expectedChildSpecSpan.setAsync(true);
+        expectedChildSpecSpan.setServiceName(SERVICE_NAME);
+        expectedChildSpecSpan.setStartedAt(Instant.ofEpochSecond(
+            0,
+            NANOSECONDS.convert(start + 5, MICROSECONDS)
+        ));
+        expectedChildSpecSpan.setDescription("some text");
+
+        assertThat(specSpans, containsInAnyOrder(
+            expectedRootSpecSpan,
+            expectedChildSpecSpan
         ));
     }
 
