@@ -81,27 +81,26 @@ abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparab
 
 
     public void setTags(Map<String, Object> tags) {
-        val tagsMap = getTags();
-        tagsMap.clear();
+        this.tags.clear();
         tags.forEach((key, value) -> {
             if (key != null && value != null) {
-                tagsMap.put(key, value.toString());
+                this.tags.put(key, value.toString());
             }
         });
     }
 
     @Nullable
     public String getTag(String key) {
-        return getTags().get(key);
+        return tags.get(key);
     }
 
     @Contract("_, _ -> this")
     public Self putTag(String key, @Nullable String value) {
         if (value != null) {
-            getTags().put(key, value);
+            tags.put(key, value);
 
         } else {
-            getTags().remove(key);
+            tags.remove(key);
         }
 
         @SuppressWarnings("unchecked")
@@ -111,9 +110,8 @@ abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparab
 
 
     public void setAnnotations(Iterable<? extends SpecSpanAnnotation> annotations) {
-        val annotationsList = getAnnotations();
-        annotationsList.clear();
-        annotations.forEach(annotationsList::add);
+        this.annotations.clear();
+        annotations.forEach(this.annotations::add);
     }
 
     @Contract("_ -> this")
