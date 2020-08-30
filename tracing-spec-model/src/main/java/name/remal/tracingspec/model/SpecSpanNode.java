@@ -20,11 +20,9 @@ import static java.util.Collections.unmodifiableList;
 import static lombok.AccessLevel.NONE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Data;
@@ -39,42 +37,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 
 @NotThreadSafe
 @Data
-public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode> {
-
-    @Nullable
-    String name;
-
-    @Nullable
-    SpecSpanKind kind;
-
-    boolean async;
-
-    @Nullable
-    String serviceName;
-
-    @Nullable
-    String remoteServiceName;
-
-    @Nullable
-    Instant startedAt;
-
-    @Nullable
-    String description;
-
-    final Map<String, String> tags = new TagsMap(this);
-
-    final List<SpecSpanAnnotation> annotations = new ArrayList<>();
-
-
-    @Override
-    public boolean isAsync() {
-        if (async) {
-            return true;
-        }
-        val curKind = getKind();
-        return curKind != null && curKind.isAsync();
-    }
-
+public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
 
     @Nullable
     @Setter(NONE)
@@ -82,6 +45,11 @@ public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode> {
     @EqualsAndHashCode.Exclude
     @JsonIgnore
     SpecSpanNode parent;
+
+    @Getter(NONE)
+    @Setter(NONE)
+    final List<SpecSpanNode> children = new ArrayList<>();
+
 
     public void setParent(@Nullable SpecSpanNode parent) {
         if (this.parent == parent) {
@@ -99,9 +67,6 @@ public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode> {
         }
     }
 
-    @Getter(NONE)
-    @Setter(NONE)
-    final List<SpecSpanNode> children = new ArrayList<>();
 
     @UnmodifiableView
     public List<SpecSpanNode> getChildren() {
@@ -136,6 +101,7 @@ public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode> {
     }
 
     @Nullable
+    @JsonIgnore
     public SpecSpanNode getPrevious() {
         if (parent != null) {
             val childIndex = parent.getChildIndex(this);
@@ -147,6 +113,7 @@ public class SpecSpanNode implements SpecSpanInfo<SpecSpanNode> {
     }
 
     @Nullable
+    @JsonIgnore
     public SpecSpanNode getNext() {
         if (parent != null) {
             val childIndex = parent.getChildIndex(this);

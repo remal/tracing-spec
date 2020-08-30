@@ -18,70 +18,69 @@ package name.remal.tracingspec.model;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static lombok.AccessLevel.NONE;
 import static name.remal.tracingspec.model.ComparatorUtils.compareNullLast;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import lombok.Data;
+import lombok.Getter;
 import lombok.val;
 import org.jetbrains.annotations.Contract;
 
+@NotThreadSafe
+@Data
 @JsonInclude(NON_EMPTY)
-interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> extends Comparable<Self> {
+abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparable<Self> {
 
     @Nullable
-    String getName();
-
-    void setName(@Nullable String name);
-
+    String parentSpanId;
 
     @Nullable
-    SpecSpanKind getKind();
+    String name;
 
-    void setKind(@Nullable SpecSpanKind kind);
+    @Nullable
+    SpecSpanKind kind;
 
-
+    @Getter(NONE)
     @JsonInclude(NON_DEFAULT)
-    boolean isAsync();
+    boolean async;
 
-    void setAsync(boolean async);
+    @Nullable
+    String serviceName;
+
+    @Nullable
+    String remoteServiceName;
+
+    @Nullable
+    Instant startedAt;
+
+    @Nullable
+    String description;
+
+    final Map<String, String> tags = new TagsMap(this);
+
+    final List<SpecSpanAnnotation> annotations = new ArrayList<>();
+
+
+    public boolean isAsync() {
+        return async
+            || (kind != null && kind.isAsync());
+    }
 
     @JsonIgnore
-    default boolean isSync() {
+    public boolean isSync() {
         return !isAsync();
     }
 
 
-    @Nullable
-    String getServiceName();
-
-    void setServiceName(@Nullable String serviceName);
-
-
-    @Nullable
-    String getRemoteServiceName();
-
-    void setRemoteServiceName(@Nullable String remoteServiceName);
-
-
-    @Nullable
-    Instant getStartedAt();
-
-    void setStartedAt(@Nullable Instant startedAt);
-
-
-    @Nullable
-    String getDescription();
-
-    void setDescription(@Nullable String description);
-
-
-    Map<String, String> getTags();
-
-    default void setTags(Map<String, Object> tags) {
+    public void setTags(Map<String, Object> tags) {
         val tagsMap = getTags();
         tagsMap.clear();
         tags.forEach((key, value) -> {
@@ -92,12 +91,12 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> extends Comparable<Self>
     }
 
     @Nullable
-    default String getTag(String key) {
+    public String getTag(String key) {
         return getTags().get(key);
     }
 
     @Contract("_, _ -> this")
-    default Self putTag(String key, @Nullable String value) {
+    public Self putTag(String key, @Nullable String value) {
         if (value != null) {
             getTags().put(key, value);
 
@@ -111,16 +110,14 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> extends Comparable<Self>
     }
 
 
-    List<SpecSpanAnnotation> getAnnotations();
-
-    default void setAnnotations(Iterable<? extends SpecSpanAnnotation> annotations) {
+    public void setAnnotations(Iterable<? extends SpecSpanAnnotation> annotations) {
         val annotationsList = getAnnotations();
         annotationsList.clear();
         annotations.forEach(annotationsList::add);
     }
 
     @Contract("_ -> this")
-    default Self addAnnotation(SpecSpanAnnotation annotation) {
+    public Self addAnnotation(SpecSpanAnnotation annotation) {
         val annotationsList = getAnnotations();
         annotationsList.add(annotation);
 
@@ -131,7 +128,7 @@ interface SpecSpanInfo<Self extends SpecSpanInfo<Self>> extends Comparable<Self>
 
 
     @Override
-    default int compareTo(Self other) {
+    public int compareTo(Self other) {
         return compareNullLast(getStartedAt(), other.getStartedAt());
     }
 

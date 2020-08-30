@@ -16,52 +16,13 @@
 
 package name.remal.tracingspec.model;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Data;
 
 @NotThreadSafe
 @Data
-public class SpecSpan implements SpecSpanInfo<SpecSpan> {
+public class SpecSpan extends SpecSpanInfo<SpecSpan> {
 
     final String spanId;
-
-    @Nullable
-    String parentSpanId;
-
-    @Nullable
-    String name;
-
-    @Nullable
-    SpecSpanKind kind;
-
-    boolean async;
-
-    @Nullable
-    String serviceName;
-
-    @Nullable
-    String remoteServiceName;
-
-    @Nullable
-    Instant startedAt;
-
-    @Nullable
-    String description;
-
-    final Map<String, String> tags = new TagsMap(this);
-
-    final List<SpecSpanAnnotation> annotations = new ArrayList<>();
-
-
-    @Override
-    public boolean isAsync() {
-        return async
-            || (kind != null && kind.isAsync());
-    }
 
 }
