@@ -78,7 +78,7 @@ allprojects {
         allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.15.1')
 
         String immutablesVersion = '2.8.8'
-        String mapstructVersion = '1.4.0.Beta3'
+        String mapstructVersion = '1.4.0.CR1'
 
         configurations.matching { it.canBeResolved }.all { Configuration conf ->
             conf.dependencyConstraints.addAll(
