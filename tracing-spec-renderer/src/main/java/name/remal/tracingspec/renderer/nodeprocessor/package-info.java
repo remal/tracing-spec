@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.renderer;
+@NonNullByDefault
+package name.remal.tracingspec.renderer.nodeprocessor;
 
-import java.util.List;
-import name.remal.tracingspec.model.SpecSpan;
-
-public interface TracingSpecRenderer<Result> {
-
-    Result renderTracingSpec(List<SpecSpan> specSpans);
-
-    void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor);
-
-}
+import name.remal.tracingspec.model.internal.NonNullByDefault;

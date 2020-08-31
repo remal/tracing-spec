@@ -19,13 +19,18 @@ package name.remal.tracingspec.model;
 import static name.remal.tracingspec.model.SpecSpanKind.parseSpecSpanKind;
 
 import java.util.Map;
+import javax.annotation.Nullable;
 import lombok.val;
 
 @SuppressWarnings({"java:S1157"})
 abstract class SpecSpanInfoTagsProcessor {
 
     @SuppressWarnings({"java:S131", "checkstyle:MissingSwitchDefault"})
-    public static void processTag(SpecSpanInfo<?> info, String key, String value) {
+    public static void processTag(SpecSpanInfo<?> info, @Nullable String key, @Nullable String value) {
+        if (key == null || key.isEmpty() || value == null || value.isEmpty()) {
+            return;
+        }
+
         switch (key) {
             case "spec.kind":
                 if (info.getKind() == null) {

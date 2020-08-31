@@ -93,6 +93,15 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
         one_simple_span(normalizeResult(result));
     }
 
+    @Test
+    final void one_span_with_node_processor() {
+        renderer.addNodeProcessor(node -> node.setServiceName("service"));
+        Result result = renderer.renderTracingSpec(singletonList(
+            nextSpecSpan("name")
+        ));
+        one_simple_span(normalizeResult(result));
+    }
+
 
     protected abstract void one_simple_span_with_description(Result result);
 

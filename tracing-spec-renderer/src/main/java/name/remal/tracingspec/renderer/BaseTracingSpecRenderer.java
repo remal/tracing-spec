@@ -18,16 +18,29 @@ package name.remal.tracingspec.renderer;
 
 import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.model.SpecSpanNode;
+import name.remal.tracingspec.model.SpecSpanNodeVisitor;
 import name.remal.tracingspec.model.SpecSpansGraph;
 import org.jetbrains.annotations.Contract;
 
+@NotThreadSafe
 public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
 
     protected abstract Result renderSpecSpansGraph(SpecSpansGraph specSpansGraph);
+
+    private final List<SpecSpanNodeProcessor> nodeProcessors = new ArrayList<>();
+
+    @Override
+    public void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor) {
+        this.nodeProcessors.add(nodeProcessor);
+    }
 
     @Override
     public final Result renderTracingSpec(List<SpecSpan> specSpans) {
@@ -35,23 +48,42 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
             throw new IllegalArgumentException("specSpans must not be empty");
         }
 
+        val specSpansGraph = createSpecSpansGraph(specSpans);
+        processNodes(specSpansGraph);
+        checkServiceNameExistence(specSpansGraph);
+        return renderSpecSpansGraph(specSpansGraph);
+    }
 
-        boolean haveSpansWithServiceName = false;
-        boolean haveSpansWithoutServiceName = false;
-        for (val span : specSpans) {
-            if (span.getServiceName() != null) {
-                haveSpansWithServiceName = true;
-            } else {
-                haveSpansWithoutServiceName = true;
+    private void processNodes(SpecSpansGraph graph) {
+        nodeProcessors.stream()
+            .sorted()
+            .forEach(processor ->
+                graph.visit(new SpecSpanNodeVisitor() {
+                    @Override
+                    public void visit(SpecSpanNode node) throws Throwable {
+                        processor.processNode(node);
+                    }
+                })
+            );
+    }
+
+    private static void checkServiceNameExistence(SpecSpansGraph graph) {
+        val haveSpansWithServiceName = new AtomicBoolean(false);
+        val haveSpansWithoutServiceName = new AtomicBoolean(false);
+        graph.visit(new SpecSpanNodeVisitor() {
+            @Override
+            public void visit(SpecSpanNode node) throws Throwable {
+                if (node.getServiceName() != null) {
+                    haveSpansWithServiceName.set(true);
+                } else {
+                    haveSpansWithoutServiceName.set(true);
+                }
             }
-        }
-        if (haveSpansWithServiceName && haveSpansWithoutServiceName) {
+        });
+
+        if (haveSpansWithServiceName.get() && haveSpansWithoutServiceName.get()) {
             throw new IllegalStateException("Some specSpans do have serviceName and some - not");
         }
-
-
-        val specSpansGraph = createSpecSpansGraph(specSpans);
-        return renderSpecSpansGraph(specSpansGraph);
     }
 
 

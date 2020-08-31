@@ -16,13 +16,21 @@
 
 package name.remal.tracingspec.renderer;
 
-import java.util.List;
-import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.model.SpecSpanNode;
 
-public interface TracingSpecRenderer<Result> {
+@FunctionalInterface
+public interface SpecSpanNodeProcessor extends Comparable<SpecSpanNodeProcessor> {
 
-    Result renderTracingSpec(List<SpecSpan> specSpans);
+    void processNode(SpecSpanNode node) throws Throwable;
 
-    void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor);
+
+    default int getOrder() {
+        return 0;
+    }
+
+    @Override
+    default int compareTo(SpecSpanNodeProcessor other) {
+        return Integer.compare(getOrder(), other.getOrder());
+    }
 
 }

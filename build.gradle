@@ -97,6 +97,7 @@ allprojects {
                     "org.mapstruct:mapstruct:$mapstructVersion",
                     'com.google.guava:guava:29.0-jre',
                     'net.sourceforge.plantuml:plantuml:1.2020.16',
+                    'org.graalvm.js:js-scriptengine:20.2.0',
 
                     // Test
                     'org.awaitility:awaitility:4.0.3',

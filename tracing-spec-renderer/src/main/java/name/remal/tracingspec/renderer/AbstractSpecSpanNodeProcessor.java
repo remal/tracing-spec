@@ -16,13 +16,17 @@
 
 package name.remal.tracingspec.renderer;
 
-import java.util.List;
-import name.remal.tracingspec.model.SpecSpan;
+public abstract class AbstractSpecSpanNodeProcessor implements SpecSpanNodeProcessor {
 
-public interface TracingSpecRenderer<Result> {
+    private int order;
 
-    Result renderTracingSpec(List<SpecSpan> specSpans);
+    @Override
+    public int getOrder() {
+        return order;
+    }
 
-    void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor);
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
 }

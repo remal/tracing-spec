@@ -76,7 +76,8 @@ class EndToEndTest {
         val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
         val tracer = applicationContexts.get(SchemasApplication.class).getBean(Tracer.class);
-        val testSpan = tracer.startScopedSpan("test");
+        val testSpan = tracer.startScopedSpan("test")
+            .tag("spec.serviceName", "test");
         try {
             val schemasClient = sharedContext.getBean(SchemasClient.class);
             schemasClient.saveSchema(schema);

@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.renderer;
+package name.remal.tracingspec.renderer.nodeprocessor.script;
 
-import java.util.List;
-import name.remal.tracingspec.model.SpecSpan;
+import org.intellij.lang.annotations.Language;
 
-public interface TracingSpecRenderer<Result> {
+public class JsScriptEngineNodeProcessor extends ScriptEngineNodeProcessor {
 
-    Result renderTracingSpec(List<SpecSpan> specSpans);
-
-    void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor);
+    public JsScriptEngineNodeProcessor(@Language("JavaScript") String script) {
+        super("js", script);
+    }
 
 }

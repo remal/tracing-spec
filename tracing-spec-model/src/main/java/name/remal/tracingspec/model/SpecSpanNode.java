@@ -144,10 +144,44 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
     }
 
 
+    public void append(SpecSpanNode nodeToAppend) {
+        nodeToAppend.setParent(null);
+        nodeToAppend.getChildren().forEach(child -> child.setParent(this));
+
+        if (getName() == null) {
+            setName(nodeToAppend.getName());
+        }
+        if (getKind() == null) {
+            setKind(nodeToAppend.getKind());
+        }
+        if (!isAsync()) {
+            setAsync(nodeToAppend.isAsync());
+        }
+        if (getServiceName() == null) {
+            setServiceName(nodeToAppend.getServiceName());
+        }
+        if (getRemoteServiceName() == null) {
+            setRemoteServiceName(nodeToAppend.getRemoteServiceName());
+        }
+        if (getStartedAt() == null) {
+            setStartedAt(nodeToAppend.getStartedAt());
+        }
+        if (getDescription() == null) {
+            setDescription(nodeToAppend.getDescription());
+        }
+        nodeToAppend.getTags().forEach(getTags()::putIfAbsent);
+        nodeToAppend.getAnnotations().forEach(this::addAnnotation);
+    }
+
+    public void appendTo(SpecSpanNode targetNode) {
+        targetNode.append(this);
+    }
+
+
     @SneakyThrows
     public void visit(SpecSpanNodeVisitor visitor) {
         visitor.visit(this);
-        for (val child : children) {
+        for (val child : getChildren()) {
             child.visit(visitor);
         }
         visitor.postVisit(this);

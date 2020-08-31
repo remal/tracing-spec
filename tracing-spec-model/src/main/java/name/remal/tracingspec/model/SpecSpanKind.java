@@ -50,6 +50,10 @@ public enum SpecSpanKind {
     @Contract("null -> null")
     @JsonCreator(mode = DELEGATING)
     public static SpecSpanKind parseSpecSpanKind(@Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+
         for (val kind : values()) {
             if (kind.name().equalsIgnoreCase(value)) {
                 return kind;
