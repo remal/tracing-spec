@@ -12,6 +12,7 @@ pull_request_rules:
   conditions:
   - "#approved-reviews-by>=1"
   - -closed
+  - -merged
   - -conflict
   - -draft
   - -locked
@@ -26,13 +27,14 @@ pull_request_rules:
     merge:
       method: squash
       strict: smart+fasttrack
-    #backport: {}
-    delete_head_branch: { }
+    #backport: { }
+    #delete_head_branch: { }
 
 - name: Auto approve dependencies
   conditions:
   - author~=^(dependabot(-preview)?|renovate)\[bot\]$
   - -closed
+  - -merged
   actions:
     review: { }
 
@@ -42,6 +44,7 @@ pull_request_rules:
   - "#approved-reviews-by=0"
   - -author~=^(dependabot(-preview)?|renovate)\[bot\]$
   - -closed
+  - -merged
   - -conflict
   - -locked
   actions:
