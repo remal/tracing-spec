@@ -26,8 +26,14 @@ import static org.hamcrest.Matchers.nullValue;
 import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
 abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
@@ -42,6 +48,48 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
             return (T) nextSpecSpan();
         } else {
             return (T) type.getConstructor().newInstance();
+        }
+    }
+
+
+    protected Map<String, Pair<BiConsumer<T, String>, Function<T, String>>> getNullableStringProps() {
+        Map<String, Pair<BiConsumer<T, String>, Function<T, String>>> props
+            = new LinkedHashMap<>();
+        props.put(
+            "name",
+            ImmutablePair.of(SpecSpanInfo::setName, SpecSpanInfo::getName)
+        );
+        props.put(
+            "serviceName",
+            ImmutablePair.of(SpecSpanInfo::setServiceName, SpecSpanInfo::getServiceName)
+        );
+        props.put(
+            "remoteServiceName",
+            ImmutablePair.of(SpecSpanInfo::setRemoteServiceName, SpecSpanInfo::getRemoteServiceName)
+        );
+        props.put(
+            "description",
+            ImmutablePair.of(SpecSpanInfo::setDescription, SpecSpanInfo::getDescription)
+        );
+        return props;
+    }
+
+    @Test
+    void empty_strings_are_threatened_as_null() {
+        val props = getNullableStringProps();
+        for (val prop : props.entrySet()) {
+            val name = prop.getKey();
+            val setter = prop.getValue().getLeft();
+            val getter = prop.getValue().getRight();
+
+            setter.accept(instance, null);
+            assertThat(name + ": null", getter.apply(instance), nullValue());
+
+            setter.accept(instance, "");
+            assertThat(name + ": ''", getter.apply(instance), nullValue());
+
+            setter.accept(instance, "value");
+            assertThat(name + ": 'value'", getter.apply(instance), equalTo("value"));
         }
     }
 

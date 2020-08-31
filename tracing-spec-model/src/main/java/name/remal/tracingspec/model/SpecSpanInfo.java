@@ -18,7 +18,6 @@ package name.remal.tracingspec.model;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
-import static lombok.AccessLevel.NONE;
 import static name.remal.tracingspec.model.ComparatorUtils.compareNullLast;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,7 +29,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Data;
-import lombok.Getter;
 import lombok.val;
 import org.jetbrains.annotations.Contract;
 
@@ -40,15 +38,11 @@ import org.jetbrains.annotations.Contract;
 abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparable<Self> {
 
     @Nullable
-    String parentSpanId;
-
-    @Nullable
     String name;
 
     @Nullable
     SpecSpanKind kind;
 
-    @Getter(NONE)
     @JsonInclude(NON_DEFAULT)
     boolean async;
 
@@ -67,6 +61,23 @@ abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparab
     final Map<String, String> tags = new TagsMap(this);
 
     final List<SpecSpanAnnotation> annotations = new ArrayList<>();
+
+
+    public void setName(@Nullable String name) {
+        this.name = name == null || name.isEmpty() ? null : name;
+    }
+
+    public void setServiceName(@Nullable String serviceName) {
+        this.serviceName = serviceName == null || serviceName.isEmpty() ? null : serviceName;
+    }
+
+    public void setRemoteServiceName(@Nullable String remoteServiceName) {
+        this.remoteServiceName = remoteServiceName == null || remoteServiceName.isEmpty() ? null : remoteServiceName;
+    }
+
+    public void setDescription(@Nullable String description) {
+        this.description = description == null || description.isEmpty() ? null : description;
+    }
 
 
     public boolean isAsync() {

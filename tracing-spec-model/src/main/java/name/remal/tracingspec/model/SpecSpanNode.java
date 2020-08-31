@@ -51,6 +51,7 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
     final List<SpecSpanNode> children = new ArrayList<>();
 
 
+    @SuppressWarnings("java:S1698")
     public void setParent(@Nullable SpecSpanNode parent) {
         if (this.parent == parent) {
             return;
@@ -124,6 +125,7 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
         return null;
     }
 
+    @SuppressWarnings("java:S1698")
     private int getChildIndex(SpecSpanNode child) {
         for (int i = 0; i < children.size(); ++i) {
             if (child == children.get(i)) {
