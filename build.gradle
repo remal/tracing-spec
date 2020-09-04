@@ -274,6 +274,11 @@ allprojects {
             }
         }
 
+        aptOptions {
+            processorArgs.put('mapstruct.suppressGeneratorTimestamp', true)
+            processorArgs.put('mapstruct.suppressGeneratorVersionInfoComment', true)
+        }
+
         tasks.withType(JavaCompile) {
             options.compilerArgs.addAll(
                 [
@@ -284,25 +289,6 @@ allprojects {
                     '-Xlint:-processing',
                 ]
             )
-
-            doLast {
-                options.annotationProcessorGeneratedSourcesDirectory?.traverse { File file ->
-                    if (!file.isFile() || !file.name.endsWith('.java')) {
-                        return;
-                    }
-
-                    String originalContent = file.text
-                    String content = originalContent
-
-                    // Fix for https://github.com/mapstruct/mapstruct/issues/2194:
-                    content = content.replaceAll(/(@Generated\([^)]*?)\s*(,\s*)?date\s*=\s*"[^"]*"?/, '$1')
-                    content = content.replaceAll(/(@Generated\([^)]*?)\s*(,\s*)?comments\s*=\s*"[^"]*"?/, '$1')
-
-                    if (content != originalContent) {
-                        file.text = content
-                    }
-                }
-            }
         }
 
         sourceSets.all { SourceSet sourceSet ->
