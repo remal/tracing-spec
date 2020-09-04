@@ -36,7 +36,7 @@ class KafkaRemoteServiceNameNodeProcessorTest {
             it.putTag("kafka.topic", "topic");
         });
         processor.processNode(node);
-        assertThat(node.getRemoteServiceName(), equalTo("Kafka"));
+        assertThat(node.getRemoteServiceName(), equalTo("kafka"));
     }
 
     @Test
@@ -46,7 +46,7 @@ class KafkaRemoteServiceNameNodeProcessorTest {
             it.putTag("kafka.topic", "topic");
         });
         processor.processNode(node);
-        assertThat(node.getRemoteServiceName(), equalTo("Kafka"));
+        assertThat(node.getRemoteServiceName(), equalTo("kafka"));
     }
 
     @Test
