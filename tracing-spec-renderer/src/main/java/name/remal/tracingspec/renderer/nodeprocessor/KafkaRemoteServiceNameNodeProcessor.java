@@ -36,7 +36,7 @@ public class KafkaRemoteServiceNameNodeProcessor extends AbstractSpecSpanNodePro
 
         val kafkaTopic = node.getTag("kafka.topic");
         if (kafkaTopic != null && !kafkaTopic.isEmpty()) {
-            node.setRemoteServiceName("Kafka");
+            node.setRemoteServiceName("kafka");
         }
     }
 

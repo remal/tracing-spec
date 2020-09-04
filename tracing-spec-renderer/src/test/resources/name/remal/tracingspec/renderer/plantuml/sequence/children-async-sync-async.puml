@@ -1,0 +1,16 @@
+@startuml
+[-> A: parent
+activate A
+  A -> B: sync
+  activate B
+  return <size:9>sync</size>
+return <size:9>parent</size>
+
+A ->> B: async1
+activate B
+deactivate B
+
+A ->> B: async2
+activate B
+deactivate B
+@enduml

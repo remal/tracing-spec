@@ -1,0 +1,10 @@
+[
+  {
+    spanId: "1",
+    name: "name",
+    serviceName: "service",
+    tags: {
+      displayableTag: 123,
+    },
+  },
+]

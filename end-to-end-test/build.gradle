@@ -6,6 +6,7 @@ dependencies {
     implementation project(':tracing-spec-model')
     implementation project(':tracing-spec-retriever-jaeger')
     implementation project(':tracing-spec-retriever-zipkin')
+    implementation project(':tracing-spec-renderer')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
     implementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'

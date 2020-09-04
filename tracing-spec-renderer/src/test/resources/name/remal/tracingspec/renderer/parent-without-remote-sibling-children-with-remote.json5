@@ -1,0 +1,21 @@
+[
+  {
+    spanId: "1",
+    name: "parent",
+    serviceName: "A",
+  },
+  {
+    spanId: "2",
+    parentSpanId: "1",
+    name: "child1",
+    serviceName: "B",
+    remoteServiceName: "C",
+  },
+  {
+    spanId: "3",
+    parentSpanId: "1",
+    name: "child2",
+    serviceName: "B",
+    remoteServiceName: "D",
+  },
+]

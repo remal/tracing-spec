@@ -1,0 +1,9 @@
+@startuml
+[->> remote: parent
+activate remote
+deactivate remote
+
+remote ->> local: name
+activate local
+deactivate local
+@enduml

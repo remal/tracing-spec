@@ -16,12 +16,18 @@
 
 package name.remal.tracingspec.renderer.nodeprocessor.script;
 
+import javax.script.Bindings;
 import org.intellij.lang.annotations.Language;
 
 public class JsScriptEngineNodeProcessor extends ScriptEngineNodeProcessor {
 
     public JsScriptEngineNodeProcessor(@Language("JavaScript") String script) {
         super("js", script);
+    }
+
+    @Override
+    protected void processEngineBindings(Bindings bindings) {
+        bindings.put("polyglot.js.nashorn-compat", true);
     }
 
 }

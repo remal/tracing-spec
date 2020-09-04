@@ -3,4 +3,7 @@ apply plugin: 'java-library'
 dependencies {
     api project(':tracing-spec-model')
     //api 'net.sourceforge.plantuml:plantuml'
+
+    testImplementation 'org.graalvm.js:js'
+    testImplementation 'org.graalvm.js:js-scriptengine'
 }

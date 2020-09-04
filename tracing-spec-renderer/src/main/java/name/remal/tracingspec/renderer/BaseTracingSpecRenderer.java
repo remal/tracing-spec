@@ -19,7 +19,9 @@ package name.remal.tracingspec.renderer;
 import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -33,7 +35,8 @@ import org.jetbrains.annotations.Contract;
 @NotThreadSafe
 public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
 
-    protected abstract Result renderSpecSpansGraph(SpecSpansGraph specSpansGraph);
+    protected abstract Result renderSpecSpansGraph(SpecSpansGraph graph);
+
 
     private final List<SpecSpanNodeProcessor> nodeProcessors = new ArrayList<>();
 
@@ -41,6 +44,18 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
     public void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor) {
         this.nodeProcessors.add(nodeProcessor);
     }
+
+    private final Set<String> tagsToDisplay = new LinkedHashSet<>();
+
+    @Override
+    public void addTagToDisplay(String tagName) {
+        tagsToDisplay.add(tagName);
+    }
+
+    protected boolean isDisplayableTag(String tagName) {
+        return tagsToDisplay.contains(tagName);
+    }
+
 
     @Override
     public final Result renderTracingSpec(List<SpecSpan> specSpans) {
@@ -72,7 +87,7 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
         val haveSpansWithoutServiceName = new AtomicBoolean(false);
         graph.visit(new SpecSpanNodeVisitor() {
             @Override
-            public void visit(SpecSpanNode node) throws Throwable {
+            public void visit(SpecSpanNode node) {
                 if (node.getServiceName() != null) {
                     haveSpansWithServiceName.set(true);
                 } else {

@@ -28,21 +28,27 @@ public enum SpecSpanKind {
     CLIENT,
     SERVER,
     PRODUCER,
-    CONSUMER(true),
+    CONSUMER(true, true),
     ;
 
     private final boolean alwaysAsync;
+    private final boolean remoteSource;
 
-    SpecSpanKind(boolean alwaysAsync) {
+    SpecSpanKind(boolean alwaysAsync, boolean remoteSource) {
         this.alwaysAsync = alwaysAsync;
+        this.remoteSource = remoteSource;
     }
 
     SpecSpanKind() {
-        this(false);
+        this(false, false);
     }
 
     public boolean isAsync() {
         return alwaysAsync;
+    }
+
+    public boolean isRemoteSource() {
+        return remoteSource;
     }
 
 

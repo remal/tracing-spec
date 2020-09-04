@@ -31,6 +31,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.Ordered;
 import org.testcontainers.containers.GenericContainer;
+import shared.testcontainers.TestcontainersStarter;
 
 abstract class AbstractContainerPropertiesBeanPostProcessor<Props, Container extends GenericContainer<?>>
     implements ApplicationContextAware, BeanPostProcessor, ApplicationListener<ContextRefreshedEvent>, Ordered {
@@ -73,7 +74,7 @@ abstract class AbstractContainerPropertiesBeanPostProcessor<Props, Container ext
             val props = propsClass.cast(bean);
             applicationContext.getBeanProvider(containerClass).ifAvailable(container -> {
                 if (configuredProps.add(props)) {
-                    container.start();
+                    applicationContext.getBean(TestcontainersStarter.class).startAndWait(container);
                     configure(props, container);
                 }
             });

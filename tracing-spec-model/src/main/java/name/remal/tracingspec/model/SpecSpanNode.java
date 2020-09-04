@@ -68,6 +68,11 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
         }
     }
 
+    @JsonIgnore
+    public final boolean isRoot() {
+        return getParent() == null;
+    }
+
 
     @UnmodifiableView
     public List<SpecSpanNode> getChildren() {
@@ -146,7 +151,7 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
 
     public void append(SpecSpanNode nodeToAppend) {
         nodeToAppend.setParent(null);
-        nodeToAppend.getChildren().forEach(child -> child.setParent(this));
+        new ArrayList<>(nodeToAppend.getChildren()).forEach(childToAppend -> childToAppend.setParent(this));
 
         if (getName() == null) {
             setName(nodeToAppend.getName());
@@ -173,15 +178,19 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
         nodeToAppend.getAnnotations().forEach(this::addAnnotation);
     }
 
-    public void appendTo(SpecSpanNode targetNode) {
+    public final void appendTo(SpecSpanNode targetNode) {
         targetNode.append(this);
     }
 
 
     @SneakyThrows
     public void visit(SpecSpanNodeVisitor visitor) {
+        if (!visitor.filterNode(this)) {
+            return;
+        }
+
         visitor.visit(this);
-        for (val child : getChildren()) {
+        for (val child : new ArrayList<>(getChildren())) {
             child.visit(visitor);
         }
         visitor.postVisit(this);

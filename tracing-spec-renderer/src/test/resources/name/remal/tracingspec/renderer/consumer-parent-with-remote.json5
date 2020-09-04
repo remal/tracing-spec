@@ -1,0 +1,15 @@
+[
+  {
+    spanId: "1",
+    kind: "consumer",
+    name: "parent",
+    serviceName: "local",
+    remoteServiceName: "remote",
+  },
+  {
+    spanId: "2",
+    parentSpanId: "1",
+    name: "child",
+    serviceName: "local",
+  },
+]

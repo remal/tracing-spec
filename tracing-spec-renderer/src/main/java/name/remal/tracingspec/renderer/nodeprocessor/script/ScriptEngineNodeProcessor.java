@@ -16,6 +16,9 @@
 
 package name.remal.tracingspec.renderer.nodeprocessor.script;
 
+import static javax.script.ScriptContext.ENGINE_SCOPE;
+
+import java.util.Optional;
 import java.util.function.Function;
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -24,6 +27,7 @@ import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpanNode;
 import name.remal.tracingspec.renderer.AbstractSpecSpanNodeProcessor;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 public class ScriptEngineNodeProcessor extends AbstractSpecSpanNodeProcessor {
 
@@ -33,6 +37,8 @@ public class ScriptEngineNodeProcessor extends AbstractSpecSpanNodeProcessor {
     public ScriptEngineNodeProcessor(String engineName, String script) {
         val manager = new ScriptEngineManager();
         val engine = manager.getEngineByName(engineName);
+
+        Optional.ofNullable(engine.getBindings(ENGINE_SCOPE)).ifPresent(this::processEngineBindings);
 
         Function<SpecSpanNode, Bindings> createBindings = node -> {
             val bindings = engine.createBindings();
@@ -52,6 +58,11 @@ public class ScriptEngineNodeProcessor extends AbstractSpecSpanNodeProcessor {
                 engine.eval(script, bindings);
             };
         }
+    }
+
+    @OverrideOnly
+    protected void processEngineBindings(Bindings bindings) {
+        // can be overridden
     }
 
     @Override

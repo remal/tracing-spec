@@ -16,12 +16,17 @@
 
 package test;
 
+import static apps.common.TraceIdWebFilter.TRACE_ID_HTTP_HEADER;
+import static java.lang.management.ManagementFactory.getRuntimeMXBean;
 import static java.util.Arrays.asList;
-import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
+import static java.util.Objects.requireNonNull;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static utils.test.normalizer.PumlNormalizer.normalizePuml;
+import static utils.test.resource.Resources.readTextResource;
 
 import apps.documents.DocumentsApplication;
 import apps.documents.DocumentsClient;
@@ -30,13 +35,17 @@ import apps.schemas.ImmutableSchemaReference;
 import apps.schemas.SchemasApplication;
 import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
-import brave.Tracer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.Flushable;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.renderer.nodeprocessor.AppendServerToClientNodeProcessor;
+import name.remal.tracingspec.renderer.nodeprocessor.KafkaRemoteServiceNameNodeProcessor;
+import name.remal.tracingspec.renderer.plantuml.sequence.TracingSpecPlantumlSequenceRenderer;
 import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetriever;
 import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetrieverProperties;
 import name.remal.tracingspec.retriever.zipkin.ZipkinSpecSpansRetriever;
@@ -57,6 +66,9 @@ import zipkin2.reporter.Reporter;
 
 class EndToEndTest {
 
+    private static final boolean IS_DEBUG = getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
+    private static final Duration AWAIT_TIMEOUT = IS_DEBUG ? Duration.ofHours(1) : Duration.ofSeconds(30);
+
     private static final Logger logger = LogManager.getLogger(EndToEndTest.class);
 
     @Test
@@ -75,20 +87,14 @@ class EndToEndTest {
         val documentsClient = sharedContext.getBean(DocumentsClient.class);
         val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
-        val tracer = applicationContexts.get(SchemasApplication.class).getBean(Tracer.class);
-        val testSpan = tracer.startScopedSpan("test")
-            .tag("spec.serviceName", "test");
-        try {
-            val schemasClient = sharedContext.getBean(SchemasClient.class);
-            schemasClient.saveSchema(schema);
-        } catch (Throwable e) {
-            testSpan.error(e);
-            throw e;
-        } finally {
-            testSpan.finish();
+        val schemasClient = sharedContext.getBean(SchemasClient.class);
+        final String traceId;
+        {
+            val response = schemasClient.saveSchema(schema);
+            traceId = requireNonNull(response.getHeaders().getFirst(TRACE_ID_HTTP_HEADER));
         }
 
-        await().atMost(Duration.ofSeconds(60)).until(
+        await().atMost(AWAIT_TIMEOUT).until(
             () -> documentsClient.getAllDocumentsBySchema(schema.getId()),
             docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
         );
@@ -103,32 +109,52 @@ class EndToEndTest {
 
         val newSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
         assertThat(newSchemaDocuments, not(empty()));
-        logger.info("OLD DOCUMENTS: {}", oldSchemaDocuments);
-        logger.info("NEW DOCUMENTS: {}", newSchemaDocuments);
 
-        val objectMapper = applicationContexts.values().iterator().next().getBean(ObjectMapper.class);
+        val renderer = new TracingSpecPlantumlSequenceRenderer();
+        renderer.addNodeProcessor(new AppendServerToClientNodeProcessor());
+        renderer.addNodeProcessor(new KafkaRemoteServiceNameNodeProcessor());
+        renderer.addTagToDisplay("kafka.topic");
+
+        int expectedSpansCount = 12;
+        val expectedDiagram = normalizePuml(readTextResource("expected.puml"));
+
+        {
+            val retrieverProperties = new ZipkinSpecSpansRetrieverProperties();
+            retrieverProperties.setUrl(sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl());
+            val retriever = new ZipkinSpecSpansRetriever(retrieverProperties);
+
+            List<SpecSpan> specSpans = new ArrayList<>();
+            await().atMost(AWAIT_TIMEOUT).ignoreExceptions().until(() -> {
+                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
+                if (specSpans.size() < expectedSpansCount) {
+                    specSpans.clear();
+                }
+                return !specSpans.isEmpty();
+            });
+
+            val diagram = renderer.renderTracingSpec(specSpans);
+            val normalizedDiagram = normalizePuml(diagram);
+            assertThat("Zipkin", normalizedDiagram, equalTo(expectedDiagram));
+        }
 
         {
             val retrieverProperties = new JaegerSpecSpansRetrieverProperties();
             retrieverProperties.setHost("localhost");
             retrieverProperties.setPort(sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort());
             val retriever = new JaegerSpecSpansRetriever(retrieverProperties);
-            val specSpans = retriever.retrieveSpecSpansForTrace(testSpan.context().traceIdString());
-            val graph = createSpecSpansGraph(specSpans);
-            logger.info("Jaeger graph: {}", graph);
-            val graphJson = objectMapper.writeValueAsString(graph);
-            logger.info("Jaeger graph JSON: {}", graphJson);
-        }
 
-        {
-            val retrieverProperties = new ZipkinSpecSpansRetrieverProperties();
-            retrieverProperties.setUrl(sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl());
-            val retriever = new ZipkinSpecSpansRetriever(retrieverProperties);
-            val specSpans = retriever.retrieveSpecSpansForTrace(testSpan.context().traceIdString());
-            val graph = createSpecSpansGraph(specSpans);
-            logger.info("Zipkin graph: {}", graph);
-            val graphJson = objectMapper.writeValueAsString(graph);
-            logger.info("Zipkin graph JSON: {}", graphJson);
+            List<SpecSpan> specSpans = new ArrayList<>();
+            await().atMost(AWAIT_TIMEOUT).ignoreExceptions().until(() -> {
+                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
+                if (specSpans.size() < expectedSpansCount) {
+                    specSpans.clear();
+                }
+                return !specSpans.isEmpty();
+            });
+
+            val diagram = renderer.renderTracingSpec(specSpans);
+            val normalizedDiagram = normalizePuml(diagram);
+            assertThat("Jaeger", normalizedDiagram, equalTo(expectedDiagram));
         }
     }
 

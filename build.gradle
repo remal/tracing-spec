@@ -56,6 +56,18 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
+    allprojects {
+        tasks.all {
+            if (it instanceof AbstractCompile) {
+                it.enabled = false
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 allprojects {
     group = 'name.remal.tracing-spec'
     version = '0.0.0-SNAPSHOT'
@@ -79,6 +91,7 @@ allprojects {
 
         String immutablesVersion = '2.8.8'
         String mapstructVersion = '1.4.0.CR1'
+        String graalvmVersion = '20.2.0'
 
         configurations.matching { it.canBeResolved }.all { Configuration conf ->
             conf.dependencyConstraints.addAll(
@@ -97,7 +110,9 @@ allprojects {
                     "org.mapstruct:mapstruct:$mapstructVersion",
                     'com.google.guava:guava:29.0-jre',
                     'net.sourceforge.plantuml:plantuml:1.2020.16',
-                    'org.graalvm.js:js-scriptengine:20.2.0',
+                    "org.graalvm.js:js:$graalvmVersion",
+                    "org.graalvm.js:js-scriptengine:$graalvmVersion",
+                    "org.graalvm.truffle:truffle-api:$graalvmVersion",
 
                     // Test
                     'org.awaitility:awaitility:4.0.3',
@@ -156,6 +171,7 @@ allprojects {
         dependencies {
             components.all(RetrofitAlignmentRule)
             components.all(OkhttpAlignmentRule)
+            components.all(GraalvmAlignmentRule)
             components.all(JacocoAlignmentRule)
 
             staticAnalysis 'com.google.code.findbugs:jsr305'
@@ -268,6 +284,25 @@ allprojects {
                     '-Xlint:-processing',
                 ]
             )
+
+            doLast {
+                options.annotationProcessorGeneratedSourcesDirectory?.traverse { File file ->
+                    if (!file.isFile() || !file.name.endsWith('.java')) {
+                        return;
+                    }
+
+                    String originalContent = file.text
+                    String content = originalContent
+
+                    // Fix for https://github.com/mapstruct/mapstruct/issues/2194:
+                    content = content.replaceAll(/(@Generated\([^)]*?)\s*(,\s*)?date\s*=\s*"[^"]*"?/, '$1')
+                    content = content.replaceAll(/(@Generated\([^)]*?)\s*(,\s*)?comments\s*=\s*"[^"]*"?/, '$1')
+
+                    if (content != originalContent) {
+                        file.text = content
+                    }
+                }
+            }
         }
 
         sourceSets.all { SourceSet sourceSet ->
@@ -464,6 +499,16 @@ class OkhttpAlignmentRule implements ComponentMetadataRule {
         ctx.details.with {
             if (id.group.matches(/com\.squareup\.okhttp\d*/)) {
                 belongsTo("${id.group}:okhttp-bom:${id.version}", true)
+            }
+        }
+    }
+}
+
+class GraalvmAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group.matches(/org\.graalvm($|\..+)/)) {
+                belongsTo("org.graalvm:graalvm-bom:${id.version}", true)
             }
         }
     }

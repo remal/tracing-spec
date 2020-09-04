@@ -1,0 +1,5 @@
+@startuml
+local ->> remote: name
+activate remote
+deactivate remote
+@enduml

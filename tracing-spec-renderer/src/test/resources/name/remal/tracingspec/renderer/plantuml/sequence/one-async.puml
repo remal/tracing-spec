@@ -1,0 +1,5 @@
+@startuml
+[->> service: name
+activate service
+deactivate service
+@enduml

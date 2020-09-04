@@ -29,4 +29,9 @@ public abstract class AbstractSpecSpanNodeProcessor implements SpecSpanNodeProce
         this.order = order;
     }
 
+    @Override
+    public final int compareTo(SpecSpanNodeProcessor other) {
+        return SpecSpanNodeProcessor.super.compareTo(other);
+    }
+
 }

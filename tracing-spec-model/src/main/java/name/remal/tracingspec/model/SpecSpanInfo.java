@@ -81,12 +81,15 @@ abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparab
 
 
     public boolean isAsync() {
-        return async
-            || (kind != null && kind.isAsync());
+        if (async) {
+            return true;
+        }
+        val currentKind = getKind();
+        return currentKind != null && currentKind.isAsync();
     }
 
     @JsonIgnore
-    public boolean isSync() {
+    public final boolean isSync() {
         return !isAsync();
     }
 
@@ -127,8 +130,7 @@ abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparab
 
     @Contract("_ -> this")
     public Self addAnnotation(SpecSpanAnnotation annotation) {
-        val annotationsList = getAnnotations();
-        annotationsList.add(annotation);
+        this.annotations.add(annotation);
 
         @SuppressWarnings("unchecked")
         val self = (Self) this;

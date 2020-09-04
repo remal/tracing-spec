@@ -18,16 +18,21 @@ package name.remal.tracingspec.renderer;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static utils.test.json.ObjectMapperProvider.readJsonResource;
 import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"java:S5786", "java:S2699"})
@@ -36,198 +41,180 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     protected final Renderer renderer;
 
     @SneakyThrows
-    @SuppressWarnings("unchecked")
     protected TracingSpecRendererTestBase() {
-        Class<?> rendererClass = getParameterizedTypeArgumentClass(getClass(), TracingSpecRendererTestBase.class, 1);
-        this.renderer = (Renderer) rendererClass.getConstructor().newInstance();
+        Class<Renderer> rendererClass = getParameterizedTypeArgumentClass(
+            getClass(),
+            TracingSpecRendererTestBase.class,
+            1
+        );
+        this.renderer = rendererClass.getConstructor().newInstance();
+
+        this.renderer.addTagToDisplay("displayableTag");
     }
 
 
     protected abstract Result normalizeResult(Result result);
 
+    protected abstract String getExpectedResourceName(@Language("file-reference") String resourceName);
+
+    protected abstract Result loadExpectedResult(@Language("file-reference") String expectedResourceName)
+        throws Throwable;
 
     @Test
-    final void empty_spans_list() {
-        List<SpecSpan> specSpans = emptyList();
-        assertThrows(IllegalArgumentException.class, () -> renderer.renderTracingSpec(specSpans));
+    final void one_sync() throws Throwable {
+        resourceTest("one-sync.json5");
     }
 
+    @Test
+    final void one_sync_local_remote() throws Throwable {
+        resourceTest("one-sync-local-remote.json5");
+    }
 
     @Test
-    final void all_spans_without_service_name() {
-        List<SpecSpan> specSpans = asList(
-            nextSpecSpan(),
-            nextSpecSpan()
+    final void one_sync_same_local_remote() throws Throwable {
+        resourceTest("one-sync-same-local-remote.json5");
+    }
+
+    @Test
+    final void one_async() throws Throwable {
+        resourceTest("one-async.json5");
+    }
+
+    @Test
+    final void one_async_local_remote() throws Throwable {
+        resourceTest("one-async-local-remote.json5");
+    }
+
+    @Test
+    final void one_async_same_local_remote() throws Throwable {
+        resourceTest("one-async-same-local-remote.json5");
+    }
+
+    @Test
+    final void parent_self_child() throws Throwable {
+        resourceTest("parent-self-child.json5");
+    }
+
+    @Test
+    final void parent_child_sync_sync() throws Throwable {
+        resourceTest("parent-child-sync-sync.json5");
+    }
+
+    @Test
+    final void parent_child_sync_async() throws Throwable {
+        resourceTest("parent-child-sync-async.json5");
+    }
+
+    @Test
+    final void parent_child_async_sync() throws Throwable {
+        resourceTest("parent-child-async-sync.json5");
+    }
+
+    @Test
+    final void parent_child_async_async() throws Throwable {
+        resourceTest("parent-child-async-async.json5");
+    }
+
+    @Test
+    final void children_async_sync_async() throws Throwable {
+        resourceTest("children-async-sync-async.json5");
+    }
+
+    @Test
+    final void parent_without_remote_sibling_children_with_remote() throws Throwable {
+        resourceTest("parent-without-remote-sibling-children-with-remote.json5");
+    }
+
+    @Test
+    final void parent_without_remote_children_with_remote() throws Throwable {
+        resourceTest("parent-without-remote-children-with-remote.json5");
+    }
+
+    @Test
+    final void consumer_root_with_remote() throws Throwable {
+        resourceTest("consumer-root-with-remote.json5");
+    }
+
+    @Test
+    final void consumer_child_with_remote() throws Throwable {
+        resourceTest("consumer-child-with-remote.json5");
+    }
+
+    @Test
+    final void consumer_parent_with_remote() throws Throwable {
+        resourceTest("consumer-parent-with-remote.json5");
+    }
+
+    @Test
+    final void displayable_tag() throws Throwable {
+        resourceTest("displayable-tag.json5");
+    }
+
+    private void resourceTest(@Language("file-reference") String resourceName) throws Throwable {
+        val resourceLoaderClass = TracingSpecRendererTestBase.class;
+
+        final String resourceNamePrefix;
+        {
+            val name = resourceLoaderClass.getName();
+            resourceNamePrefix = name.substring(0, name.lastIndexOf('.') + 1).replace('.', '/');
+        }
+
+        if (!resourceName.contains("/")) {
+            resourceName = resourceNamePrefix + resourceName;
+        }
+
+        val specSpans = readJsonResource(
+            resourceLoaderClass,
+            resourceName,
+            new TypeReference<List<SpecSpan>>() { }
         );
-        assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
+        val result = renderer.renderTracingSpec(specSpans);
+        val normalizedResult = normalizeResult(result);
+
+        val expectedResourceName = getExpectedResourceName(resourceName);
+        val expectedResult = loadExpectedResult(expectedResourceName);
+        val normalizedExpectedResult = normalizeResult(expectedResult);
+
+        assertThat(normalizedResult, equalTo(normalizedExpectedResult));
     }
 
 
-    @Test
-    final void all_spans_with_service_name() {
-        List<SpecSpan> specSpans = asList(
-            nextSpecSpan(span -> span.setServiceName("service A")),
-            nextSpecSpan(span -> span.setServiceName("service B"))
-        );
-        assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
-    }
+    @Nested
+    class Preconditions {
 
+        @Test
+        final void empty_spans_list() {
+            List<SpecSpan> specSpans = emptyList();
+            assertThrows(IllegalArgumentException.class, () -> renderer.renderTracingSpec(specSpans));
+        }
 
-    @Test
-    final void some_spans_have_service_name_and_some_not() {
-        List<SpecSpan> specSpans = asList(
-            nextSpecSpan(span -> span.setServiceName("service A")),
-            nextSpecSpan()
-        );
-        assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans));
-    }
+        @Test
+        final void all_spans_without_service_name() {
+            List<SpecSpan> specSpans = asList(
+                nextSpecSpan(),
+                nextSpecSpan()
+            );
+            assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
+        }
 
+        @Test
+        final void all_spans_with_service_name() {
+            List<SpecSpan> specSpans = asList(
+                nextSpecSpan(it -> it.setServiceName("service A")),
+                nextSpecSpan(it -> it.setServiceName("service B"))
+            );
+            assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
+        }
 
-    protected abstract void one_simple_span(Result result);
+        @Test
+        final void some_spans_have_service_name_and_some_not() {
+            List<SpecSpan> specSpans = asList(
+                nextSpecSpan(it -> it.setServiceName("service A")),
+                nextSpecSpan()
+            );
+            assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans));
+        }
 
-    @Test
-    final void one_simple_span() {
-        Result result = renderer.renderTracingSpec(singletonList(
-            nextSpecSpan("name", span -> span.setServiceName("service"))
-        ));
-        one_simple_span(normalizeResult(result));
-    }
-
-    @Test
-    final void one_span_with_node_processor() {
-        renderer.addNodeProcessor(node -> node.setServiceName("service"));
-        Result result = renderer.renderTracingSpec(singletonList(
-            nextSpecSpan("name")
-        ));
-        one_simple_span(normalizeResult(result));
-    }
-
-
-    protected abstract void one_simple_span_with_description(Result result);
-
-    @Test
-    final void one_simple_span_with_description() {
-        Result result = renderer.renderTracingSpec(singletonList(
-            nextSpecSpan("name", span -> {
-                span.setServiceName("service");
-                span.setDescription("description");
-            })
-        ));
-        one_simple_span_with_description(normalizeResult(result));
-    }
-
-
-    protected abstract void two_parents(Result result);
-
-    @Test
-    final void two_parents() {
-        val parent1 = nextSpecSpan("parent1", span -> span.setServiceName("service"));
-        val parent2 = nextSpecSpan("parent2", span -> span.setServiceName("service"));
-        Result result = renderer.renderTracingSpec(asList(
-            parent1,
-            parent2
-        ));
-        two_parents(normalizeResult(result));
-    }
-
-
-    protected abstract void parent_child(Result result);
-
-    @Test
-    final void parent_child() {
-        val parent = nextSpecSpan("parent", span -> span.setServiceName("service"));
-        val child = nextSpecSpan("child", span -> {
-            span.setParentSpanId(parent.getSpanId());
-            span.setServiceName("service");
-        });
-        Result result = renderer.renderTracingSpec(asList(
-            parent,
-            child
-        ));
-        parent_child(normalizeResult(result));
-    }
-
-
-    protected abstract void parent_children(Result result);
-
-    @Test
-    final void parent_children() {
-        val parent = nextSpecSpan("parent", span -> span.setServiceName("service"));
-        val child1 = nextSpecSpan("child1", span -> {
-            span.setParentSpanId(parent.getSpanId());
-            span.setServiceName("service");
-        });
-        val child2 = nextSpecSpan("child2", span -> {
-            span.setParentSpanId(parent.getSpanId());
-            span.setServiceName("service");
-        });
-        Result result = renderer.renderTracingSpec(asList(
-            parent,
-            child1,
-            child2
-        ));
-        parent_children(normalizeResult(result));
-    }
-
-
-    protected abstract void root_parent_child(Result result);
-
-    @Test
-    final void root_parent_child() {
-        val root = nextSpecSpan("root", span -> span.setServiceName("root"));
-        val parent = nextSpecSpan("parent", span -> {
-            span.setParentSpanId(root.getSpanId());
-            span.setServiceName("parent");
-        });
-        val child = nextSpecSpan("child", span -> {
-            span.setParentSpanId(parent.getSpanId());
-            span.setServiceName("child");
-        });
-        Result result = renderer.renderTracingSpec(asList(
-            root,
-            parent,
-            child
-        ));
-        root_parent_child(normalizeResult(result));
-    }
-
-
-    protected abstract void async_one_span(Result result);
-
-    @Test
-    final void async_one_span() {
-        val span = nextSpecSpan("name", it -> {
-            it.setAsync(true);
-            it.setServiceName("service");
-        });
-        Result result = renderer.renderTracingSpec(singletonList(
-            span
-        ));
-        async_one_span(normalizeResult(result));
-    }
-
-
-    protected abstract void async_children(Result result);
-
-    @Test
-    final void async_children() {
-        val root = nextSpecSpan("root", span -> span.setServiceName("service A"));
-        val inner = nextSpecSpan("inner", span -> {
-            span.setParentSpanId(root.getSpanId());
-            span.setAsync(true);
-            span.setServiceName("service A");
-        });
-        val child = nextSpecSpan("child", span -> {
-            span.setParentSpanId(root.getSpanId());
-            span.setAsync(true);
-            span.setServiceName("service B");
-        });
-        Result result = renderer.renderTracingSpec(asList(
-            root,
-            inner,
-            child
-        ));
-        async_children(normalizeResult(result));
     }
 
 }
