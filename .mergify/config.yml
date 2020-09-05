@@ -27,8 +27,6 @@ pull_request_rules:
     merge:
       method: squash
       strict: smart+fasttrack
-    #backport: { }
-    #delete_head_branch: { }
 
 - name: Auto approve dependencies
   conditions:
@@ -49,3 +47,23 @@ pull_request_rules:
   - -locked
   actions:
     update: { }
+
+- name: Auto merge by authors
+  conditions:
+  - author=remal
+  - -closed
+  - -merged
+  - -conflict
+  - -draft
+  - -locked
+  - "#changes-requested-reviews-by=0"
+  - status-success=Travis CI - Pull Request
+  - status-success=SonarCloud Code Analysis
+  - status-success=CodeFactor
+  - status-success=WIP
+  - '#status-neutral=0'
+  - '#status-failure=0'
+  actions:
+    merge:
+      method: squash
+      strict: smart+fasttrack
