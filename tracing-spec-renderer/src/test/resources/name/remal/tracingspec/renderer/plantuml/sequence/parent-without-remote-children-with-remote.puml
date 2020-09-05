@@ -1,0 +1,23 @@
+@startuml
+[-> A: parent
+activate A
+  A -> B
+  activate B
+    B -> C: child1
+    activate C
+    return <size:9>child1</size>
+  A -> E
+    activate E
+    E -> F: child2
+    activate F
+      F -> F: child3
+      activate F
+      return <size:9>child3</size>
+    return <size:9>child2</size>
+  return
+    B -> D: child4
+    activate D
+    return <size:9>child4</size>
+  return
+return <size:9>parent</size>
+@enduml

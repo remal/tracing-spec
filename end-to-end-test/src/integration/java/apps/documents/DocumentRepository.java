@@ -38,6 +38,7 @@ public class DocumentRepository extends AbstractInMemoryRepository<DocumentId, D
                 )
                 .content(JsonNodeFactory.instance.objectNode()
                     .put("userId", toIntExact((key % 5) + 1))
+                    .put("userId", 1)
                 )
                 .build()
             );

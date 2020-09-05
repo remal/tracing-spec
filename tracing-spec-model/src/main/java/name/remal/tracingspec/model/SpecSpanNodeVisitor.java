@@ -18,15 +18,20 @@ package name.remal.tracingspec.model;
 
 public interface SpecSpanNodeVisitor {
 
+    /**
+     * @return {@code true} - visit the node, {@code false} - don't visit the node and its children
+     */
+    default boolean filterNode(SpecSpanNode node) throws Throwable {
+        return true;
+    }
+
     default void visit(SpecSpanNode node) throws Throwable {
-        // Should be overridden
     }
 
     /**
      * Executed when the node and all its children is visited
      */
     default void postVisit(SpecSpanNode node) throws Throwable {
-        // Should be overridden
     }
 
 }

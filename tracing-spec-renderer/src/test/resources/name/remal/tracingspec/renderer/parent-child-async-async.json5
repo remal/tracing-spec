@@ -1,0 +1,15 @@
+[
+  {
+    spanId: "1",
+    async: true,
+    name: "parent",
+    serviceName: "A",
+  },
+  {
+    spanId: "2",
+    async: true,
+    parentSpanId: "1",
+    name: "child",
+    serviceName: "B",
+  },
+]

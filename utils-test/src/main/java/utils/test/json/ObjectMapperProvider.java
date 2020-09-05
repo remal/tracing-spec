@@ -16,10 +16,17 @@
 
 package utils.test.json;
 
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_MISSING_VALUES;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_SINGLE_QUOTES;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_TRAILING_COMMA;
+import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES;
 import static java.util.Objects.requireNonNull;
 import static utils.test.resource.Resources.getResourceUrl;
 import static utils.test.whocalled.WhoCalled.getCallerClass;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonFactoryBuilder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.annotation.Nullable;
@@ -29,7 +36,16 @@ import org.intellij.lang.annotations.Language;
 
 public abstract class ObjectMapperProvider {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules();
+    private static final JsonFactory JSON_FACTORY = new JsonFactoryBuilder()
+        .enable(ALLOW_JAVA_COMMENTS)
+        .enable(ALLOW_SINGLE_QUOTES)
+        .enable(ALLOW_UNQUOTED_FIELD_NAMES)
+        .enable(ALLOW_MISSING_VALUES)
+        .enable(ALLOW_TRAILING_COMMA)
+        .build();
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(JSON_FACTORY)
+        .findAndRegisterModules();
 
     public static ObjectMapper getObjectMapper() {
         return OBJECT_MAPPER;

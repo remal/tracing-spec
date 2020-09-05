@@ -43,11 +43,11 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
     @SneakyThrows
     @SuppressWarnings("unchecked")
     protected final T newInstance() {
-        val type = getParameterizedTypeArgumentClass(getClass(), SpecSpanInfoTest.class, 0);
+        Class<T> type = getParameterizedTypeArgumentClass(getClass(), SpecSpanInfoTest.class, 0);
         if (type == SpecSpan.class) {
             return (T) nextSpecSpan();
         } else {
-            return (T) type.getConstructor().newInstance();
+            return type.getConstructor().newInstance();
         }
     }
 
@@ -82,14 +82,14 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
             val setter = prop.getValue().getLeft();
             val getter = prop.getValue().getRight();
 
-            setter.accept(instance, null);
-            assertThat(name + ": null", getter.apply(instance), nullValue());
+            setter.accept(instance, "value");
+            assertThat(name + ": 'value'", getter.apply(instance), equalTo("value"));
 
             setter.accept(instance, "");
             assertThat(name + ": ''", getter.apply(instance), nullValue());
 
-            setter.accept(instance, "value");
-            assertThat(name + ": 'value'", getter.apply(instance), equalTo("value"));
+            setter.accept(instance, null);
+            assertThat(name + ": null", getter.apply(instance), nullValue());
         }
     }
 
@@ -152,6 +152,7 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
         }
     }
 
+
     @Test
     void getTag() {
         instance.putTag("key", "value");
@@ -176,18 +177,17 @@ abstract class SpecSpanInfoTest<T extends SpecSpanInfo<T>> {
         assertThat(instance.getDescription(), equalTo("description"));
     }
 
+
     @Test
     void addAnnotation() {
         instance.addAnnotation(new SpecSpanAnnotation("value"));
         assertThat(instance.getAnnotations(), hasItem(new SpecSpanAnnotation("value")));
     }
 
+
     @Test
     void compareTo() {
         val otherInstance = newInstance();
-
-        instance.setStartedAt(null);
-        otherInstance.setStartedAt(null);
         assertThat(instance.compareTo(otherInstance), equalTo(0));
 
         instance.setStartedAt(ofEpochSecond(1));

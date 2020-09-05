@@ -54,7 +54,7 @@ public class ErroneousResponseInterceptor implements Interceptor {
 
         val sb = new StringBuilder();
         sb.append(request.method()).append(' ').append(request.url());
-        sb.append(": HTTP status ").append(response.code());
+        sb.append(": ").append(response.code());
 
         if (!response.message().isEmpty()) {
             sb.append(' ').append(response.message());

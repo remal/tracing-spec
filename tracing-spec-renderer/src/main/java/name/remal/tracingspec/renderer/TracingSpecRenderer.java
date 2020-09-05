@@ -17,10 +17,25 @@
 package name.remal.tracingspec.renderer;
 
 import java.util.List;
+import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 
 public interface TracingSpecRenderer<Result> {
 
     Result renderTracingSpec(List<SpecSpan> specSpans);
+
+    void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor);
+
+    void addTagToDisplay(String tagName);
+
+    default void addTagsToDisplay(String... tagNames) {
+        for (val tagName : tagNames) {
+            addTagToDisplay(tagName);
+        }
+    }
+
+    default void addTagsToDisplay(Iterable<String> tagNames) {
+        tagNames.forEach(this::addTagToDisplay);
+    }
 
 }

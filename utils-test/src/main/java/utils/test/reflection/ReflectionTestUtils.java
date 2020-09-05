@@ -25,7 +25,12 @@ import lombok.val;
 @SuppressWarnings("UnstableApiUsage")
 public interface ReflectionTestUtils {
 
-    static <T> Class<?> getParameterizedTypeArgumentClass(Class<T> childClass, Class<? super T> superClass, int index) {
+    @SuppressWarnings("unchecked")
+    static <T, R> Class<R> getParameterizedTypeArgumentClass(
+        Class<T> childClass,
+        Class<? super T> superClass,
+        int index
+    ) {
         if (index < 0) {
             throw new IllegalArgumentException("index mustn't be less than 0: " + index);
         }
@@ -35,7 +40,7 @@ public interface ReflectionTestUtils {
             val parameterizedType = (ParameterizedType) superType;
             val arguments = parameterizedType.getActualTypeArguments();
             if (index < arguments.length) {
-                return TypeToken.of(arguments[index]).getRawType();
+                return (Class<R>) TypeToken.of(arguments[index]).getRawType();
             } else {
                 throw new IllegalArgumentException(format(
                     "%s has only %d arguments, but index #%d is requested",

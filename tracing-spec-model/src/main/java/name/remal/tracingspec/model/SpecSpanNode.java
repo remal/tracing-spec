@@ -68,6 +68,11 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
         }
     }
 
+    @JsonIgnore
+    public final boolean isRoot() {
+        return getParent() == null;
+    }
+
 
     @UnmodifiableView
     public List<SpecSpanNode> getChildren() {
@@ -144,10 +149,48 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
     }
 
 
+    public void append(SpecSpanNode nodeToAppend) {
+        nodeToAppend.setParent(null);
+        new ArrayList<>(nodeToAppend.getChildren()).forEach(childToAppend -> childToAppend.setParent(this));
+
+        if (getName() == null) {
+            setName(nodeToAppend.getName());
+        }
+        if (getKind() == null) {
+            setKind(nodeToAppend.getKind());
+        }
+        if (!isAsync()) {
+            setAsync(nodeToAppend.isAsync());
+        }
+        if (getServiceName() == null) {
+            setServiceName(nodeToAppend.getServiceName());
+        }
+        if (getRemoteServiceName() == null) {
+            setRemoteServiceName(nodeToAppend.getRemoteServiceName());
+        }
+        if (getStartedAt() == null) {
+            setStartedAt(nodeToAppend.getStartedAt());
+        }
+        if (getDescription() == null) {
+            setDescription(nodeToAppend.getDescription());
+        }
+        nodeToAppend.getTags().forEach(getTags()::putIfAbsent);
+        nodeToAppend.getAnnotations().forEach(this::addAnnotation);
+    }
+
+    public final void appendTo(SpecSpanNode targetNode) {
+        targetNode.append(this);
+    }
+
+
     @SneakyThrows
     public void visit(SpecSpanNodeVisitor visitor) {
+        if (!visitor.filterNode(this)) {
+            return;
+        }
+
         visitor.visit(this);
-        for (val child : children) {
+        for (val child : new ArrayList<>(getChildren())) {
             child.visit(visitor);
         }
         visitor.postVisit(this);

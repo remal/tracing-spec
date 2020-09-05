@@ -87,7 +87,7 @@ public abstract class SpecSpansGraphs {
         val graph = new SpecSpansGraph();
         graph.setRoots(groupedSpecSpanNodes.values().stream()
             .flatMap(Collection::stream)
-            .filter(node -> node.getParent() == null)
+            .filter(SpecSpanNode::isRoot)
             .collect(toList())
         );
 

@@ -1,0 +1,16 @@
+[
+  {
+    spanId: "1",
+    async: true,
+    name: "parent",
+    serviceName: "remote",
+  },
+  {
+    spanId: "2",
+    parentSpanId: "1",
+    kind: "consumer",
+    name: "name",
+    serviceName: "local",
+    remoteServiceName: "remote",
+  },
+]

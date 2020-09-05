@@ -1,0 +1,29 @@
+@startuml
+[-> "schemas&#45;service": post &#47;schemas
+activate "schemas&#45;service"
+"schemas&#45;service" -> kafka: send\n<size:10>kafka.topic=schema&#45;changed</size>
+activate kafka
+return <size:9>send</size>
+return <size:9>post &#47;schemas</size>
+kafka ->> "documents&#45;service": poll\n<size:10>kafka.topic=schema&#45;changed</size>
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": on&#45;message
+activate "documents&#45;service"
+"documents&#45;service" -> kafka: send\n<size:10>kafka.topic=documents&#45;should&#45;be&#45;updated</size>
+activate kafka
+return <size:9>send</size>
+return <size:9>on&#45;message</size>
+deactivate "documents&#45;service"
+kafka ->> "documents&#45;service": poll\n<size:10>kafka.topic=documents&#45;should&#45;be&#45;updated</size>
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": on&#45;message
+activate "documents&#45;service"
+"documents&#45;service" -> "schemas&#45;service": get &#47;schemas&#47;{id}
+activate "schemas&#45;service"
+return <size:9>get &#47;schemas&#47;{id}</size>
+"documents&#45;service" -> "users&#45;service": get &#47;users&#47;{id}
+activate "users&#45;service"
+return <size:9>get &#47;users&#47;{id}</size>
+return <size:9>on&#45;message</size>
+deactivate "documents&#45;service"
+@enduml

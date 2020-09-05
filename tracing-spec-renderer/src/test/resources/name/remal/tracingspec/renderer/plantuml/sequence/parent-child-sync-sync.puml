@@ -1,0 +1,8 @@
+@startuml
+[-> A: parent
+activate A
+  A -> B: child
+  activate B
+  return <size:9>child</size>
+return <size:9>parent</size>
+@enduml

@@ -1,8 +1,0 @@
-@startuml
-[-> service: parent
-activate service
-service -> service: child
-activate service
-return
-return
-@enduml

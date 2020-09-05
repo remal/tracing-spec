@@ -33,7 +33,10 @@ public abstract class Resources {
     }
 
     public static URL getResourceUrl(Class<?> loaderClass, @Language("file-reference") String resourceName) {
-        val resourceUrl = loaderClass.getResource(resourceName);
+        URL resourceUrl = loaderClass.getResource(resourceName);
+        if (resourceUrl == null) {
+            resourceUrl = loaderClass.getResource('/' + resourceName);
+        }
         if (resourceUrl == null) {
             throw new IllegalArgumentException(loaderClass + ": resource can't be found: " + resourceName);
         }

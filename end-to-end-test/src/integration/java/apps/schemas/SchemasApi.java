@@ -16,6 +16,7 @@
 
 package apps.schemas;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface SchemasApi {
 
     @PostMapping("/schemas")
-    void saveSchema(@RequestBody Schema schema);
+    ResponseEntity<Void> saveSchema(@RequestBody Schema schema);
 
     @GetMapping("/schemas/{id}")
     Schema getSchema(@PathVariable String id);

@@ -24,6 +24,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static utils.test.json.ObjectMapperProvider.readJsonResource;
@@ -31,8 +33,10 @@ import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.Value;
 import lombok.val;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class SpecSpanNodeTest extends SpecSpanInfoTest<SpecSpanNode> {
@@ -177,59 +181,95 @@ class SpecSpanNodeTest extends SpecSpanInfoTest<SpecSpanNode> {
         assertThat(child1.getChildren(), contains(child11, child12));
     }
 
-    @Test
-    void visit() {
-        val parent = nextSpecSpanNode();
 
-        val child1 = nextSpecSpanNode();
-        parent.addChild(child1);
+    @Nested
+    class Visit {
 
-        val child11 = nextSpecSpanNode();
-        child1.addChild(child11);
+        @Test
+        void full() {
+            val node = nextSpecSpanNode();
+            val node1 = nextSpecSpanNode(it -> it.setParent(node));
+            val node11 = nextSpecSpanNode(it -> it.setParent(node1));
+            val node111 = nextSpecSpanNode(it -> it.setParent(node11));
+            val node112 = nextSpecSpanNode(it -> it.setParent(node11));
+            val node2 = nextSpecSpanNode(it -> it.setParent(node));
 
-        val child111 = nextSpecSpanNode();
-        child11.addChild(child111);
+            val methodInvocations = visitAndCollectInvocations(node);
+            assertThat(methodInvocations, contains(
+                new VisitMethodInvocation("visit", node),
+                new VisitMethodInvocation("visit", node1),
+                new VisitMethodInvocation("visit", node11),
+                new VisitMethodInvocation("visit", node111),
+                new VisitMethodInvocation("postVisit", node111),
+                new VisitMethodInvocation("visit", node112),
+                new VisitMethodInvocation("postVisit", node112),
+                new VisitMethodInvocation("postVisit", node11),
+                new VisitMethodInvocation("postVisit", node1),
+                new VisitMethodInvocation("visit", node2),
+                new VisitMethodInvocation("postVisit", node2),
+                new VisitMethodInvocation("postVisit", node)
+            ));
+        }
 
-        val child112 = nextSpecSpanNode();
-        child11.addChild(child112);
+        @Test
+        void filter_node() {
+            val root = nextSpecSpanNode();
+            val parent = nextSpecSpanNode(it -> it.setParent(root));
+            val child = nextSpecSpanNode(it -> it.setParent(parent));
 
-        val child2 = nextSpecSpanNode();
-        parent.addChild(child2);
+            val methodInvocations = visitAndCollectInvocations(
+                root,
+                node -> !node.equals(parent)
+            );
+            assertThat(methodInvocations, contains(
+                new VisitMethodInvocation("visit", root),
+                new VisitMethodInvocation("postVisit", root)
+            ));
+            assertThat(methodInvocations, not(hasItems(
+                new VisitMethodInvocation("visit", parent),
+                new VisitMethodInvocation("postVisit", parent)
+            )));
+            assertThat(methodInvocations, not(hasItems(
+                new VisitMethodInvocation("visit", child),
+                new VisitMethodInvocation("postVisit", child)
+            )));
+        }
 
+
+        private List<VisitMethodInvocation> visitAndCollectInvocations(SpecSpanNode node) {
+            return visitAndCollectInvocations(node, __ -> true);
+        }
+
+        private List<VisitMethodInvocation> visitAndCollectInvocations(
+            SpecSpanNode node,
+            Predicate<SpecSpanNode> predicate
+        ) {
+            List<VisitMethodInvocation> invocations = new ArrayList<>();
+            node.visit(new SpecSpanNodeVisitor() {
+                @Override
+                public boolean filterNode(SpecSpanNode node) {
+                    return predicate.test(node);
+                }
+
+                @Override
+                public void visit(SpecSpanNode node) {
+                    invocations.add(new VisitMethodInvocation("visit", node));
+                }
+
+                @Override
+                public void postVisit(SpecSpanNode node) {
+                    invocations.add(new VisitMethodInvocation("postVisit", node));
+                }
+            });
+            return invocations;
+        }
 
         @Value
-        class MethodInvocation {
+        private class VisitMethodInvocation {
             String methodName;
             SpecSpanNode node;
         }
 
-        List<MethodInvocation> methodInvocations = new ArrayList<>();
-        parent.visit(new SpecSpanNodeVisitor() {
-            @Override
-            public void visit(SpecSpanNode node) {
-                methodInvocations.add(new MethodInvocation("visit", node));
-            }
-
-            @Override
-            public void postVisit(SpecSpanNode node) {
-                methodInvocations.add(new MethodInvocation("postVisit", node));
-            }
-        });
-
-        assertThat(methodInvocations, contains(
-            new MethodInvocation("visit", parent),
-            new MethodInvocation("visit", child1),
-            new MethodInvocation("visit", child11),
-            new MethodInvocation("visit", child111),
-            new MethodInvocation("postVisit", child111),
-            new MethodInvocation("visit", child112),
-            new MethodInvocation("postVisit", child112),
-            new MethodInvocation("postVisit", child11),
-            new MethodInvocation("postVisit", child1),
-            new MethodInvocation("visit", child2),
-            new MethodInvocation("postVisit", child2),
-            new MethodInvocation("postVisit", parent)
-        ));
     }
 
     @Test

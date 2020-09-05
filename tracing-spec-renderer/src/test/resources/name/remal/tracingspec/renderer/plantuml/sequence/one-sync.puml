@@ -1,5 +1,5 @@
 @startuml
 [-> service: name
 activate service
-return
+return <size:9>name</size>
 @enduml

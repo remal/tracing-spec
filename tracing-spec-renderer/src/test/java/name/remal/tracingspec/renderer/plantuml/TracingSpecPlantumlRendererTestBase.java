@@ -16,12 +16,11 @@
 
 package name.remal.tracingspec.renderer.plantuml;
 
-import static java.util.stream.Collectors.joining;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.startsWith;
+import static utils.test.normalizer.PumlNormalizer.normalizePuml;
 import static utils.test.resource.Resources.readTextResource;
 
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.renderer.TracingSpecRenderer;
 import name.remal.tracingspec.renderer.TracingSpecRendererTestBase;
@@ -30,21 +29,35 @@ import org.intellij.lang.annotations.Language;
 public abstract class TracingSpecPlantumlRendererTestBase<Renderer extends TracingSpecRenderer<String>>
     extends TracingSpecRendererTestBase<String, Renderer> {
 
-    private static final Pattern NEW_LINES = Pattern.compile("[\n\r]+");
-
     @Override
     protected String normalizeResult(String diagram) {
-        val lines = NEW_LINES.split(diagram);
-        return Stream.of(lines)
-            .map(String::trim)
-            .filter(line -> !line.isEmpty())
-            .collect(joining("\n"));
+        return normalizePuml(diagram);
     }
 
-    @SneakyThrows
-    protected String readPlantumlDiagramResource(@Language("file-reference") String resourceName) {
-        val content = readTextResource(getClass(), resourceName);
-        return normalizeResult(content);
+    @Override
+    protected String getExpectedResourceName(String resourceName) {
+        val classResourcePrefix = getClass().getName()
+            .substring(0, getClass().getName().lastIndexOf('.') + 1)
+            .replace('.', '/');
+
+        val resourceNamePrefix = resourceName.substring(0, resourceName.lastIndexOf('/') + 1);
+        assertThat(classResourcePrefix, startsWith(resourceNamePrefix));
+
+        val relativePrefix = classResourcePrefix.substring(resourceNamePrefix.length());
+
+        final String expectedResourceFileName;
+        {
+            val resourceFileName = resourceName.substring(resourceName.lastIndexOf('/') + 1);
+            val resourceBaseFileName = resourceFileName.substring(0, resourceFileName.lastIndexOf('.'));
+            expectedResourceFileName = resourceBaseFileName + ".puml";
+        }
+
+        return resourceNamePrefix + relativePrefix + expectedResourceFileName;
+    }
+
+    @Override
+    protected String loadExpectedResult(@Language("file-reference") String expectedResourceName) {
+        return readTextResource(expectedResourceName);
     }
 
 }
