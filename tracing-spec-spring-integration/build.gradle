@@ -1,0 +1,7 @@
+apply plugin: 'java-library'
+
+dependencies {
+    optional 'org.springframework:spring-aop'
+    optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    optional 'org.springdoc:springdoc-openapi-common'
+}

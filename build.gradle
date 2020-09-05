@@ -92,6 +92,7 @@ allprojects {
         String immutablesVersion = '2.8.8'
         String mapstructVersion = '1.4.0.CR1'
         String graalvmVersion = '20.2.0'
+        String springdocVersion = '1.4.6'
 
         configurations.matching { it.canBeResolved }.all { Configuration conf ->
             conf.dependencyConstraints.addAll(
@@ -113,6 +114,7 @@ allprojects {
                     "org.graalvm.js:js:$graalvmVersion",
                     "org.graalvm.js:js-scriptengine:$graalvmVersion",
                     "org.graalvm.truffle:truffle-api:$graalvmVersion",
+                    "org.springdoc:springdoc-openapi-common:$springdocVersion",
 
                     // Test
                     'org.awaitility:awaitility:4.0.3',
@@ -172,6 +174,7 @@ allprojects {
             components.all(RetrofitAlignmentRule)
             components.all(OkhttpAlignmentRule)
             components.all(GraalvmAlignmentRule)
+            components.all(SpringdocAlignmentRule)
             components.all(JacocoAlignmentRule)
 
             staticAnalysis 'com.google.code.findbugs:jsr305'
@@ -495,6 +498,16 @@ class GraalvmAlignmentRule implements ComponentMetadataRule {
         ctx.details.with {
             if (id.group.matches(/org\.graalvm($|\..+)/)) {
                 belongsTo("org.graalvm:graalvm-bom:${id.version}", true)
+            }
+        }
+    }
+}
+
+class SpringdocAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group == 'org.springdoc') {
+                belongsTo("${id.group}:springdoc-bom:${id.version}", true)
             }
         }
     }
