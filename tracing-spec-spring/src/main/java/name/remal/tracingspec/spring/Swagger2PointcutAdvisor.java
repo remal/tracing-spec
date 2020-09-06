@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package apps.users;
+package name.remal.tracingspec.spring;
 
-import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import brave.Tracer;
+import io.swagger.annotations.ApiOperation;
+import java.util.function.Function;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
-public interface UsersApi {
+@Internal
+class Swagger2PointcutAdvisor extends AbstractDescriptionAnnotationPointcutAdvisor<ApiOperation> {
 
-    @Operation(summary = "Get user by ID")
-    @GetMapping("/users/{id}")
-    User getUser(@PathVariable int id);
+    public Swagger2PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+        super(tracer, properties);
+    }
+
+    @Override
+    protected Function<ApiOperation, String> getDescriptionGetter() {
+        return ApiOperation::value;
+    }
 
 }

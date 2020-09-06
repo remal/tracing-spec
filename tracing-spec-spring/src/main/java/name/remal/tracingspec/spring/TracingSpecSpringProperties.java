@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package apps.users;
+package name.remal.tracingspec.spring;
 
-import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
-public interface UsersApi {
+@Validated
+@ConfigurationProperties("tracingspec.spring")
+@Data
+@SuppressWarnings("java:S109")
+public class TracingSpecSpringProperties {
 
-    @Operation(summary = "Get user by ID")
-    @GetMapping("/users/{id}")
-    User getUser(@PathVariable int id);
+    /**
+     * Is TracingSpec integration with Spring enabled?
+     */
+    boolean enabled = true;
+
+    /**
+     * Add SpecSpan description only if B3 Propagation debug flag is set
+     */
+    boolean descriptionOnlyIfDebug;
 
 }

@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package apps.schemas;
+package name.remal.tracingspec.spring;
 
+import brave.Tracer;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import java.util.function.Function;
+import org.jetbrains.annotations.ApiStatus.Internal;
 
-public interface SchemasApi {
+@Internal
+class Swagger3PointcutAdvisor extends AbstractDescriptionAnnotationPointcutAdvisor<Operation> {
 
-    @Operation(summary = "Save schema")
-    @PostMapping("/schemas")
-    ResponseEntity<Void> saveSchema(@RequestBody Schema schema);
+    public Swagger3PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+        super(tracer, properties);
+    }
 
-    @Operation(summary = "Get schema by ID")
-    @GetMapping("/schemas/{id}")
-    Schema getSchema(@PathVariable String id);
+    @Override
+    protected Function<Operation, String> getDescriptionGetter() {
+        return Operation::summary;
+    }
 
 }

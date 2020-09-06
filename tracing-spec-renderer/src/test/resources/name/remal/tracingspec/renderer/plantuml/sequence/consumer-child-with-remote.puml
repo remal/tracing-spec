@@ -1,4 +1,5 @@
 @startuml
+skinparam responseMessageBelowArrow true
 [->> remote: parent
 activate remote
 deactivate remote

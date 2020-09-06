@@ -6,7 +6,7 @@ include(
     ':tracing-spec-retriever-jaeger',
     ':tracing-spec-retriever-zipkin',
     ':tracing-spec-renderer',
-    ':tracing-spec-spring-integration',
+    ':tracing-spec-spring',
     ':utils-gson',
     ':utils-okhttp',
     ':utils-test',

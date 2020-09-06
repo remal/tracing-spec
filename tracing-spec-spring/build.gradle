@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
+
+dependencies {
+    compileOnly 'com.google.guava:guava'
+
+    optional 'org.springframework:spring-aop'
+    optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    optional 'io.swagger.core.v3:swagger-annotations'
+    optional 'io.swagger:swagger-annotations'
+}

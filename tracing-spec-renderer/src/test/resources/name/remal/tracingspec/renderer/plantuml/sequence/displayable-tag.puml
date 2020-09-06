@@ -1,4 +1,5 @@
 @startuml
+skinparam responseMessageBelowArrow true
 [-> service: name\n<size:10>displayableTag=123</size>
 activate service
 return <size:9>name</size>
