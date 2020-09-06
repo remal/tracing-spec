@@ -64,6 +64,7 @@ pull_request_rules:
   - '#status-neutral=0'
   - '#status-failure=0'
   actions:
+    review: { }
     merge:
       method: squash
       strict: smart+fasttrack
