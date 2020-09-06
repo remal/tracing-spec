@@ -1,4 +1,5 @@
 @startuml
+skinparam responseMessageBelowArrow true
 remote ->> local: parent
 activate local
   local -> local: child

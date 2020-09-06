@@ -35,6 +35,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
     protected String renderSpecSpansGraph(SpecSpansGraph graph) {
         List<String> diagram = new ArrayList<>();
         diagram.add("@startuml");
+        diagram.add("skinparam responseMessageBelowArrow true");
 
         val rootAndAsyncNodes = collectRootAndAsyncNodes(graph);
         rootAndAsyncNodes.forEach(topLevelNode -> topLevelNode.visit(new SpecSpanNodeVisitor() {
@@ -58,6 +59,13 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
                     } else {
                         visitAsyncChild(requireNonNull(node.getParent()), node);
                     }
+                }
+
+                if (node.getDescription() != null) {
+                    diagram.add(format(
+                        "note right: %s",
+                        escapeString(node.getDescription())
+                    ));
                 }
             }
 

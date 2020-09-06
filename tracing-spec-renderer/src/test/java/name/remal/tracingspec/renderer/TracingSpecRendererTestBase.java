@@ -146,6 +146,11 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     }
 
     @Test
+    final void description() throws Throwable {
+        resourceTest("description.json5");
+    }
+
+    @Test
     final void displayable_tag() throws Throwable {
         resourceTest("displayable-tag.json5");
     }

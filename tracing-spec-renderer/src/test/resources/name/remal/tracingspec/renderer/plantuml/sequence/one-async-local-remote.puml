@@ -1,4 +1,5 @@
 @startuml
+skinparam responseMessageBelowArrow true
 local ->> remote: name
 activate remote
 deactivate remote

@@ -1,0 +1,11 @@
+@startuml
+skinparam responseMessageBelowArrow true
+[-> A: parent
+activate A
+note right: parent description
+  A -> B: child
+  activate B
+  note right: child description
+  return <size:9>child</size>
+return <size:9>parent</size>
+@enduml

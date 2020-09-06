@@ -113,6 +113,8 @@ allprojects {
                     "org.graalvm.js:js:$graalvmVersion",
                     "org.graalvm.js:js-scriptengine:$graalvmVersion",
                     "org.graalvm.truffle:truffle-api:$graalvmVersion",
+                    'io.swagger.core.v3:swagger-annotations:2.1.4',
+                    'io.swagger:swagger-annotations:1.6.2',
 
                     // Test
                     'org.awaitility:awaitility:4.0.3',
@@ -140,6 +142,8 @@ allprojects {
 
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+
+        testSourceSets.create('component')
 
         configurations {
             compileOnlyAllHidden { conf ->
@@ -217,6 +221,9 @@ allprojects {
 
 
             integrationImplementation 'org.testcontainers:testcontainers'
+
+
+            componentImplementation 'org.springframework.boot:spring-boot-starter-test'
         }
 
         if (project.path != ':utils-test') {
@@ -295,8 +302,6 @@ allprojects {
             Task allClasses = tasks.maybeCreate('allClasses')
             allClasses.dependsOn(sourceSet.classesTaskName)
         }
-
-        testSourceSets.create('component')
 
         tasks.withType(Test) {
             useJUnitPlatform()

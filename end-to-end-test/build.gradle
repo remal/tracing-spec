@@ -7,7 +7,9 @@ dependencies {
     implementation project(':tracing-spec-retriever-jaeger')
     implementation project(':tracing-spec-retriever-zipkin')
     implementation project(':tracing-spec-renderer')
+    implementation project(':tracing-spec-spring')
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'io.swagger.core.v3:swagger-annotations'
     implementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
     implementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'

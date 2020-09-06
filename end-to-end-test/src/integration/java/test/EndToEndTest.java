@@ -50,8 +50,6 @@ import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetriever;
 import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetrieverProperties;
 import name.remal.tracingspec.retriever.zipkin.ZipkinSpecSpansRetriever;
 import name.remal.tracingspec.retriever.zipkin.ZipkinSpecSpansRetrieverProperties;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,8 +66,6 @@ class EndToEndTest {
 
     private static final boolean IS_DEBUG = getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
     private static final Duration AWAIT_TIMEOUT = IS_DEBUG ? Duration.ofHours(1) : Duration.ofSeconds(30);
-
-    private static final Logger logger = LogManager.getLogger(EndToEndTest.class);
 
     @Test
     void test() throws Throwable {

@@ -16,13 +16,15 @@
 
 package apps.documents;
 
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 public interface DocumentsApi {
 
-    @GetMapping("/documents/{schema}")
-    List<Document> getAllDocumentsBySchema(@PathVariable String schema);
+    @Operation(summary = "Get all documents by schema ID")
+    @GetMapping("/documents/{schemaId}")
+    List<Document> getAllDocumentsBySchema(@PathVariable String schemaId);
 
 }

@@ -1,0 +1,163 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package name.remal.tracingspec.spring;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import brave.Span;
+import brave.Tracer;
+import brave.propagation.TraceContext;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+abstract class AbstractDescriptionAnnotationPointcutAdvisorTest {
+
+    protected abstract AbstractDescriptionAnnotationPointcutAdvisor<?> createAdvisor(
+        Tracer tracer,
+        TracingSpecSpringProperties properties
+    );
+
+
+    private static final String INVOCATION_RESULT = "executed";
+
+    private final Tracer tracer = mock(Tracer.class);
+
+    private final TracingSpecSpringProperties properties = new TracingSpecSpringProperties();
+
+    private final AbstractDescriptionAnnotationPointcutAdvisor<?> advisor = createAdvisor(tracer, properties);
+
+    private final MethodInterceptor advice = advisor.getAdvice();
+
+    private final MethodInvocation invocation = mock(MethodInvocation.class);
+
+    private final Span span = mock(Span.class);
+
+    private final TraceContext traceContext = mock(TraceContext.class);
+
+    @BeforeEach
+    void beforeEach() throws Throwable {
+        when(tracer.currentSpan()).thenReturn(span);
+
+        when(invocation.getMethod()).thenReturn(Methods.class.getMethod("annotated"));
+        when(invocation.getThis()).thenReturn(new Methods());
+        when(invocation.proceed()).thenReturn(INVOCATION_RESULT);
+
+        when(span.isNoop()).thenReturn(false);
+        when(span.context()).thenReturn(traceContext);
+    }
+
+
+    @Test
+    final void not_enabled() throws Throwable {
+        properties.setEnabled(false);
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+
+        verify(span, never()).tag(any(), any());
+    }
+
+    @Test
+    final void no_current_span_present() throws Throwable {
+        when(tracer.currentSpan()).thenReturn(null);
+
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, never()).tag(any(), any());
+    }
+
+    @Test
+    final void not_sampled() throws Throwable {
+        when(span.isNoop()).thenReturn(true);
+
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, never()).tag(any(), any());
+    }
+
+    @Test
+    final void not_debug_when_should_be_debug() throws Throwable {
+        properties.setDescriptionOnlyIfDebug(true);
+        when(traceContext.debug()).thenReturn(false);
+
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, never()).tag(any(), any());
+    }
+
+    @Test
+    final void not_method_invocation() throws Throwable {
+        when(invocation.getMethod()).thenReturn(null);
+
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, never()).tag(any(), any());
+    }
+
+    @Test
+    final void no_annotation_present() throws Throwable {
+        when(invocation.getMethod()).thenReturn(Methods.class.getMethod("notAnnotated"));
+
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, never()).tag(any(), any());
+    }
+
+    @Test
+    final void empty_description() throws Throwable {
+        when(invocation.getMethod()).thenReturn(Methods.class.getMethod("emptyDescription"));
+
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, never()).tag(any(), any());
+    }
+
+    @Test
+    final void success() throws Throwable {
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, times(1)).tag("spec.description", "description");
+    }
+
+    @Test
+    final void debug_when_should_be_debug() throws Throwable {
+        properties.setDescriptionOnlyIfDebug(true);
+        when(traceContext.debug()).thenReturn(true);
+
+        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
+        verify(span, times(1)).tag("spec.description", "description");
+    }
+
+
+    private static class Methods {
+        public void notAnnotated() {
+        }
+
+        @ApiOperation("")
+        @Operation()
+        public void emptyDescription() {
+        }
+
+        @ApiOperation("description")
+        @Operation(summary = "description")
+        public void annotated() {
+        }
+    }
+
+}
