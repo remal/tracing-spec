@@ -16,7 +16,7 @@
 
 package apps.documents;
 
-import static apps.documents.DocumentsShouldBeUpdatedEvent.DOCUMENTS_SHOULD_BE_UPDATED_TOPIC;
+import static com.google.common.collect.Lists.partition;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -29,6 +29,7 @@ import apps.users.UsersClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -37,12 +38,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentsShouldBeUpdatedEventListener {
+public class DocumentsReindexer {
 
     private final DocumentRepository repository;
 
@@ -52,20 +53,31 @@ public class DocumentsShouldBeUpdatedEventListener {
 
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = DOCUMENTS_SHOULD_BE_UPDATED_TOPIC)
-    public void onDocumentsShouldBeUpdatedEvent(DocumentsShouldBeUpdatedEvent event) {
-        val docs = event.getIds().stream()
-            .distinct()
-            .map(repository::getById)
-            .collect(toList());
+    private final StaleDocumentsEventSender staleDocumentsEventSender;
+
+
+    @NewSpan("reindex-documents-of-schema")
+    public void reindexDocumentsBySchemaId(String schemaId) {
+        val docs = repository.getAllBySchema(schemaId);
+        for (val partitionDocs : partition(docs, 50)) {
+            staleDocumentsEventSender.sendStaleDocumentsEvent(ImmutableStaleDocumentsEvent.builder()
+                .ids(partitionDocs.stream().map(Document::getId).collect(toList()))
+                .build()
+            );
+        }
+    }
+
+
+    @NewSpan("reindex-documents")
+    public void reindexDocuments(List<Document> documents) {
         val cache = new Cache();
-        for (val doc : docs) {
-            updateDoc(doc, cache);
+        for (val doc : documents) {
+            reindexDocument(doc, cache);
         }
     }
 
     @SneakyThrows
-    private void updateDoc(Document doc, Cache cache) {
+    private void reindexDocument(Document doc, Cache cache) {
         val oldContent = doc.getContent();
         ObjectNode content = objectMapper.valueToTree(oldContent);
         val schema = cache.getSchema(doc.getId().getSchema());

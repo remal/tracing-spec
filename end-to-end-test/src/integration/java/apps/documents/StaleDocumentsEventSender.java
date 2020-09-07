@@ -16,24 +16,22 @@
 
 package apps.documents;
 
-import static apps.schemas.SchemaChangedEvent.SCHEMA_CHANGED_TOPIC;
+import static apps.documents.StaleDocumentsEvent.STALE_DOCUMENTS_TOPIC;
 
-import apps.schemas.SchemaChangedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class SchemaChangedEventListener {
+public class StaleDocumentsEventSender {
 
-    private final DocumentsReindexer documentsReindexer;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @KafkaListener(topics = SCHEMA_CHANGED_TOPIC)
-    @NewSpan("process-schema-changed-event")
-    public void onSchemaChangedEvent(SchemaChangedEvent event) {
-        documentsReindexer.reindexDocumentsBySchemaId(event.getId());
+    @NewSpan("send-stale-documents-event")
+    public void sendStaleDocumentsEvent(StaleDocumentsEvent event) {
+        kafkaTemplate.send(STALE_DOCUMENTS_TOPIC, event);
     }
 
 }

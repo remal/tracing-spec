@@ -16,17 +16,17 @@
 
 package apps.documents;
 
-import apps.documents.ImmutableDocumentsShouldBeUpdatedEvent.DocumentsShouldBeUpdatedEventBuilder;
+import apps.documents.ImmutableStaleDocumentsEvent.StaleDocumentsEventBuilder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
 import org.immutables.value.Value;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @Value.Immutable
-@JsonDeserialize(builder = DocumentsShouldBeUpdatedEventBuilder.class)
-public interface DocumentsShouldBeUpdatedEvent {
+@JsonDeserialize(builder = StaleDocumentsEventBuilder.class)
+public interface StaleDocumentsEvent {
 
-    String DOCUMENTS_SHOULD_BE_UPDATED_TOPIC = "documents-should-be-updated";
+    String STALE_DOCUMENTS_TOPIC = "stale-documents";
 
     List<DocumentId> getIds();
 

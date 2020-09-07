@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package apps.documents;
+package apps.schemas;
 
 import static apps.schemas.SchemaChangedEvent.SCHEMA_CHANGED_TOPIC;
 
-import apps.schemas.SchemaChangedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class SchemaChangedEventListener {
+public class SchemaChangedEventSender {
 
-    private final DocumentsReindexer documentsReindexer;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @KafkaListener(topics = SCHEMA_CHANGED_TOPIC)
-    @NewSpan("process-schema-changed-event")
-    public void onSchemaChangedEvent(SchemaChangedEvent event) {
-        documentsReindexer.reindexDocumentsBySchemaId(event.getId());
+    @NewSpan("send-schema-changed-event")
+    public void sendSchemaChangedEvent(SchemaChangedEvent event) {
+        kafkaTemplate.send(SCHEMA_CHANGED_TOPIC, event);
     }
 
 }

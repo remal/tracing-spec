@@ -65,7 +65,7 @@ import zipkin2.reporter.Reporter;
 class EndToEndTest {
 
     private static final boolean IS_DEBUG = getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
-    private static final Duration AWAIT_TIMEOUT = IS_DEBUG ? Duration.ofHours(1) : Duration.ofSeconds(30);
+    private static final Duration AWAIT_TIMEOUT = IS_DEBUG ? Duration.ofHours(1) : Duration.ofMinutes(1);
 
     @Test
     void test() throws Throwable {
@@ -111,7 +111,7 @@ class EndToEndTest {
         renderer.addNodeProcessor(new KafkaRemoteServiceNameNodeProcessor());
         renderer.addTagToDisplay("kafka.topic");
 
-        int expectedSpansCount = 12;
+        int expectedSpansCount = 18;
         val expectedDiagram = normalizePuml(readTextResource("expected.puml"));
 
         {

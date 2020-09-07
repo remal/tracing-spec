@@ -16,11 +16,8 @@
 
 package apps.schemas;
 
-import static apps.schemas.SchemaChangedEvent.SCHEMA_CHANGED_TOPIC;
-
 import apps.common.repository.AbstractInMemoryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,11 +25,11 @@ import org.springframework.stereotype.Service;
 @SuppressWarnings("java:S1171")
 public class SchemaRepository extends AbstractInMemoryRepository<String, Schema> {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final SchemaChangedEventSender schemaChangedEventSender;
 
     @Override
     protected void onEntityChanged(Schema entity) {
-        kafkaTemplate.send(SCHEMA_CHANGED_TOPIC, ImmutableSchemaChangedEvent.builder()
+        schemaChangedEventSender.sendSchemaChangedEvent(ImmutableSchemaChangedEvent.builder()
             .id(entity.getId())
             .build()
         );
