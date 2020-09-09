@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -32,6 +33,7 @@ import name.remal.gradle_plugins.api.RelocateClasses;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.springframework.aop.IntroductionInterceptor;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
@@ -41,25 +43,77 @@ import org.springframework.core.Ordered;
 @Internal
 @RelocateClasses(TypeToken.class)
 @SuppressWarnings({"UnstableApiUsage", "java:S2160", "java:S1948"})
-abstract class AbstractDescriptionAnnotationPointcutAdvisor<A extends Annotation> extends AbstractPointcutAdvisor {
+abstract class AbstractAnnotationPointcutAdvisor<A extends Annotation> extends AbstractPointcutAdvisor {
 
-    protected abstract Function<A, String> getDescriptionGetter();
+    @Nullable
+    @OverrideOnly
+    protected Predicate<A> getHiddenGetter() {
+        return null;
+    }
+
+    @Nullable
+    @OverrideOnly
+    protected Function<A, String> getKindGetter() {
+        return null;
+    }
+
+    @Nullable
+    @OverrideOnly
+    protected Predicate<A> getAsyncGetter() {
+        return null;
+    }
+
+    @Nullable
+    @OverrideOnly
+    protected Function<A, String> getServiceNameGetter() {
+        return null;
+    }
+
+    @Nullable
+    @OverrideOnly
+    protected Function<A, String> getRemoteServiceNameGetter() {
+        return null;
+    }
+
+    @Nullable
+    @OverrideOnly
+    protected Function<A, String> getDescriptionGetter() {
+        return null;
+    }
 
 
     private final Tracer tracer;
     private final TracingSpecSpringProperties properties;
 
     private final Class<A> annotationType;
+
+    @Nullable
+    private final Predicate<A> hiddenGetter;
+    @Nullable
+    private final Function<A, String> kindGetter;
+    @Nullable
+    private final Predicate<A> asyncGetter;
+    @Nullable
+    private final Function<A, String> serviceNameGetter;
+    @Nullable
+    private final Function<A, String> remoteServiceNameGetter;
+    @Nullable
     private final Function<A, String> descriptionGetter;
 
     private final Pointcut pointcut;
     private final MethodInterceptor advice;
 
-    protected AbstractDescriptionAnnotationPointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+    protected AbstractAnnotationPointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
         this.tracer = tracer;
         this.properties = properties;
 
         this.annotationType = getAnnotationType();
+
+        this.hiddenGetter = getHiddenGetter();
+        this.kindGetter = getKindGetter();
+        this.asyncGetter = getAsyncGetter();
+        this.serviceNameGetter = getServiceNameGetter();
+        this.remoteServiceNameGetter = getRemoteServiceNameGetter();
         this.descriptionGetter = getDescriptionGetter();
 
         this.pointcut = new AnnotationMatchingPointcut(null, this.annotationType, true);
@@ -69,7 +123,7 @@ abstract class AbstractDescriptionAnnotationPointcutAdvisor<A extends Annotation
     @SuppressWarnings("unchecked")
     private Class<A> getAnnotationType() {
         val advisorType = TypeToken.of(getClass())
-            .getSupertype(AbstractDescriptionAnnotationPointcutAdvisor.class)
+            .getSupertype(AbstractAnnotationPointcutAdvisor.class)
             .getType();
         if (!(advisorType instanceof ParameterizedType)) {
             throw new IllegalStateException(advisorType + " is not an instance of ParameterizedType");
@@ -79,12 +133,12 @@ abstract class AbstractDescriptionAnnotationPointcutAdvisor<A extends Annotation
     }
 
     @Override
-    public Pointcut getPointcut() {
+    public final Pointcut getPointcut() {
         return pointcut;
     }
 
     @Override
-    public MethodInterceptor getAdvice() {
+    public final MethodInterceptor getAdvice() {
         return advice;
     }
 
@@ -94,6 +148,7 @@ abstract class AbstractDescriptionAnnotationPointcutAdvisor<A extends Annotation
         @Override
         @Nullable
         @SneakyThrows
+        @SuppressWarnings("java:S3776")
         public Object invoke(MethodInvocation invocation) {
             if (!properties.isEnabled()) {
                 return invocation.proceed();
@@ -108,16 +163,55 @@ abstract class AbstractDescriptionAnnotationPointcutAdvisor<A extends Annotation
                 return invocation.proceed();
             }
 
-            val description = Optional.ofNullable(invocation.getMethod())
+            A annotation = Optional.ofNullable(invocation.getMethod())
                 .map(it -> getMostSpecificMethod(it, invocation.getThis().getClass()))
                 .map(it -> findAnnotation(it, annotationType))
-                .map(descriptionGetter)
                 .orElse(null);
-            if (description == null || description.isEmpty()) {
+            if (annotation == null) {
                 return invocation.proceed();
             }
 
-            span.tag("spec.description", description);
+            if (hiddenGetter != null) {
+                val hidden = hiddenGetter.test(annotation);
+                if (hidden) {
+                    span.tag("spec.hidden", "1");
+                }
+            }
+
+            if (kindGetter != null) {
+                val kind = kindGetter.apply(annotation);
+                if (kind != null && !kind.isEmpty()) {
+                    span.tag("spec.kind", kind);
+                }
+            }
+
+            if (asyncGetter != null) {
+                val async = asyncGetter.test(annotation);
+                if (async) {
+                    span.tag("spec.async", "1");
+                }
+            }
+
+            if (serviceNameGetter != null) {
+                val serviceName = serviceNameGetter.apply(annotation);
+                if (serviceName != null && !serviceName.isEmpty()) {
+                    span.tag("spec.serviceName", serviceName);
+                }
+            }
+
+            if (remoteServiceNameGetter != null) {
+                val remoteServiceName = remoteServiceNameGetter.apply(annotation);
+                if (remoteServiceName != null && !remoteServiceName.isEmpty()) {
+                    span.tag("spec.remoteServiceName", remoteServiceName);
+                }
+            }
+
+            if (descriptionGetter != null) {
+                val description = descriptionGetter.apply(annotation);
+                if (description != null && !description.isEmpty()) {
+                    span.tag("spec.description", description);
+                }
+            }
 
             return invocation.proceed();
         }

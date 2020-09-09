@@ -324,6 +324,10 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
                     .append("</size>")
             );
 
+            if (isNotEmpty(description)) {
+                sb.append("\nnote left: ").append(escapeString(description));
+            }
+
             val sourceShouldBeActivated = parent == null
                 && !async
                 && !Objects.equals(sourceServiceName, targetServiceName);
@@ -332,10 +336,6 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
             }
 
             sb.append("\nactivate ").append(quoteString(targetServiceName));
-
-            if (isNotEmpty(description)) {
-                sb.append("\nnote right: ").append(escapeString(description));
-            }
 
             children.forEach(sb::append);
 

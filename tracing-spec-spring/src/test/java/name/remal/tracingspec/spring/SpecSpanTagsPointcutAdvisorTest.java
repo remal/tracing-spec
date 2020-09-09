@@ -18,44 +18,43 @@ package name.remal.tracingspec.spring;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 
 import brave.Tracer;
 import org.junit.jupiter.api.Test;
 
-class Swagger2PointcutAdvisorTest extends AbstractAnnotationPointcutAdvisorTest {
+class SpecSpanTagsPointcutAdvisorTest extends AbstractAnnotationPointcutAdvisorTest {
 
     @Override
     protected AbstractAnnotationPointcutAdvisor<?> createAdvisor(
         Tracer tracer,
         TracingSpecSpringProperties properties
     ) {
-        return new Swagger2PointcutAdvisor(tracer, properties);
+        return new SpecSpanTagsPointcutAdvisor(tracer, properties);
     }
 
     @Test
     void getHiddenGetter() {
-        assertThat(advisor.getHiddenGetter(), nullValue());
+        assertThat(advisor.getHiddenGetter(), notNullValue());
     }
 
     @Test
     void getKindGetter() {
-        assertThat(advisor.getKindGetter(), nullValue());
+        assertThat(advisor.getKindGetter(), notNullValue());
     }
 
     @Test
     void getAsyncGetter() {
-        assertThat(advisor.getAsyncGetter(), nullValue());
+        assertThat(advisor.getAsyncGetter(), notNullValue());
     }
 
     @Test
     void getServiceNameGetter() {
-        assertThat(advisor.getServiceNameGetter(), nullValue());
+        assertThat(advisor.getServiceNameGetter(), notNullValue());
     }
 
     @Test
     void getRemoteServiceNameGetter() {
-        assertThat(advisor.getRemoteServiceNameGetter(), nullValue());
+        assertThat(advisor.getRemoteServiceNameGetter(), notNullValue());
     }
 
     @Test

@@ -31,7 +31,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 
 /**
  * This component changes order of {@link org.springframework.cloud.sleuth.annotation.SleuthAdvisorConfig} to
- * make it run before all {@link AbstractDescriptionAnnotationPointcutAdvisor} components.
+ * make it run before all {@link AbstractAnnotationPointcutAdvisor} components.
  */
 @Internal
 @RequiredArgsConstructor

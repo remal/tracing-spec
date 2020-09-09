@@ -22,7 +22,7 @@ import java.util.function.Function;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
-class Swagger2PointcutAdvisor extends AbstractDescriptionAnnotationPointcutAdvisor<ApiOperation> {
+class Swagger2PointcutAdvisor extends AbstractAnnotationPointcutAdvisor<ApiOperation> {
 
     public Swagger2PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
         super(tracer, properties);

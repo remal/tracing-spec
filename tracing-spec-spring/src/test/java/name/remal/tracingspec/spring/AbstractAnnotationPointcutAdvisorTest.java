@@ -35,9 +35,9 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-abstract class AbstractDescriptionAnnotationPointcutAdvisorTest {
+abstract class AbstractAnnotationPointcutAdvisorTest {
 
-    protected abstract AbstractDescriptionAnnotationPointcutAdvisor<?> createAdvisor(
+    protected abstract AbstractAnnotationPointcutAdvisor<?> createAdvisor(
         Tracer tracer,
         TracingSpecSpringProperties properties
     );
@@ -49,7 +49,7 @@ abstract class AbstractDescriptionAnnotationPointcutAdvisorTest {
 
     private final TracingSpecSpringProperties properties = new TracingSpecSpringProperties();
 
-    private final AbstractDescriptionAnnotationPointcutAdvisor<?> advisor = createAdvisor(tracer, properties);
+    protected final AbstractAnnotationPointcutAdvisor<?> advisor = createAdvisor(tracer, properties);
 
     private final MethodInterceptor advice = advisor.getAdvice();
 
@@ -122,26 +122,41 @@ abstract class AbstractDescriptionAnnotationPointcutAdvisorTest {
     }
 
     @Test
-    final void empty_description() throws Throwable {
-        when(invocation.getMethod()).thenReturn(Methods.class.getMethod("emptyDescription"));
+    final void empty() throws Throwable {
+        when(invocation.getMethod()).thenReturn(Methods.class.getMethod("empty"));
 
         assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
         verify(span, never()).tag(any(), any());
     }
 
     @Test
-    final void success() throws Throwable {
+    final void full() throws Throwable {
         assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
-        verify(span, times(1)).tag("spec.description", "description");
+        if (advisor.getHiddenGetter() != null) {
+            verify(span, times(1)).tag("spec.hidden", "1");
+        }
+        if (advisor.getKindGetter() != null) {
+            verify(span, times(1)).tag("spec.kind", "client");
+        }
+        if (advisor.getAsyncGetter() != null) {
+            verify(span, times(1)).tag("spec.async", "1");
+        }
+        if (advisor.getServiceNameGetter() != null) {
+            verify(span, times(1)).tag("spec.serviceName", "local");
+        }
+        if (advisor.getRemoteServiceNameGetter() != null) {
+            verify(span, times(1)).tag("spec.remoteServiceName", "remote");
+        }
+        if (advisor.getDescriptionGetter() != null) {
+            verify(span, times(1)).tag("spec.description", "description");
+        }
     }
 
     @Test
     final void debug_when_should_be_debug() throws Throwable {
         properties.setDescriptionOnlyIfDebug(true);
         when(traceContext.debug()).thenReturn(true);
-
-        assertThat(advice.invoke(invocation), equalTo(INVOCATION_RESULT));
-        verify(span, times(1)).tag("spec.description", "description");
+        full();
     }
 
 
@@ -149,11 +164,20 @@ abstract class AbstractDescriptionAnnotationPointcutAdvisorTest {
         public void notAnnotated() {
         }
 
+        @SpecSpanTags
         @ApiOperation("")
-        @Operation()
-        public void emptyDescription() {
+        @Operation
+        public void empty() {
         }
 
+        @SpecSpanTags(
+            hidden = true,
+            kind = "client",
+            async = true,
+            serviceName = "local",
+            remoteServiceName = "remote",
+            description = "description"
+        )
         @ApiOperation("description")
         @Operation(summary = "description")
         public void annotated() {
