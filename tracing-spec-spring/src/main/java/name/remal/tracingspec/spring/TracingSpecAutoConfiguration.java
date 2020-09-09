@@ -52,13 +52,12 @@ public class TracingSpecAutoConfiguration {
         return new SleuthAdvisorOrderChanger();
     }
 
-    @Configuration
-    @ConditionalOnClass(ApiOperation.class)
-    static class Swagger2Configuration {
-        @Bean
-        Swagger2PointcutAdvisor swagger2PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
-            return new Swagger2PointcutAdvisor(tracer, properties);
-        }
+    @Bean
+    static SpecSpanTagsPointcutAdvisor specSpanTagsPointcutAdvisor(
+        Tracer tracer,
+        TracingSpecSpringProperties properties
+    ) {
+        return new SpecSpanTagsPointcutAdvisor(tracer, properties);
     }
 
     @Configuration
@@ -67,6 +66,15 @@ public class TracingSpecAutoConfiguration {
         @Bean
         Swagger3PointcutAdvisor swagger3PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
             return new Swagger3PointcutAdvisor(tracer, properties);
+        }
+    }
+
+    @Configuration
+    @ConditionalOnClass(ApiOperation.class)
+    static class Swagger2Configuration {
+        @Bean
+        Swagger2PointcutAdvisor swagger2PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+            return new Swagger2PointcutAdvisor(tracer, properties);
         }
     }
 

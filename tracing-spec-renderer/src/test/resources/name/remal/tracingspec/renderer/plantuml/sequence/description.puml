@@ -2,11 +2,11 @@
 skinparam maxmessagesize 500
 skinparam responseMessageBelowArrow true
 [-> A: parent
+note left: parent description
 activate A
-note right: parent description
   A -> B: child
+  note left: child description
   activate B
-  note right: child description
   return <size:9>child</size>
 return <size:9>parent</size>
 @enduml

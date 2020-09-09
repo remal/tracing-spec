@@ -2,9 +2,10 @@
 skinparam maxmessagesize 500
 skinparam responseMessageBelowArrow true
 [-> "schemas&#45;service": post &#47;schemas
+note left: Save schema
 activate "schemas&#45;service"
-note right: Save schema
 "schemas&#45;service" -> "schemas&#45;service": send&#45;schema&#45;changed&#45;event
+note left: Publish SchemaChangedEvent
 activate "schemas&#45;service"
 "schemas&#45;service" -> kafka: send\n<size:10>kafka.topic=schema&#45;changed</size>
 activate kafka
@@ -20,6 +21,7 @@ activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": reindex&#45;documents&#45;of&#45;schema
 activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": send&#45;stale&#45;documents&#45;event
+note left: Publish StaleDocumentsEvent
 activate "documents&#45;service"
 "documents&#45;service" -> kafka: send\n<size:10>kafka.topic=stale&#45;documents</size>
 activate kafka
@@ -38,12 +40,12 @@ activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": reindex&#45;documents
 activate "documents&#45;service"
 "documents&#45;service" -> "schemas&#45;service": get &#47;schemas&#47;{id}
+note left: Get schema by ID
 activate "schemas&#45;service"
-note right: Get schema by ID
 return <size:9>get &#47;schemas&#47;{id}</size>
 "documents&#45;service" -> "users&#45;service": get &#47;users&#47;{id}
+note left: Get user by ID
 activate "users&#45;service"
-note right: Get user by ID
 return <size:9>get &#47;users&#47;{id}</size>
 return <size:9>reindex&#45;documents</size>
 return <size:9>process&#45;stale&#45;documents&#45;event</size>
