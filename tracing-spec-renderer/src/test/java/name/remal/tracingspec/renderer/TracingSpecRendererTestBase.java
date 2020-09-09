@@ -16,11 +16,10 @@
 
 package name.remal.tracingspec.renderer;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static utils.test.json.ObjectMapperProvider.readJsonResource;
 import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
@@ -121,13 +120,18 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     }
 
     @Test
-    final void parent_without_remote_sibling_children_with_remote() throws Throwable {
-        resourceTest("parent-without-remote-sibling-children-with-remote.json5");
+    final void parent_without_remote_children_with_remote() throws Throwable {
+        resourceTest("parent-without-remote-children-with-remote.json5");
     }
 
     @Test
-    final void parent_without_remote_children_with_remote() throws Throwable {
-        resourceTest("parent-without-remote-children-with-remote.json5");
+    final void parent_with_own_remote_children_with_remote() throws Throwable {
+        resourceTest("parent-with-own-remote-children-with-remote.json5");
+    }
+
+    @Test
+    final void parent_with_own_remote_child_without_remote() throws Throwable {
+        resourceTest("parent-with-own-remote-child-without-remote.json5");
     }
 
     @Test
@@ -153,6 +157,11 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     @Test
     final void displayable_tag() throws Throwable {
         resourceTest("displayable-tag.json5");
+    }
+
+    @Test
+    final void hidden_spans() throws Throwable {
+        resourceTest("hidden-spans.json5");
     }
 
     private void resourceTest(@Language("file-reference") String resourceName) throws Throwable {
@@ -194,29 +203,8 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
         }
 
         @Test
-        final void all_spans_without_service_name() {
-            List<SpecSpan> specSpans = asList(
-                nextSpecSpan(),
-                nextSpecSpan()
-            );
-            assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
-        }
-
-        @Test
-        final void all_spans_with_service_name() {
-            List<SpecSpan> specSpans = asList(
-                nextSpecSpan(it -> it.setServiceName("service A")),
-                nextSpecSpan(it -> it.setServiceName("service B"))
-            );
-            assertDoesNotThrow(() -> renderer.renderTracingSpec(specSpans));
-        }
-
-        @Test
-        final void some_spans_have_service_name_and_some_not() {
-            List<SpecSpan> specSpans = asList(
-                nextSpecSpan(it -> it.setServiceName("service A")),
-                nextSpecSpan()
-            );
+        final void span_without_service_name() {
+            List<SpecSpan> specSpans = singletonList(nextSpecSpan());
             assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans));
         }
 

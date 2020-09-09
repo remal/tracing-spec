@@ -20,10 +20,12 @@ import static java.time.Instant.ofEpochSecond;
 import static java.util.Collections.singletonList;
 import static name.remal.tracingspec.model.SpecSpanKind.CONSUMER;
 import static name.remal.tracingspec.model.SpecSpanKind.PRODUCER;
+import static name.remal.tracingspec.model.SpecSpanKind.SERVER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -107,6 +109,60 @@ class SpecSpanNodeTest extends SpecSpanInfoTest<SpecSpanNode> {
     }
 
     @Test
+    void addChildAfter() {
+        val parent = nextSpecSpanNode();
+        val child1 = nextSpecSpanNode(it -> it.setParent(parent));
+        val child2 = nextSpecSpanNode(it -> it.setParent(parent));
+
+        val childToAdd = nextSpecSpanNode();
+        assertThrows(IllegalArgumentException.class, () -> parent.addChildAfter(childToAdd, childToAdd));
+
+        val detachedNode = nextSpecSpanNode();
+        assertThrows(IllegalArgumentException.class, () -> parent.addChildAfter(childToAdd, detachedNode));
+
+        parent.addChildAfter(childToAdd, child1);
+        assertThat(parent.getChildren(), contains(
+            child1,
+            childToAdd,
+            child2
+        ));
+
+        parent.addChildAfter(childToAdd, child2);
+        assertThat(parent.getChildren(), contains(
+            child1,
+            child2,
+            childToAdd
+        ));
+    }
+
+    @Test
+    void addChildBefore() {
+        val parent = nextSpecSpanNode();
+        val child1 = nextSpecSpanNode(it -> it.setParent(parent));
+        val child2 = nextSpecSpanNode(it -> it.setParent(parent));
+
+        val childToAdd = nextSpecSpanNode();
+        assertThrows(IllegalArgumentException.class, () -> parent.addChildBefore(childToAdd, childToAdd));
+
+        val detachedNode = nextSpecSpanNode();
+        assertThrows(IllegalArgumentException.class, () -> parent.addChildBefore(childToAdd, detachedNode));
+
+        parent.addChildBefore(childToAdd, child1);
+        assertThat(parent.getChildren(), contains(
+            childToAdd,
+            child1,
+            child2
+        ));
+
+        parent.addChildBefore(childToAdd, child2);
+        assertThat(parent.getChildren(), contains(
+            child1,
+            childToAdd,
+            child2
+        ));
+    }
+
+    @Test
     void removeChild() {
         val parent = nextSpecSpanNode();
         val child1 = nextSpecSpanNode();
@@ -179,6 +235,51 @@ class SpecSpanNodeTest extends SpecSpanInfoTest<SpecSpanNode> {
 
         assertThat(parent.getChildren(), contains(child1, child2));
         assertThat(child1.getChildren(), contains(child11, child12));
+    }
+
+    @Test
+    void append() {
+        val parent = nextSpecSpanNode();
+
+        val node = nextSpecSpanNode(it -> {
+            it.setParent(parent);
+            it.setName(null);
+        });
+        val child = nextSpecSpanNode(it -> {
+            it.setParent(node);
+            it.setStartedAt(ofEpochSecond(20));
+        });
+
+        val nodeToAppend = nextSpecSpanNode(it -> {
+            it.setParent(parent);
+            it.setName("name");
+            it.setKind(SERVER);
+            it.setAsync(true);
+            it.setServiceName("local");
+            it.setRemoteServiceName("remote");
+            it.setStartedAt(ofEpochSecond(1));
+            it.setDescription("description");
+            it.putTag("tag", "value");
+        });
+        val childToAppend = nextSpecSpanNode(it -> {
+            it.setParent(nodeToAppend);
+            it.setStartedAt(ofEpochSecond(10));
+        });
+
+        node.append(nodeToAppend);
+
+        assertThat(node.getChildren(), contains(child, childToAppend));
+        assertThat(node.getName(), equalTo("name"));
+        assertThat(node.getKind(), equalTo(SERVER));
+        assertThat(node.isAsync(), equalTo(true));
+        assertThat(node.getServiceName(), equalTo("local"));
+        assertThat(node.getRemoteServiceName(), equalTo("remote"));
+        assertThat(node.getStartedAt(), equalTo(ofEpochSecond(1)));
+        assertThat(node.getDescription(), equalTo("description"));
+        assertThat(node.getTags(), hasEntry("tag", "value"));
+
+        assertThat(nodeToAppend.getParent(), nullValue());
+        assertThat(nodeToAppend.getChildren(), empty());
     }
 
 

@@ -1,4 +1,5 @@
 @startuml
+skinparam maxmessagesize 500
 skinparam responseMessageBelowArrow true
 [-> "schemas&#45;service": post &#47;schemas
 activate "schemas&#45;service"

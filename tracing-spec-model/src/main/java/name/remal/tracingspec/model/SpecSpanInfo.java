@@ -37,6 +37,9 @@ import org.jetbrains.annotations.Contract;
 @JsonInclude(NON_EMPTY)
 abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparable<Self> {
 
+    @JsonInclude(NON_DEFAULT)
+    boolean hidden;
+
     @Nullable
     String name;
 

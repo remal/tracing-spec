@@ -1,0 +1,16 @@
+@startuml
+skinparam maxmessagesize 500
+skinparam responseMessageBelowArrow true
+[-> A: root
+activate A
+  A -> B: 1
+  activate B
+    B -> C
+    activate C
+      C -> D: 2
+      activate D
+      return <size:9>2</size>
+    return
+  return <size:9>1</size>
+return <size:9>root</size>
+@enduml
