@@ -32,6 +32,11 @@ abstract class SpecSpanInfoTagsProcessor {
         }
 
         switch (key) {
+            case "spec.hidden":
+                if (!info.isHidden()) {
+                    info.setHidden(parseBoolean(value));
+                }
+                break;
             case "spec.kind":
                 if (info.getKind() == null) {
                     info.setKind(parseSpecSpanKind(value));
@@ -39,7 +44,7 @@ abstract class SpecSpanInfoTagsProcessor {
                 break;
             case "spec.async":
                 if (!info.isAsync()) {
-                    info.setAsync("1".equals(value) || "true".equals(value.toLowerCase()));
+                    info.setAsync(parseBoolean(value));
                 }
                 break;
             case "spec.serviceName":
@@ -64,6 +69,11 @@ abstract class SpecSpanInfoTagsProcessor {
         for (val entry : map.entrySet()) {
             processTag(info, entry.getKey(), entry.getValue());
         }
+    }
+
+
+    private static boolean parseBoolean(String value) {
+        return "1".equals(value) || "true".equals(value.toLowerCase());
     }
 
 

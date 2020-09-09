@@ -1,4 +1,5 @@
 @startuml
+skinparam maxmessagesize 500
 skinparam responseMessageBelowArrow true
 [-> A: parent
 activate A
@@ -7,6 +8,7 @@ activate A
     B -> C: child1
     activate C
     return <size:9>child1</size>
+  return
   A -> E
     activate E
     E -> F: child2
@@ -16,6 +18,8 @@ activate A
       return <size:9>child3</size>
     return <size:9>child2</size>
   return
+  A -> B
+  activate B
     B -> D: child4
     activate D
     return <size:9>child4</size>

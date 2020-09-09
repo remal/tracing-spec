@@ -16,6 +16,7 @@
 
 package name.remal.tracingspec.model;
 
+@FunctionalInterface
 public interface SpecSpanNodeVisitor {
 
     /**
@@ -25,8 +26,7 @@ public interface SpecSpanNodeVisitor {
         return true;
     }
 
-    default void visit(SpecSpanNode node) throws Throwable {
-    }
+    void visit(SpecSpanNode node) throws Throwable;
 
     /**
      * Executed when the node and all its children is visited

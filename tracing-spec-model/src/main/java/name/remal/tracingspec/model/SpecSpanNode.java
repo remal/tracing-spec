@@ -82,25 +82,57 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
     public void setChildren(Iterable<SpecSpanNode> children) {
         this.children.forEach(child -> child.parent = null);
         this.children.clear();
-        children.forEach(this::doAddChild);
+        children.forEach(child -> child.setParent(this));
     }
 
     @Contract("_ -> this")
-    public SpecSpanNode addChild(SpecSpanNode child) {
-        removeChild(child);
-        doAddChild(child);
+    public SpecSpanNode addChild(SpecSpanNode childToAdd) {
+        removeChild(childToAdd);
+        childToAdd.setParent(this);
         return this;
     }
 
-    private void doAddChild(SpecSpanNode child) {
-        child.setParent(this);
+    @Contract("_, _ -> this")
+    public SpecSpanNode addChildAfter(SpecSpanNode childToAdd, SpecSpanNode childToFind) {
+        addChildWithIndexIncrement(childToAdd, childToFind, 1);
+        return this;
+    }
+
+    @Contract("_, _ -> this")
+    public SpecSpanNode addChildBefore(SpecSpanNode childToAdd, SpecSpanNode childToFind) {
+        addChildWithIndexIncrement(childToAdd, childToFind, 0);
+        return this;
+    }
+
+    @SuppressWarnings("java:S1698")
+    public SpecSpanNode addChildWithIndexIncrement(
+        SpecSpanNode childToAdd,
+        SpecSpanNode childToFind,
+        int indexIncrement
+    ) {
+        if (childToAdd == childToFind) {
+            throw new IllegalArgumentException("childToAdd == childToFind");
+        }
+
+        if (getChildIndex(childToFind) < 0) {
+            throw new IllegalArgumentException(this + " doesn't have child: " + childToFind);
+        }
+
+        childToAdd.setParent(null);
+
+        // We have to calculate the index, as it can be changed after calling setParent() above
+        val index = getChildIndex(childToFind);
+        childToAdd.parent = this;
+        children.add(index + indexIncrement, childToAdd);
+
+        return this;
     }
 
     @Contract("_ -> this")
-    public SpecSpanNode removeChild(SpecSpanNode child) {
-        val childIndex = getChildIndex(child);
+    public SpecSpanNode removeChild(SpecSpanNode childToRemove) {
+        val childIndex = getChildIndex(childToRemove);
         if (childIndex >= 0) {
-            child.parent = null;
+            childToRemove.parent = null;
             children.remove(childIndex);
         }
         return this;
@@ -153,6 +185,7 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
         nodeToAppend.setParent(null);
         new ArrayList<>(nodeToAppend.getChildren()).forEach(childToAppend -> childToAppend.setParent(this));
 
+        setHidden(isHidden() && nodeToAppend.isHidden());
         if (getName() == null) {
             setName(nodeToAppend.getName());
         }

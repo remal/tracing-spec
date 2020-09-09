@@ -22,13 +22,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
-import name.remal.tracingspec.model.SpecSpanNode;
-import name.remal.tracingspec.model.SpecSpanNodeVisitor;
 import name.remal.tracingspec.model.SpecSpansGraph;
 import org.jetbrains.annotations.Contract;
 
@@ -73,32 +70,16 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
         nodeProcessors.stream()
             .sorted()
             .forEach(processor ->
-                graph.visit(new SpecSpanNodeVisitor() {
-                    @Override
-                    public void visit(SpecSpanNode node) throws Throwable {
-                        processor.processNode(node);
-                    }
-                })
+                graph.visit(processor::processNode)
             );
     }
 
     private static void checkServiceNameExistence(SpecSpansGraph graph) {
-        val haveSpansWithServiceName = new AtomicBoolean(false);
-        val haveSpansWithoutServiceName = new AtomicBoolean(false);
-        graph.visit(new SpecSpanNodeVisitor() {
-            @Override
-            public void visit(SpecSpanNode node) {
-                if (node.getServiceName() != null) {
-                    haveSpansWithServiceName.set(true);
-                } else {
-                    haveSpansWithoutServiceName.set(true);
-                }
+        graph.visit(node -> {
+            if (node.getServiceName() == null) {
+                throw new IllegalStateException("Node doesn't have service name: " + node);
             }
         });
-
-        if (haveSpansWithServiceName.get() && haveSpansWithoutServiceName.get()) {
-            throw new IllegalStateException("Some specSpans do have serviceName and some - not");
-        }
     }
 
 
@@ -110,6 +91,16 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
     @Contract("null -> false")
     protected static boolean isNotEmpty(@Nullable CharSequence charSequence) {
         return !isEmpty(charSequence);
+    }
+
+
+    @Contract("null, _ -> param2")
+    protected static <T> T defaultValue(@Nullable T value, T defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    protected static String defaultValue(@Nullable String value) {
+        return defaultValue(value, "");
     }
 
 }

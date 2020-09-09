@@ -123,12 +123,7 @@ class SpecSpansGraphTest {
         graph.addRoot(root2);
 
         List<SpecSpanNode> visitedNodes = new ArrayList<>();
-        graph.visit(new SpecSpanNodeVisitor() {
-            @Override
-            public void visit(SpecSpanNode node) {
-                visitedNodes.add(node);
-            }
-        });
+        graph.visit(visitedNodes::add);
 
         assertThat(visitedNodes, contains(root1, child1, root2));
     }

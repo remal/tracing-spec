@@ -27,6 +27,18 @@ class SpecSpanInfoTagsProcessorTest {
     private final SpecSpanInfo<?> info = mock(SpecSpanInfo.class);
 
     @Test
+    void hidden_1() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.hidden", "1");
+        verify(info).setHidden(true);
+    }
+
+    @Test
+    void hidden_true() {
+        SpecSpanInfoTagsProcessor.processTag(info, "spec.hidden", "tRuE");
+        verify(info).setHidden(true);
+    }
+
+    @Test
     void kind() {
         SpecSpanInfoTagsProcessor.processTag(info, "spec.kind", "server");
         verify(info).setKind(SERVER);
