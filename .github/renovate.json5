@@ -1,11 +1,11 @@
 {
   extends: ["config:base"],
-  stabilityDays: 0,
+  stabilityDays: 0, // should be 1: https://github.com/renovatebot/renovate/issues/7180
   separateMajorMinor: false,
   separateMinorPatch: false,
   prCreation: "immediate",
   prHourlyLimit: 0,
-  prConcurrentLimit: 1,
+  prConcurrentLimit: 0,
   assigneesFromCodeOwners: true,
   reviewersFromCodeOwners: true,
   dependencyDashboard: false,
