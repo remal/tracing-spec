@@ -1,11 +1,11 @@
 {
   extends: ["config:base"],
-  stabilityDays: 1,
+  stabilityDays: 0,
   separateMajorMinor: false,
   separateMinorPatch: false,
   prCreation: "immediate",
   prHourlyLimit: 0,
-  prConcurrentLimit: 0,
+  prConcurrentLimit: 1,
   assigneesFromCodeOwners: true,
   reviewersFromCodeOwners: true,
   dependencyDashboard: false,
