@@ -31,10 +31,10 @@ cache:
   - $HOME/.sonar/cache
 
 before_script:
+- echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_LOGIN" --password-stdin
 - sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
 
 script:
-- docker login --username "$DOCKER_HUB_LOGIN" --password "$DOCKER_HUB_TOKEN"
 - ./.travis/build.sh
 
 deploy:
