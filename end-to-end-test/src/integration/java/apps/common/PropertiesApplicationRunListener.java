@@ -16,6 +16,8 @@
 
 package apps.common;
 
+import static java.lang.System.currentTimeMillis;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +29,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
 public class PropertiesApplicationRunListener implements SpringApplicationRunListener, Ordered {
+
+    private static final long START_MILLIS = currentTimeMillis();
 
     private final Optional<String> serviceName;
 
@@ -54,6 +58,7 @@ public class PropertiesApplicationRunListener implements SpringApplicationRunLis
         properties.put("server.port", 0);
         properties.put("spring.cloud.bootstrap.enabled", false);
         serviceName.ifPresent(it -> properties.put("spring.application.name", it));
+        serviceName.ifPresent(it -> properties.put("spring.kafka.consumer.group-id", it + '-' + START_MILLIS));
 
         environment.getPropertySources().addLast(
             new MapPropertySource(

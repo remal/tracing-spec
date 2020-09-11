@@ -18,6 +18,7 @@ package apps.common;
 
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.sleuth.zipkin2.ZipkinProperties;
 import org.springframework.context.annotation.Role;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import utils.test.container.ZipkinContainer;
 
 @Component
 @Role(ROLE_INFRASTRUCTURE)
+@ConditionalOnBean(ZipkinContainer.class)
 public class ZipkinPropertiesBeanPostProcessor
     extends AbstractContainerPropertiesBeanPostProcessor<ZipkinProperties, ZipkinContainer> {
 

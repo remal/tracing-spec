@@ -22,3 +22,22 @@ logging:
     org.xnio: WARN
     org.springframework.context.support: WARN
     org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplierBuilder: ERROR
+
+tracingspec:
+  retriever:
+    zipkin:
+      connect-timeout-millis: 1000
+      write-timeout-millis: 1000
+      read-timeout-millis: 5000
+    jaeger:
+      timeout-millis: 10000
+
+  renderer:
+    options:
+      graph-processors:
+      - replace-single-root-with-children
+      node-processors:
+      - append-server-to-client
+      - set-kafka-remote-service-name-from-tag
+      tags-to-display:
+      - kafka.topic

@@ -22,9 +22,11 @@ import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRA
 import static zipkin2.codec.SpanBytesEncoder.JSON_V2;
 
 import lombok.val;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
+import shared.testcontainers.TestcontainersStarter;
 import utils.test.container.JaegerAllInOneContainer;
 import zipkin2.Span;
 import zipkin2.reporter.AsyncReporter;
@@ -37,8 +39,12 @@ import zipkin2.reporter.urlconnection.URLConnectionSender;
 public class ReportersConfiguration {
 
     @Bean
-    public Reporter<Span> jaegerReporter(JaegerAllInOneContainer jaegerContainer) {
-        jaegerContainer.start();
+    @ConditionalOnBean(JaegerAllInOneContainer.class)
+    public Reporter<Span> jaegerReporter(
+        TestcontainersStarter containersStarter,
+        JaegerAllInOneContainer jaegerContainer
+    ) {
+        containersStarter.start(jaegerContainer);
 
         val sender = URLConnectionSender.create(jaegerContainer.getZipkinCollectorUrl());
 

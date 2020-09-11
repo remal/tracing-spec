@@ -7,6 +7,7 @@ include(
     ':tracing-spec-retriever-zipkin',
     ':tracing-spec-renderer',
     ':tracing-spec-spring',
+    ':tracing-spec-application',
     ':utils-gson',
     ':utils-okhttp',
     ':utils-test',

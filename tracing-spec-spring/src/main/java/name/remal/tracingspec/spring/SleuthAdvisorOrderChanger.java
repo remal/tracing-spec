@@ -48,7 +48,7 @@ class SleuthAdvisorOrderChanger implements BeanPostProcessor, BeanFactoryAware {
         }
 
         val listableBeanFactory = (ListableBeanFactory) beanFactory;
-        val advisorBeanNames = beanNamesForTypeIncludingAncestors(listableBeanFactory, Advisor.class, true, false);
+        val advisorBeanNames = beanNamesForTypeIncludingAncestors(listableBeanFactory, Advisor.class, false, false);
         for (val advisorBeanName : advisorBeanNames) {
             val beanType = beanFactory.getType(advisorBeanName);
             if (beanType != null && isSleuthAdvisorClass(beanType)) {

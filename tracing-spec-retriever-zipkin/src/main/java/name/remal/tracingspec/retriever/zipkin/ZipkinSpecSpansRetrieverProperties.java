@@ -35,25 +35,25 @@ public class ZipkinSpecSpansRetrieverProperties {
      * Zipkin URL (for example: http://localhost:9411/)
      */
     @Nullable
-    private URL url;
+    URL url;
 
     /**
      * Connect timeout in milliseconds
      */
     @Min(1)
-    private long connectTimeoutMillis = 5_000;
+    long connectTimeoutMillis = 5_000;
 
     /**
      * Write timeout in milliseconds
      */
     @Min(1)
-    private long writeTimeoutMillis = 10_000;
+    long writeTimeoutMillis = 10_000;
 
     /**
      * Read timeout in milliseconds
      */
     @Min(1)
-    private long readTimeoutMillis = 60_000;
+    long readTimeoutMillis = 60_000;
 
 
     @Tolerate

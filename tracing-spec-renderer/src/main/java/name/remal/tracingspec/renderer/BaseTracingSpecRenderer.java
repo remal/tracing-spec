@@ -16,62 +16,50 @@
 
 package name.remal.tracingspec.renderer;
 
+import static java.nio.file.Files.createDirectories;
 import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
+import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.model.SpecSpansGraph;
 import org.jetbrains.annotations.Contract;
 
-@NotThreadSafe
 public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
 
-    protected abstract Result renderSpecSpansGraph(SpecSpansGraph graph);
+    protected abstract Result renderSpecSpansGraph(SpecSpansGraph graph, RenderingOptions options);
 
-
-    private final List<SpecSpanNodeProcessor> nodeProcessors = new ArrayList<>();
-
-    @Override
-    public void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor) {
-        this.nodeProcessors.add(nodeProcessor);
-    }
-
-    private final Set<String> tagsToDisplay = new LinkedHashSet<>();
-
-    @Override
-    public void addTagToDisplay(String tagName) {
-        tagsToDisplay.add(tagName);
-    }
-
-    protected boolean isDisplayableTag(String tagName) {
-        return tagsToDisplay.contains(tagName);
-    }
+    protected abstract void writeResultToPath(Result result, Path path);
 
 
     @Override
-    public final Result renderTracingSpec(List<SpecSpan> specSpans) {
+    public final Result renderTracingSpec(List<SpecSpan> specSpans, RenderingOptions options) {
         if (specSpans.isEmpty()) {
             throw new IllegalArgumentException("specSpans must not be empty");
         }
 
-        val specSpansGraph = createSpecSpansGraph(specSpans);
-        processNodes(specSpansGraph);
-        checkServiceNameExistence(specSpansGraph);
-        return renderSpecSpansGraph(specSpansGraph);
+        val graph = createSpecSpansGraph(specSpans);
+        processGraph(graph, options);
+        processNodes(graph, options);
+        leaveOnlyDisplayableTags(graph, options);
+        checkServiceNameExistence(graph);
+        return renderSpecSpansGraph(graph, options);
     }
 
-    private void processNodes(SpecSpansGraph graph) {
-        nodeProcessors.stream()
-            .sorted()
-            .forEach(processor ->
-                graph.visit(processor::processNode)
-            );
+    @SneakyThrows
+    private static void processGraph(SpecSpansGraph graph, RenderingOptions options) {
+        for (val graphProcessor : options.getGraphProcessors()) {
+            graphProcessor.processGraph(graph);
+        }
+    }
+
+    private static void processNodes(SpecSpansGraph graph, RenderingOptions options) {
+        for (val nodeProcessor : options.getNodeProcessors()) {
+            graph.visit(nodeProcessor::processNode);
+        }
     }
 
     private static void checkServiceNameExistence(SpecSpansGraph graph) {
@@ -80,6 +68,26 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
                 throw new IllegalStateException("Node doesn't have service name: " + node);
             }
         });
+    }
+
+    private static void leaveOnlyDisplayableTags(SpecSpansGraph graph, RenderingOptions options) {
+        graph.visit(node ->
+            node.getTags().keySet().removeIf(tagName -> !options.getTagsToDisplay().contains(tagName))
+        );
+    }
+
+
+    @Override
+    @SneakyThrows
+    public void renderTracingSpecToPath(List<SpecSpan> specSpans, RenderingOptions options, Path path) {
+        path = path.toAbsolutePath();
+        val parentPath = path.getParent();
+        if (parentPath != null && !parentPath.equals(path)) {
+            createDirectories(parentPath);
+        }
+
+        val result = renderTracingSpec(specSpans, options);
+        writeResultToPath(result, path);
     }
 
 

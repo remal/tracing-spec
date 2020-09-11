@@ -20,6 +20,7 @@ import static java.util.Collections.unmodifiableList;
 import static lombok.AccessLevel.NONE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +49,7 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
 
     @Getter(NONE)
     @Setter(NONE)
+    @JsonProperty(index = 10001)
     final List<SpecSpanNode> children = new ArrayList<>();
 
 
