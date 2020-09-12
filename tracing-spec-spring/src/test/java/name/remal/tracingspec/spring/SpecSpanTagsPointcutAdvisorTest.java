@@ -21,15 +21,16 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import brave.Tracer;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 
 class SpecSpanTagsPointcutAdvisorTest extends AbstractAnnotationPointcutAdvisorTest {
 
     @Override
     protected AbstractAnnotationPointcutAdvisor<?> createAdvisor(
-        Tracer tracer,
+        ObjectProvider<Tracer> tracerProvider,
         TracingSpecSpringProperties properties
     ) {
-        return new SpecSpanTagsPointcutAdvisor(tracer, properties);
+        return new SpecSpanTagsPointcutAdvisor(tracerProvider, properties);
     }
 
     @Test
