@@ -1,6 +1,11 @@
 apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
 
 dependencies {
+    compileOnly 'com.google.guava:guava'
+
+    optional 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
     api project(':tracing-spec-model')
     //api 'net.sourceforge.plantuml:plantuml'
 

@@ -1,0 +1,11 @@
+tracingspec:
+  renderer:
+    options:
+      graphProcessors:
+      - testValue:
+          value: 'graph'
+      nodeProcessors:
+      - test
+      - testValue:
+          value: graph
+

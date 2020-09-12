@@ -16,26 +16,25 @@
 
 package name.remal.tracingspec.renderer;
 
+import java.nio.file.Path;
 import java.util.List;
-import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 
 public interface TracingSpecRenderer<Result> {
 
-    Result renderTracingSpec(List<SpecSpan> specSpans);
+    String getRendererName();
 
-    void addNodeProcessor(SpecSpanNodeProcessor nodeProcessor);
+    Result renderTracingSpec(List<SpecSpan> specSpans, RenderingOptions options);
 
-    void addTagToDisplay(String tagName);
-
-    default void addTagsToDisplay(String... tagNames) {
-        for (val tagName : tagNames) {
-            addTagToDisplay(tagName);
-        }
+    default Result renderTracingSpec(List<SpecSpan> specSpans) {
+        return renderTracingSpec(specSpans, new RenderingOptions());
     }
 
-    default void addTagsToDisplay(Iterable<String> tagNames) {
-        tagNames.forEach(this::addTagToDisplay);
+
+    void renderTracingSpecToPath(List<SpecSpan> specSpans, RenderingOptions options, Path path);
+
+    default void renderTracingSpecToPath(List<SpecSpan> specSpans, Path path) {
+        renderTracingSpecToPath(specSpans, new RenderingOptions(), path);
     }
 
 }

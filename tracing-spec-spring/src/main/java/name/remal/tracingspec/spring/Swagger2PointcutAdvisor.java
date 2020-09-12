@@ -20,11 +20,12 @@ import brave.Tracer;
 import io.swagger.annotations.ApiOperation;
 import java.util.function.Function;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.springframework.beans.factory.ObjectProvider;
 
 @Internal
 class Swagger2PointcutAdvisor extends AbstractAnnotationPointcutAdvisor<ApiOperation> {
 
-    public Swagger2PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+    public Swagger2PointcutAdvisor(ObjectProvider<Tracer> tracer, TracingSpecSpringProperties properties) {
         super(tracer, properties);
     }
 

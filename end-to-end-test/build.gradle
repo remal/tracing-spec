@@ -3,12 +3,14 @@ apply plugin: 'name.remal.test-fixtures'
 
 dependencies {
     implementation project(':utils-test')
-    implementation project(':tracing-spec-model')
-    implementation project(':tracing-spec-retriever-jaeger')
-    implementation project(':tracing-spec-retriever-zipkin')
-    implementation project(':tracing-spec-renderer')
     implementation project(':tracing-spec-spring')
+    implementation project(':tracing-spec-application')
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+    implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'io.swagger.core.v3:swagger-annotations'
     implementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
     implementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'

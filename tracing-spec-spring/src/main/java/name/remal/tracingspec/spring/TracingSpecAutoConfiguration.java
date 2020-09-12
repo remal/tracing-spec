@@ -22,6 +22,7 @@ import brave.Tracer;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -54,7 +55,7 @@ public class TracingSpecAutoConfiguration {
 
     @Bean
     static SpecSpanTagsPointcutAdvisor specSpanTagsPointcutAdvisor(
-        Tracer tracer,
+        ObjectProvider<Tracer> tracer,
         TracingSpecSpringProperties properties
     ) {
         return new SpecSpanTagsPointcutAdvisor(tracer, properties);
@@ -64,7 +65,10 @@ public class TracingSpecAutoConfiguration {
     @ConditionalOnClass(Operation.class)
     static class Swagger3Configuration {
         @Bean
-        Swagger3PointcutAdvisor swagger3PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+        Swagger3PointcutAdvisor swagger3PointcutAdvisor(
+            ObjectProvider<Tracer> tracer,
+            TracingSpecSpringProperties properties
+        ) {
             return new Swagger3PointcutAdvisor(tracer, properties);
         }
     }
@@ -73,7 +77,10 @@ public class TracingSpecAutoConfiguration {
     @ConditionalOnClass(ApiOperation.class)
     static class Swagger2Configuration {
         @Bean
-        Swagger2PointcutAdvisor swagger2PointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+        Swagger2PointcutAdvisor swagger2PointcutAdvisor(
+            ObjectProvider<Tracer> tracer,
+            TracingSpecSpringProperties properties
+        ) {
             return new Swagger2PointcutAdvisor(tracer, properties);
         }
     }

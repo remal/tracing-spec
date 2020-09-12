@@ -38,6 +38,7 @@ import org.springframework.aop.IntroductionInterceptor;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 
 @Internal
@@ -82,7 +83,7 @@ abstract class AbstractAnnotationPointcutAdvisor<A extends Annotation> extends A
     }
 
 
-    private final Tracer tracer;
+    private final ObjectProvider<Tracer> tracer;
     private final TracingSpecSpringProperties properties;
 
     private final Class<A> annotationType;
@@ -103,7 +104,7 @@ abstract class AbstractAnnotationPointcutAdvisor<A extends Annotation> extends A
     private final Pointcut pointcut;
     private final MethodInterceptor advice;
 
-    protected AbstractAnnotationPointcutAdvisor(Tracer tracer, TracingSpecSpringProperties properties) {
+    protected AbstractAnnotationPointcutAdvisor(ObjectProvider<Tracer> tracer, TracingSpecSpringProperties properties) {
         this.tracer = tracer;
         this.properties = properties;
 
@@ -154,7 +155,7 @@ abstract class AbstractAnnotationPointcutAdvisor<A extends Annotation> extends A
                 return invocation.proceed();
             }
 
-            val span = tracer.currentSpan();
+            val span = tracer.getObject().currentSpan();
             if (span == null || span.isNoop()) {
                 return invocation.proceed();
             }

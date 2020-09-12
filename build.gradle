@@ -22,12 +22,15 @@ buildscript {
         throw new GradleException("Minimum Java version for building the project is $minimumJavaVersion")
     }
 
+    ext.springBootVersion = '2.3.2.RELEASE'
+
     dependencies {
         classpath 'name.remal:gradle-plugins:1.0.211'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.9'
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
     }
     repositories {
         mavenCentral()
@@ -80,7 +83,7 @@ allprojects {
 
     dependencies {
         // BOMs:
-        allResolvable enforcedPlatform('org.springframework.boot:spring-boot-dependencies:2.3.3.RELEASE')
+        allResolvable enforcedPlatform("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
         allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR8')
         allResolvable platform('io.grpc:grpc-bom:1.32.1')
         allResolvable platform('com.google.protobuf:protobuf-bom:3.13.0')
@@ -281,11 +284,6 @@ allprojects {
             }
         }
 
-        aptOptions {
-            processorArgs.put('mapstruct.suppressGeneratorTimestamp', true)
-            processorArgs.put('mapstruct.suppressGeneratorVersionInfoComment', true)
-        }
-
         tasks.withType(JavaCompile) {
             options.compilerArgs.addAll(
                 [
@@ -298,22 +296,34 @@ allprojects {
             )
         }
 
+        aptOptions {
+            processorArgs.put('mapstruct.suppressGeneratorTimestamp', true)
+            processorArgs.put('mapstruct.suppressGeneratorVersionInfoComment', true)
+        }
+
+        tasks.generateModuleInfo {
+            requires {
+                addStatic('java.desktop') // For java.beans.ConstructorProperties annotation
+            }
+        }
+
         sourceSets.all { SourceSet sourceSet ->
             Task allClasses = tasks.maybeCreate('allClasses')
             allClasses.dependsOn(sourceSet.classesTaskName)
         }
 
-        tasks.withType(Test) {
-            useJUnitPlatform()
-
+        tasks.matching { it instanceof JavaForkOptions }.all {
             List<String> jvmArgs = it.jvmArgs
             jvmArgs += '--illegal-access=deny'
             it.jvmArgs = jvmArgs
 
-            systemProperty('java.util.logging.manager', 'org.apache.logging.log4j.jul.LogManager')
             systemProperty('spring.main.banner-mode', 'off')
             systemProperty('logging.pattern.dateformat', 'HH:mm:ss.SSS')
             systemProperty('LOG_DATEFORMAT_PATTERN', systemProperties['logging.pattern.dateformat'])
+        }
+
+        tasks.withType(Test) {
+            useJUnitPlatform()
 
             testLogging {
                 events('FAILED')
@@ -591,14 +601,23 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*
+//*
 forBuildOnLocal {
     apply plugin: 'java-library'
 
     repositories { gradlePluginPortal() }
     dependencies { runtimeOnly gradleApi() }
 
-    dependencies { runtimeOnly 'name.remal:gradle-plugins' }
+    buildscript.configurations.classpath.allDependencies
+        .findAll { it instanceof ExternalModuleDependency }
+        .findAll {
+            String notation = "${it.group}:${it.name}"
+            return (
+                notation == 'name.remal:gradle-plugins'
+                    || notation == 'org.springframework.boot:spring-boot-gradle-plugin'
+            )
+        }
+        .forEach { configurations.runtimeOnly.dependencies.add(it) }
 }
 //*/
 

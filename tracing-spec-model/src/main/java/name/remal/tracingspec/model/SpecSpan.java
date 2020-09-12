@@ -25,9 +25,11 @@ import lombok.Data;
 @Data
 public class SpecSpan extends SpecSpanInfo<SpecSpan> {
 
+    @JsonProperty(index = 1)
     final String spanId;
 
     @Nullable
+    @JsonProperty(index = 2)
     String parentSpanId;
 
 

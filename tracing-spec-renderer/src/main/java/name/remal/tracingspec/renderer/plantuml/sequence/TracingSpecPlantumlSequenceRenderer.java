@@ -32,14 +32,20 @@ import name.remal.tracingspec.model.SpecSpanNode;
 import name.remal.tracingspec.model.SpecSpanNodeVisitor;
 import name.remal.tracingspec.model.SpecSpansGraph;
 import name.remal.tracingspec.renderer.BaseTracingSpecRenderer;
+import name.remal.tracingspec.renderer.RenderingOptions;
 import name.remal.tracingspec.renderer.plantuml.BaseTracingSpecPlantumlRenderer;
 import org.jetbrains.annotations.Contract;
 
 public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantumlRenderer {
 
     @Override
+    public String getRendererName() {
+        return "plantuml-sequence";
+    }
+
+    @Override
     @SuppressWarnings({"java:S3776", "java:S1854"})
-    protected String renderSpecSpansGraph(SpecSpansGraph graph) {
+    protected String renderSpecSpansGraph(SpecSpansGraph graph, RenderingOptions options) {
         preprocessGraph(graph);
 
         val diagram = new Diagram();
@@ -175,7 +181,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
     }
 
 
-    private class Diagram {
+    private static class Diagram {
 
         public Message newRoot(SpecSpanNode node) {
             val child = new Message(null, node);
@@ -199,7 +205,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
 
     }
 
-    private class Message {
+    private static class Message {
 
         @Contract("_ -> new")
         public Message newChild(SpecSpanNode node) {
@@ -271,10 +277,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
                 this.name = node.getName();
                 this.description = node.getDescription();
                 node.getTags().forEach((tagName, tagValue) -> {
-                    if (isNotEmpty(tagName)
-                        && tagValue != null
-                        && isDisplayableTag(tagName)
-                    ) {
+                    if (isNotEmpty(tagName) && tagValue != null) {
                         this.tags.put(tagName, tagValue);
                     }
                 });

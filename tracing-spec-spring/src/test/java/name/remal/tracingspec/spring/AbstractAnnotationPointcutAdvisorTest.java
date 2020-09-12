@@ -34,11 +34,12 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 
 abstract class AbstractAnnotationPointcutAdvisorTest {
 
     protected abstract AbstractAnnotationPointcutAdvisor<?> createAdvisor(
-        Tracer tracer,
+        ObjectProvider<Tracer> tracerProvider,
         TracingSpecSpringProperties properties
     );
 
@@ -47,9 +48,12 @@ abstract class AbstractAnnotationPointcutAdvisorTest {
 
     private final Tracer tracer = mock(Tracer.class);
 
+    @SuppressWarnings("unchecked")
+    private final ObjectProvider<Tracer> tracerProvider = mock(ObjectProvider.class);
+
     private final TracingSpecSpringProperties properties = new TracingSpecSpringProperties();
 
-    protected final AbstractAnnotationPointcutAdvisor<?> advisor = createAdvisor(tracer, properties);
+    protected final AbstractAnnotationPointcutAdvisor<?> advisor = createAdvisor(tracerProvider, properties);
 
     private final MethodInterceptor advice = advisor.getAdvice();
 
@@ -61,6 +65,8 @@ abstract class AbstractAnnotationPointcutAdvisorTest {
 
     @BeforeEach
     void beforeEach() throws Throwable {
+        when(tracerProvider.getObject()).thenReturn(tracer);
+
         when(tracer.currentSpan()).thenReturn(span);
 
         when(invocation.getMethod()).thenReturn(Methods.class.getMethod("annotated"));

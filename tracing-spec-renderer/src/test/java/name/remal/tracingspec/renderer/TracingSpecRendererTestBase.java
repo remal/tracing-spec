@@ -26,18 +26,22 @@ import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgu
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.nio.file.Path;
 import java.util.List;
+import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @SuppressWarnings({"java:S5786", "java:S2699"})
 public abstract class TracingSpecRendererTestBase<Result, Renderer extends TracingSpecRenderer<Result>> {
 
     protected final Renderer renderer;
+    protected final RenderingOptions renderingOptions;
 
     @SneakyThrows
     protected TracingSpecRendererTestBase() {
@@ -48,7 +52,8 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
         );
         this.renderer = rendererClass.getConstructor().newInstance();
 
-        this.renderer.addTagToDisplay("displayableTag");
+        this.renderingOptions = new RenderingOptions()
+            .addTagToDisplay("displayableTag");
     }
 
 
@@ -56,12 +61,14 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
     protected abstract String getExpectedResourceName(@Language("file-reference") String resourceName);
 
-    protected abstract Result loadExpectedResult(@Language("file-reference") String expectedResourceName)
+    protected abstract Result readExpectedResult(@Language("file-reference") String expectedResourceName)
         throws Throwable;
 
+    protected abstract Result readExpectedResult(Path path) throws Throwable;
+
     @Test
-    final void one_sync() throws Throwable {
-        resourceTest("one-sync.json5");
+    final void one_sync(@TempDir Path tempDir) throws Throwable {
+        resourceTest("one-sync.json5", tempDir);
     }
 
     @Test
@@ -165,6 +172,13 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     }
 
     private void resourceTest(@Language("file-reference") String resourceName) throws Throwable {
+        resourceTest(resourceName, null);
+    }
+
+    private void resourceTest(
+        @Language("file-reference") String resourceName,
+        @Nullable Path tempDir
+    ) throws Throwable {
         val resourceLoaderClass = TracingSpecRendererTestBase.class;
 
         final String resourceNamePrefix;
@@ -182,14 +196,22 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
             resourceName,
             new TypeReference<List<SpecSpan>>() { }
         );
-        val result = renderer.renderTracingSpec(specSpans);
+        val result = renderer.renderTracingSpec(specSpans, renderingOptions);
         val normalizedResult = normalizeResult(result);
 
         val expectedResourceName = getExpectedResourceName(resourceName);
-        val expectedResult = loadExpectedResult(expectedResourceName);
+        val expectedResult = readExpectedResult(expectedResourceName);
         val normalizedExpectedResult = normalizeResult(expectedResult);
 
         assertThat(normalizedResult, equalTo(normalizedExpectedResult));
+
+        if (tempDir != null) {
+            val tempFile = tempDir.resolve("dir/out");
+            renderer.renderTracingSpecToPath(specSpans, renderingOptions, tempFile);
+            val resultFromPath = readExpectedResult(tempFile);
+            val normalizedResultFromPath = normalizeResult(resultFromPath);
+            assertThat(normalizedResultFromPath, equalTo(normalizedExpectedResult));
+        }
     }
 
 
@@ -199,13 +221,13 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
         @Test
         final void empty_spans_list() {
             List<SpecSpan> specSpans = emptyList();
-            assertThrows(IllegalArgumentException.class, () -> renderer.renderTracingSpec(specSpans));
+            assertThrows(IllegalArgumentException.class, () -> renderer.renderTracingSpec(specSpans, renderingOptions));
         }
 
         @Test
         final void span_without_service_name() {
             List<SpecSpan> specSpans = singletonList(nextSpecSpan());
-            assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans));
+            assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans, renderingOptions));
         }
 
     }

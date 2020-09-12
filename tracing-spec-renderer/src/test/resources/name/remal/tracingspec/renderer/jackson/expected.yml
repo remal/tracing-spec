@@ -1,0 +1,6 @@
+---
+- name: parent
+  serviceName: service
+  children:
+  - name: child
+    serviceName: service

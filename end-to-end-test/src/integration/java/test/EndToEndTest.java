@@ -16,15 +16,16 @@
 
 package test;
 
-import static apps.common.TraceIdWebFilter.TRACE_ID_HTTP_HEADER;
-import static java.lang.management.ManagementFactory.getRuntimeMXBean;
+import static java.lang.System.identityHashCode;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
-import static java.util.Objects.requireNonNull;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static utils.test.debug.TestDebug.AWAIT_TIMEOUT;
 import static utils.test.normalizer.PumlNormalizer.normalizePuml;
 import static utils.test.resource.Resources.readTextResource;
 
@@ -35,17 +36,13 @@ import apps.schemas.ImmutableSchemaReference;
 import apps.schemas.SchemasApplication;
 import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
+import brave.Tracer;
 import java.io.Flushable;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpan;
-import name.remal.tracingspec.renderer.nodeprocessor.AppendServerToClientNodeProcessor;
-import name.remal.tracingspec.renderer.nodeprocessor.KafkaRemoteServiceNameNodeProcessor;
-import name.remal.tracingspec.renderer.plantuml.sequence.TracingSpecPlantumlSequenceRenderer;
+import name.remal.tracingspec.application.TracingSpecSpringApplication;
 import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetriever;
 import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetrieverProperties;
 import name.remal.tracingspec.retriever.zipkin.ZipkinSpecSpansRetriever;
@@ -53,6 +50,7 @@ import name.remal.tracingspec.retriever.zipkin.ZipkinSpecSpansRetrieverPropertie
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.builder.ParentContextApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -64,11 +62,8 @@ import zipkin2.reporter.Reporter;
 
 class EndToEndTest {
 
-    private static final boolean IS_DEBUG = getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
-    private static final Duration AWAIT_TIMEOUT = IS_DEBUG ? Duration.ofHours(1) : Duration.ofMinutes(1);
-
     @Test
-    void test() throws Throwable {
+    void test(@TempDir Path tempDir) throws Throwable {
         val schema = ImmutableSchema.builder()
             .id("task")
             .addReference(ImmutableSchemaReference.builder()
@@ -83,11 +78,14 @@ class EndToEndTest {
         val documentsClient = sharedContext.getBean(DocumentsClient.class);
         val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
-        val schemasClient = sharedContext.getBean(SchemasClient.class);
-        final String traceId;
-        {
-            val response = schemasClient.saveSchema(schema);
-            traceId = requireNonNull(response.getHeaders().getFirst(TRACE_ID_HTTP_HEADER));
+        val tracer = getBeanFromAnyContext(Tracer.class);
+        val testSpan = tracer.startScopedSpan("test");
+        val traceId = testSpan.context().traceIdString();
+        try {
+            val schemasClient = sharedContext.getBean(SchemasClient.class);
+            schemasClient.saveSchema(schema);
+        } finally {
+            testSpan.finish();
         }
 
         await().atMost(AWAIT_TIMEOUT).until(
@@ -106,57 +104,85 @@ class EndToEndTest {
         val newSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
         assertThat(newSchemaDocuments, not(empty()));
 
-        val renderer = new TracingSpecPlantumlSequenceRenderer();
-        renderer.addNodeProcessor(new AppendServerToClientNodeProcessor());
-        renderer.addNodeProcessor(new KafkaRemoteServiceNameNodeProcessor());
-        renderer.addTagToDisplay("kafka.topic");
-
-        int expectedSpansCount = 18;
+        int expectedSpansCount = 19;
         val expectedDiagram = normalizePuml(readTextResource("expected.puml"));
 
         {
-            val retrieverProperties = new ZipkinSpecSpansRetrieverProperties();
+            val retrieverProperties = applyBeanPostProcessors(
+                new ZipkinSpecSpansRetrieverProperties()
+            );
             retrieverProperties.setUrl(sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl());
-            val retriever = new ZipkinSpecSpansRetriever(retrieverProperties);
-
-            List<SpecSpan> specSpans = new ArrayList<>();
             await().atMost(AWAIT_TIMEOUT).ignoreExceptions().until(() -> {
-                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
-                if (specSpans.size() < expectedSpansCount) {
-                    specSpans.clear();
-                }
-                return !specSpans.isEmpty();
+                val retriever = new ZipkinSpecSpansRetriever(retrieverProperties);
+                val spans = retriever.retrieveSpecSpansForTrace(traceId);
+                return spans.size() >= expectedSpansCount;
             });
 
-            val diagram = renderer.renderTracingSpec(specSpans);
+            val outputPath = tempDir.resolve("dir/zipkin.puml");
+            TracingSpecSpringApplication.main(
+                "--spring.sleuth.enabled=false",
+                "--tracingspec.retriever.zipkin.url=" + retrieverProperties.getUrl(),
+                traceId,
+                "plantuml-sequence",
+                outputPath.toString()
+            );
+
+            val diagramBytes = readAllBytes(outputPath);
+            val diagram = new String(diagramBytes, UTF_8);
             val normalizedDiagram = normalizePuml(diagram);
             assertThat("Zipkin", normalizedDiagram, equalTo(expectedDiagram));
         }
 
         {
-            val retrieverProperties = new JaegerSpecSpansRetrieverProperties();
+            val retrieverProperties = applyBeanPostProcessors(
+                new JaegerSpecSpansRetrieverProperties()
+            );
             retrieverProperties.setHost("localhost");
             retrieverProperties.setPort(sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort());
-            val retriever = new JaegerSpecSpansRetriever(retrieverProperties);
-
-            List<SpecSpan> specSpans = new ArrayList<>();
             await().atMost(AWAIT_TIMEOUT).ignoreExceptions().until(() -> {
-                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
-                if (specSpans.size() < expectedSpansCount) {
-                    specSpans.clear();
-                }
-                return !specSpans.isEmpty();
+                val retriever = new JaegerSpecSpansRetriever(retrieverProperties);
+                val spans = retriever.retrieveSpecSpansForTrace(traceId);
+                return spans.size() >= expectedSpansCount;
             });
 
-            val diagram = renderer.renderTracingSpec(specSpans);
+            val outputPath = tempDir.resolve("dir/jaeger.puml");
+            TracingSpecSpringApplication.main(
+                "--spring.sleuth.enabled=false",
+                "--tracingspec.retriever.jaeger.host=" + retrieverProperties.getHost(),
+                "--tracingspec.retriever.jaeger.port=" + retrieverProperties.getPort(),
+                traceId,
+                "plantuml-sequence",
+                outputPath.toString()
+            );
+
+            val diagramBytes = readAllBytes(outputPath);
+            val diagram = new String(diagramBytes, UTF_8);
             val normalizedDiagram = normalizePuml(diagram);
             assertThat("Jaeger", normalizedDiagram, equalTo(expectedDiagram));
         }
     }
 
+    private static ConfigurableApplicationContext getAnyContext() {
+        return applicationContexts.values().iterator().next();
+    }
+
+    private static <T> T getBeanFromAnyContext(Class<T> type) {
+        val context = getAnyContext();
+        return context.getBean(type);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T applyBeanPostProcessors(T object) {
+        val beanFactory = getAnyContext().getAutowireCapableBeanFactory();
+        val beanName = object.getClass().getName() + '$' + identityHashCode(object);
+        object = (T) beanFactory.applyBeanPostProcessorsBeforeInitialization(object, beanName);
+        object = (T) beanFactory.applyBeanPostProcessorsAfterInitialization(object, beanName);
+        return object;
+    }
+
     private static final AnnotationConfigApplicationContext sharedContext = new AnnotationConfigApplicationContext();
 
-    private static final Map<Class<?>, ConfigurableApplicationContext> applicationContexts = new HashMap<>();
+    private static final Map<Class<?>, ConfigurableApplicationContext> applicationContexts = new ConcurrentHashMap<>();
 
     @BeforeAll
     static void startApplications() {
@@ -168,7 +194,7 @@ class EndToEndTest {
             UsersApplication.class,
             DocumentsApplication.class,
             SchemasApplication.class
-        ).forEach(applicationClass -> {
+        ).parallelStream().forEach(applicationClass -> {
             val application = new SpringApplication(applicationClass);
             application.addInitializers(new ParentContextApplicationContextInitializer(sharedContext));
 

@@ -16,9 +16,9 @@
 
 package name.remal.tracingspec.renderer.plantuml.sequence;
 
-import name.remal.tracingspec.renderer.plantuml.TracingSpecPlantumlRendererTestBase;
+import name.remal.tracingspec.renderer.plantuml.PlantumlTracingSpecRendererTestBase;
 
 @SuppressWarnings("java:S2187")
 class TracingSpecPlantumlSequenceRendererTest
-    extends TracingSpecPlantumlRendererTestBase<TracingSpecPlantumlSequenceRenderer> {
+    extends PlantumlTracingSpecRendererTestBase<TracingSpecPlantumlSequenceRenderer> {
 }

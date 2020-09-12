@@ -35,19 +35,19 @@ public class JaegerSpecSpansRetrieverProperties {
      */
     @Nullable
     @Length(min = 1)
-    private String host;
+    String host;
 
     /**
      * Jaeger Query service port
      */
     @Min(1)
     @Max(65535)
-    private int port = 16686;
+    int port = 16686;
 
     /**
      * Retrieving timeout in milliseconds
      */
     @Min(1)
-    private long timeoutMillis = 60_000;
+    long timeoutMillis = 60_000;
 
 }

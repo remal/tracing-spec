@@ -22,15 +22,16 @@ import static org.hamcrest.Matchers.nullValue;
 
 import brave.Tracer;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 
 class Swagger3PointcutAdvisorTest extends AbstractAnnotationPointcutAdvisorTest {
 
     @Override
     protected AbstractAnnotationPointcutAdvisor<?> createAdvisor(
-        Tracer tracer,
+        ObjectProvider<Tracer> tracerProvider,
         TracingSpecSpringProperties properties
     ) {
-        return new Swagger3PointcutAdvisor(tracer, properties);
+        return new Swagger3PointcutAdvisor(tracerProvider, properties);
     }
 
     @Test

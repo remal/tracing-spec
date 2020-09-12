@@ -22,6 +22,7 @@ import static name.remal.tracingspec.model.ComparatorUtils.compareNullLast;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,31 +39,41 @@ import org.jetbrains.annotations.Contract;
 abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparable<Self> {
 
     @JsonInclude(NON_DEFAULT)
+    @JsonProperty(index = 101)
     boolean hidden;
 
     @Nullable
+    @JsonProperty(index = 102)
     String name;
 
     @Nullable
+    @JsonProperty(index = 103)
     SpecSpanKind kind;
 
     @JsonInclude(NON_DEFAULT)
+    @JsonProperty(index = 104)
     boolean async;
 
     @Nullable
+    @JsonProperty(index = 105)
     String serviceName;
 
     @Nullable
+    @JsonProperty(index = 106)
     String remoteServiceName;
 
     @Nullable
+    @JsonProperty(index = 107)
     Instant startedAt;
 
     @Nullable
+    @JsonProperty(index = 108)
     String description;
 
+    @JsonProperty(index = 109)
     final Map<String, String> tags = new TagsMap(this);
 
+    @JsonProperty(index = 110)
     final List<SpecSpanAnnotation> annotations = new ArrayList<>();
 
 
@@ -112,9 +123,9 @@ abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparab
     }
 
     @Contract("_, _ -> this")
-    public Self putTag(String key, @Nullable String value) {
+    public Self putTag(String key, @Nullable Object value) {
         if (value != null) {
-            tags.put(key, value);
+            tags.put(key, value.toString());
 
         } else {
             tags.remove(key);

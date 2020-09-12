@@ -26,6 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.testcontainers.images.PullPolicy.ageBased;
+import static utils.test.debug.TestDebug.AWAIT_TIMEOUT;
 
 import brave.Tracer;
 import brave.Tracing;
@@ -103,7 +104,7 @@ class ZipkinSpecSpansRetrieverVersionTest {
 
         val traceId = rootSpan.context().traceIdString();
         List<SpecSpan> specSpans = new ArrayList<>();
-        await().atMost(Duration.ofSeconds(30)).until(
+        await().atMost(AWAIT_TIMEOUT).until(
             () -> {
                 specSpans.clear();
                 specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
