@@ -45,6 +45,7 @@ public class JsonTracingSpecRenderer extends BaseJacksonTracingSpecRenderer {
     }
 
 
+    @SuppressWarnings("java:S4144")
     private static class CustomJsonPrettyPrinter
         implements PrettyPrinter, Instantiatable<CustomJsonPrettyPrinter>, Serializable {
 

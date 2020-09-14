@@ -529,6 +529,26 @@ class JacocoAlignmentRule implements ComponentMetadataRule {
 
 apply plugin: 'org.sonarqube'
 
+allprojects {
+    sonarqube {
+        properties {
+            List<String> rulesToIgnore = [
+                // https://community.sonarsource.com/t/30934:
+                'java:S5128', // "Bean Validation" (JSR 380) should be properly configured
+            ]
+            Map<String, String> rulesToIgnoreMap = rulesToIgnore.collectEntries { String rule ->
+                String key = rule.replaceAll(/\W/, '_')
+                return [key, rule]
+            }
+            property('sonar.issue.ignore.multicriteria', rulesToIgnoreMap.keySet().join(','))
+            rulesToIgnoreMap.forEach { String key, String rule ->
+                property("sonar.issue.ignore.multicriteria.${key}.ruleKey", rule)
+                property("sonar.issue.ignore.multicriteria.${key}.resourceKey", '**/*')
+            }
+        }
+    }
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class DockerImages {
