@@ -112,7 +112,7 @@ allprojects {
                     // Compile
                     "org.mapstruct:mapstruct:$mapstructVersion",
                     'com.google.guava:guava:29.0-jre',
-                    'net.sourceforge.plantuml:plantuml:1.2020.16',
+                    'net.sourceforge.plantuml:plantuml:1.2020.17',
                     "org.graalvm.js:js:$graalvmVersion",
                     "org.graalvm.js:js-scriptengine:$graalvmVersion",
                     "org.graalvm.truffle:truffle-api:$graalvmVersion",
