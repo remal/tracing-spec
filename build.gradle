@@ -22,7 +22,7 @@ buildscript {
         throw new GradleException("Minimum Java version for building the project is $minimumJavaVersion")
     }
 
-    ext.springBootVersion = '2.3.3.RELEASE'
+    ext.springBootVersion = '2.3.4.RELEASE'
 
     dependencies {
         classpath 'name.remal:gradle-plugins:1.0.211'
@@ -112,7 +112,6 @@ allprojects {
                     // Compile
                     "org.mapstruct:mapstruct:$mapstructVersion",
                     'com.google.guava:guava:29.0-jre',
-                    'net.sourceforge.plantuml:plantuml:1.2020.16',
                     "org.graalvm.js:js:$graalvmVersion",
                     "org.graalvm.js:js-scriptengine:$graalvmVersion",
                     "org.graalvm.truffle:truffle-api:$graalvmVersion",
@@ -127,7 +126,7 @@ allprojects {
                     'org.fusesource.jansi:jansi:1.18',
 
                     // Jacoco
-                    'org.jacoco:org.jacoco.agent:0.8.5',
+                    'org.jacoco:org.jacoco.agent:0.8.6',
 
                     // Checkstyle
                     'com.puppycrawl.tools:checkstyle:8.36.1',
