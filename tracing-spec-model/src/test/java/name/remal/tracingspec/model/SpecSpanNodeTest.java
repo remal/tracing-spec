@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static utils.test.json.ObjectMapperProvider.readJsonResource;
+import static utils.test.json.JsonUtils.readJsonResource;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
 import java.util.ArrayList;

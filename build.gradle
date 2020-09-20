@@ -117,6 +117,7 @@ allprojects {
                     "org.graalvm.truffle:truffle-api:$graalvmVersion",
                     'io.swagger.core.v3:swagger-annotations:2.1.4',
                     'io.swagger:swagger-annotations:1.6.2',
+                    'info.picocli:picocli-spring-boot-starter:4.5.1',
 
                     // Test
                     'org.awaitility:awaitility:4.0.3',
@@ -177,6 +178,7 @@ allprojects {
         dependencies {
             components.all(RetrofitAlignmentRule)
             components.all(OkhttpAlignmentRule)
+            components.all(PicocliAlignmentRule)
             components.all(GraalvmAlignmentRule)
             components.all(JacocoAlignmentRule)
 
@@ -504,6 +506,16 @@ class OkhttpAlignmentRule implements ComponentMetadataRule {
     }
 }
 
+class PicocliAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group == 'info.picocli') {
+                belongsTo("${id.group}:picocli-bom:${id.version}")
+            }
+        }
+    }
+}
+
 class GraalvmAlignmentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext ctx) {
         ctx.details.with {
@@ -633,7 +645,7 @@ forBuildOnLocal {
             String notation = "${it.group}:${it.name}"
             return (
                 notation == 'name.remal:gradle-plugins'
-                    || notation == 'org.springframework.boot:spring-boot-gradle-plugin'
+                //|| notation == 'org.springframework.boot:spring-boot-gradle-plugin'
             )
         }
         .forEach { configurations.runtimeOnly.dependencies.add(it) }

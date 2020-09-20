@@ -1,14 +1,13 @@
 [
   {
-    spanId: "1",
     async: true,
     name: "parent",
     serviceName: "A",
-  },
-  {
-    spanId: "2",
-    parentSpanId: "1",
-    name: "child",
-    serviceName: "B",
+    children: [
+      {
+        name: "child",
+        serviceName: "B",
+      }
+    ],
   },
 ]

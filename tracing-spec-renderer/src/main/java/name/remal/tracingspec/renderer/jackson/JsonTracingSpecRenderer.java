@@ -22,20 +22,22 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.Instantiatable;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.io.Serializable;
 
-public class JsonTracingSpecRenderer extends BaseJacksonTracingSpecRenderer {
+public class JsonTracingSpecRenderer extends AbstractJacksonTracingSpecRenderer {
 
     public JsonTracingSpecRenderer(ObjectMapper objectMapper) {
         super(objectMapper);
     }
 
     public JsonTracingSpecRenderer() {
-        super(new ObjectMapper()
-            .setDefaultPrettyPrinter(new CustomJsonPrettyPrinter())
-            .findAndRegisterModules()
+        super(JsonMapper.builder()
+            .defaultPrettyPrinter(new CustomJsonPrettyPrinter())
             .enable(INDENT_OUTPUT)
+            .findAndAddModules()
+            .build()
         );
     }
 

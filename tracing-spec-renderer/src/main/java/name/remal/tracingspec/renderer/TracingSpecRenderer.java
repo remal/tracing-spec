@@ -17,24 +17,14 @@
 package name.remal.tracingspec.renderer;
 
 import java.nio.file.Path;
-import java.util.List;
-import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.model.SpecSpansGraph;
 
 public interface TracingSpecRenderer<Result> {
 
     String getRendererName();
 
-    Result renderTracingSpec(List<SpecSpan> specSpans, RenderingOptions options);
+    Result renderTracingSpec(SpecSpansGraph graph);
 
-    default Result renderTracingSpec(List<SpecSpan> specSpans) {
-        return renderTracingSpec(specSpans, new RenderingOptions());
-    }
-
-
-    void renderTracingSpecToPath(List<SpecSpan> specSpans, RenderingOptions options, Path path);
-
-    default void renderTracingSpecToPath(List<SpecSpan> specSpans, Path path) {
-        renderTracingSpecToPath(specSpans, new RenderingOptions(), path);
-    }
+    void renderTracingSpecToPath(SpecSpansGraph graph, Path path);
 
 }

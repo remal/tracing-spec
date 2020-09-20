@@ -16,86 +16,66 @@
 
 package name.remal.tracingspec.application;
 
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-import static name.remal.gradle_plugins.api.BuildTimeConstants.getStringProperty;
-import static name.remal.tracingspec.application.ExitException.INCORRECT_CMD_PARAM_STATUS;
-import static name.remal.tracingspec.application.ExitException.INCORRECT_USAGE_STATUS;
+import static java.util.Comparator.comparing;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.val;
-import name.remal.tracingspec.renderer.RenderingOptions;
-import name.remal.tracingspec.renderer.TracingSpecRenderer;
-import name.remal.tracingspec.retriever.SpecSpansRetriever;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.HelpCommand;
+import picocli.CommandLine.IFactory;
 
 @Component
 @RequiredArgsConstructor
 @ToString
-public class TracingSpecApplicationRunner implements ApplicationRunner {
+public class TracingSpecApplicationRunner implements CommandLineRunner {
 
-    private final SpecSpansRetriever retriever;
+    private final IFactory picocliFactory;
 
-    private final List<TracingSpecRenderer<?>> renderers;
-
-    private final RenderingOptions renderingOptions;
+    private final Collection<CommandLineCommand> commandLineCommands;
 
     @Override
-    public void run(ApplicationArguments args) {
-        val nonOptionArgs = args.getNonOptionArgs();
-        if (nonOptionArgs.size() != 3) {
-            throw incorrectUsageException();
+    public void run(String... args) {
+        val rootCommand = new RootCommand();
+        val commandLine = new CommandLine(rootCommand, picocliFactory);
+        commandLineCommands.stream()
+            .map(cmd -> new CommandLine(cmd, picocliFactory))
+            .sorted(comparing(cmd -> cmd.getCommandSpec().name()))
+            .forEach(commandLine::addSubcommand);
+        commandLine.addSubcommand(new HelpCommand());
+        processCommands(commandLine);
+
+        val exitCode = commandLine.execute(args);
+        if (exitCode != 0) {
+            throw new ExitException(exitCode);
         }
-
-        val traceId = nonOptionArgs.get(0);
-
-        val rendererName = nonOptionArgs.get(1);
-        val renderer = renderers.stream()
-            .filter(it -> it.getRendererName().equals(rendererName))
-            .findAny()
-            .orElse(null);
-        if (renderer == null) {
-            throw new ExitException(format(
-                "Renderer doesn't exist or isn't configured: %s. These renderers are configured: %s.",
-                rendererName,
-                String.join(", ", getConfiguredRendererNames())
-            ), INCORRECT_CMD_PARAM_STATUS);
-        }
-
-        final Path outputPath;
-        try {
-            outputPath = Paths.get(nonOptionArgs.get(2));
-        } catch (Throwable exception) {
-            throw new ExitException(exception.getMessage(), INCORRECT_CMD_PARAM_STATUS);
-        }
-
-        val spans = retriever.retrieveSpecSpansForTrace(traceId);
-        renderer.renderTracingSpecToPath(spans, renderingOptions, outputPath);
     }
 
-    private ExitException incorrectUsageException() {
-        val sb = new StringBuilder();
-        sb.append("Usage: java ")
-            .append(getStringProperty("name"))
-            .append(".jar <trace ID> <renderer name> <output file>");
+    private static void processCommands(CommandLine commandLine) {
+        commandLine.setCaseInsensitiveEnumValuesAllowed(true);
 
-        sb.append("\n    These renderers are configured: ")
-            .append(String.join(", ", getConfiguredRendererNames()))
-            .append('.');
+        commandLine.setUnmatchedArgumentsAllowed(true);
+        commandLine.setUnmatchedOptionsAllowedAsOptionParameters(true);
+        commandLine.setUnmatchedOptionsArePositionalParams(false);
 
-        return new ExitException(sb.toString(), INCORRECT_USAGE_STATUS);
+        if (commandLine.getCommandSpec().root().name().isEmpty()) {
+            commandLine.getCommandSpec().usageMessage().synopsisHeading("Usage:");
+        }
+
+        commandLine.getSubcommands().values().forEach(TracingSpecApplicationRunner::processCommands);
     }
 
-    private List<String> getConfiguredRendererNames() {
-        return renderers.stream()
-            .map(TracingSpecRenderer::getRendererName)
-            .collect(toList());
+    @Command(
+        name = "",
+        versionProvider = VersionProvider.class,
+        mixinStandardHelpOptions = false
+    )
+    @ToString
+    private static class RootCommand {
     }
 
 }

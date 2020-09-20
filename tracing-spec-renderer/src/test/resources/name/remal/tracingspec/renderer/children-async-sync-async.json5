@@ -1,27 +1,22 @@
 [
   {
-    spanId: "1",
     name: "parent",
     serviceName: "A",
-  },
-  {
-    spanId: "2",
-    async: true,
-    parentSpanId: "1",
-    name: "async1",
-    serviceName: "B",
-  },
-  {
-    spanId: "3",
-    parentSpanId: "1",
-    name: "sync",
-    serviceName: "B",
-  },
-  {
-    spanId: "4",
-    async: true,
-    parentSpanId: "1",
-    name: "async2",
-    serviceName: "B",
+    children: [
+      {
+        async: true,
+        name: "async1",
+        serviceName: "B",
+      },
+      {
+        name: "sync",
+        serviceName: "B",
+      },
+      {
+        async: true,
+        name: "async2",
+        serviceName: "B",
+      }
+    ],
   },
 ]

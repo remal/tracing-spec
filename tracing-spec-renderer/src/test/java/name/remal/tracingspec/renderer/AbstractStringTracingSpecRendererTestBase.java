@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 import lombok.val;
 import org.intellij.lang.annotations.Language;
 
-public abstract class StringTracingSpecRendererTestBase<Renderer extends BaseStringTracingSpecRenderer>
+public abstract class AbstractStringTracingSpecRendererTestBase<Renderer extends AbstractStringTracingSpecRenderer>
     extends TracingSpecRendererTestBase<String, Renderer> {
 
     protected abstract String getExpectedResourceExtension();

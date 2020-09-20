@@ -16,22 +16,18 @@
 
 package name.remal.tracingspec.renderer;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static utils.test.json.ObjectMapperProvider.readJsonResource;
+import static utils.test.json.JsonUtils.readJsonResource;
 import static utils.test.reflection.ReflectionTestUtils.getParameterizedTypeArgumentClass;
-import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
+import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.nio.file.Path;
-import java.util.List;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpan;
+import name.remal.tracingspec.model.SpecSpansGraph;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -41,7 +37,6 @@ import org.junit.jupiter.api.io.TempDir;
 public abstract class TracingSpecRendererTestBase<Result, Renderer extends TracingSpecRenderer<Result>> {
 
     protected final Renderer renderer;
-    protected final RenderingOptions renderingOptions;
 
     @SneakyThrows
     protected TracingSpecRendererTestBase() {
@@ -51,9 +46,6 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
             1
         );
         this.renderer = rendererClass.getConstructor().newInstance();
-
-        this.renderingOptions = new RenderingOptions()
-            .addTagToDisplay("displayableTag");
     }
 
 
@@ -191,12 +183,12 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
             resourceName = resourceNamePrefix + resourceName;
         }
 
-        val specSpans = readJsonResource(
+        val graph = readJsonResource(
             resourceLoaderClass,
             resourceName,
-            new TypeReference<List<SpecSpan>>() { }
+            SpecSpansGraph.class
         );
-        val result = renderer.renderTracingSpec(specSpans, renderingOptions);
+        val result = renderer.renderTracingSpec(graph);
         val normalizedResult = normalizeResult(result);
 
         val expectedResourceName = getExpectedResourceName(resourceName);
@@ -207,7 +199,7 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
 
         if (tempDir != null) {
             val tempFile = tempDir.resolve("dir/out");
-            renderer.renderTracingSpecToPath(specSpans, renderingOptions, tempFile);
+            renderer.renderTracingSpecToPath(graph, tempFile);
             val resultFromPath = readExpectedResult(tempFile);
             val normalizedResultFromPath = normalizeResult(resultFromPath);
             assertThat(normalizedResultFromPath, equalTo(normalizedExpectedResult));
@@ -219,15 +211,10 @@ public abstract class TracingSpecRendererTestBase<Result, Renderer extends Traci
     class Preconditions {
 
         @Test
-        final void empty_spans_list() {
-            List<SpecSpan> specSpans = emptyList();
-            assertThrows(IllegalArgumentException.class, () -> renderer.renderTracingSpec(specSpans, renderingOptions));
-        }
-
-        @Test
         final void span_without_service_name() {
-            List<SpecSpan> specSpans = singletonList(nextSpecSpan());
-            assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(specSpans, renderingOptions));
+            val graph = new SpecSpansGraph()
+                .addRoot(nextSpecSpanNode());
+            assertThrows(IllegalStateException.class, () -> renderer.renderTracingSpec(graph));
         }
 
     }

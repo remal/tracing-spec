@@ -1,2 +1,3 @@
 logging:
-  level: error
+  level:
+    root: error

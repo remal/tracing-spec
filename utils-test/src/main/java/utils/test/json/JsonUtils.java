@@ -26,26 +26,27 @@ import static utils.test.resource.Resources.getResourceUrl;
 import static utils.test.whocalled.WhoCalled.getCallerClass;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonFactoryBuilder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.intellij.lang.annotations.Language;
 
-public abstract class ObjectMapperProvider {
+public abstract class JsonUtils {
 
-    private static final JsonFactory JSON_FACTORY = new JsonFactoryBuilder()
-        .enable(ALLOW_JAVA_COMMENTS)
-        .enable(ALLOW_SINGLE_QUOTES)
-        .enable(ALLOW_UNQUOTED_FIELD_NAMES)
-        .enable(ALLOW_MISSING_VALUES)
-        .enable(ALLOW_TRAILING_COMMA)
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder(
+        JsonFactory.builder()
+            .enable(ALLOW_JAVA_COMMENTS)
+            .enable(ALLOW_SINGLE_QUOTES)
+            .enable(ALLOW_UNQUOTED_FIELD_NAMES)
+            .enable(ALLOW_MISSING_VALUES)
+            .enable(ALLOW_TRAILING_COMMA)
+            .build()
+    )
+        .findAndAddModules()
         .build();
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(JSON_FACTORY)
-        .findAndRegisterModules();
 
     public static ObjectMapper getObjectMapper() {
         return OBJECT_MAPPER;
@@ -112,7 +113,7 @@ public abstract class ObjectMapperProvider {
     }
 
 
-    private ObjectMapperProvider() {
+    private JsonUtils() {
     }
 
 }

@@ -28,7 +28,6 @@ import java.util.List;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.val;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -87,7 +86,6 @@ public class SpecSpansGraph {
     }
 
 
-    @SneakyThrows
     public void visit(SpecSpanNodeVisitor visitor) {
         for (val root : roots) {
             root.visit(visitor);

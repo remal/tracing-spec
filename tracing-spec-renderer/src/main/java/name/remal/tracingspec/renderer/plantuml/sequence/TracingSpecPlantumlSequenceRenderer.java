@@ -31,12 +31,11 @@ import lombok.val;
 import name.remal.tracingspec.model.SpecSpanNode;
 import name.remal.tracingspec.model.SpecSpanNodeVisitor;
 import name.remal.tracingspec.model.SpecSpansGraph;
-import name.remal.tracingspec.renderer.BaseTracingSpecRenderer;
-import name.remal.tracingspec.renderer.RenderingOptions;
-import name.remal.tracingspec.renderer.plantuml.BaseTracingSpecPlantumlRenderer;
+import name.remal.tracingspec.renderer.AbstractTracingSpecRenderer;
+import name.remal.tracingspec.renderer.plantuml.AbstractTracingSpecPlantumlRenderer;
 import org.jetbrains.annotations.Contract;
 
-public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantumlRenderer {
+public class TracingSpecPlantumlSequenceRenderer extends AbstractTracingSpecPlantumlRenderer {
 
     @Override
     public String getRendererName() {
@@ -45,7 +44,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
 
     @Override
     @SuppressWarnings({"java:S3776", "java:S1854"})
-    protected String renderSpecSpansGraph(SpecSpansGraph graph, RenderingOptions options) {
+    protected String renderTracingSpecImpl(SpecSpansGraph graph) {
         preprocessGraph(graph);
 
         val diagram = new Diagram();
@@ -84,16 +83,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
 
 
     private static void preprocessGraph(SpecSpansGraph graph) {
-        clearRemoteServiceNameIfItEqualsToServiceName(graph);
         addIntermediateNodes(graph);
-    }
-
-    private static void clearRemoteServiceNameIfItEqualsToServiceName(SpecSpansGraph graph) {
-        graph.visit(node -> {
-            if (Objects.equals(node.getServiceName(), node.getRemoteServiceName())) {
-                node.setRemoteServiceName(null);
-            }
-        });
     }
 
     @SuppressWarnings("java:S3776")
@@ -151,7 +141,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
 
         return requireNonNull(
             node.getServiceName(),
-            getClassSimpleName(BaseTracingSpecRenderer.class) + " doesn't allow service name to be NULL"
+            getClassSimpleName(AbstractTracingSpecRenderer.class) + " doesn't allow service name to be NULL"
         );
     }
 
@@ -161,7 +151,7 @@ public class TracingSpecPlantumlSequenceRenderer extends BaseTracingSpecPlantuml
         if (kind != null && kind.isRemoteSource()) {
             val serviceName = requireNonNull(
                 node.getServiceName(),
-                getClassSimpleName(BaseTracingSpecRenderer.class) + " doesn't allow service name to be NULL"
+                getClassSimpleName(AbstractTracingSpecRenderer.class) + " doesn't allow service name to be NULL"
             );
             return serviceName;
         }

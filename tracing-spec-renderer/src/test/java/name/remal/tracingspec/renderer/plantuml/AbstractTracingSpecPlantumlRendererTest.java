@@ -23,7 +23,7 @@ import lombok.val;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class BaseTracingSpecPlantumlRendererTest {
+class AbstractTracingSpecPlantumlRendererTest {
 
     private static final char[] CHARACTERS_TO_ESCAPE_WITH_CODEPOINT = new char[]{
         '"',
@@ -44,13 +44,13 @@ class BaseTracingSpecPlantumlRendererTest {
 
         @Test
         void empty() {
-            assertThat(BaseTracingSpecPlantumlRenderer.escapeString(""), equalTo(""));
+            assertThat(AbstractTracingSpecPlantumlRenderer.escapeString(""), equalTo(""));
         }
 
         @Test
         void clean() {
             assertThat(
-                BaseTracingSpecPlantumlRenderer.escapeString("abc"),
+                AbstractTracingSpecPlantumlRenderer.escapeString("abc"),
                 equalTo("abc")
             );
         }
@@ -58,7 +58,7 @@ class BaseTracingSpecPlantumlRendererTest {
         @Test
         void should_be_escaped_by_slash() {
             assertThat(
-                BaseTracingSpecPlantumlRenderer.escapeString("1\n2\r3\t4"),
+                AbstractTracingSpecPlantumlRenderer.escapeString("1\n2\r3\t4"),
                 equalTo("1\\n2\\r3\\t4")
             );
         }
@@ -68,7 +68,7 @@ class BaseTracingSpecPlantumlRendererTest {
             for (val ch : CHARACTERS_TO_ESCAPE_WITH_CODEPOINT) {
                 assertThat(
                     "Character: '" + ch + '\'',
-                    BaseTracingSpecPlantumlRenderer.escapeString(ch + ""),
+                    AbstractTracingSpecPlantumlRenderer.escapeString(ch + ""),
                     equalTo("&#" + ((int) ch) + ';')
                 );
             }
@@ -81,13 +81,13 @@ class BaseTracingSpecPlantumlRendererTest {
 
         @Test
         void empty() {
-            assertThat(BaseTracingSpecPlantumlRenderer.quoteString(""), equalTo("\" \""));
+            assertThat(AbstractTracingSpecPlantumlRenderer.quoteString(""), equalTo("\" \""));
         }
 
         @Test
         void clean() {
             assertThat(
-                BaseTracingSpecPlantumlRenderer.quoteString("abc"),
+                AbstractTracingSpecPlantumlRenderer.quoteString("abc"),
                 equalTo("abc")
             );
         }
@@ -95,7 +95,7 @@ class BaseTracingSpecPlantumlRendererTest {
         @Test
         void should_be_escaped_by_slash() {
             assertThat(
-                BaseTracingSpecPlantumlRenderer.quoteString("1\n2\r3\t4"),
+                AbstractTracingSpecPlantumlRenderer.quoteString("1\n2\r3\t4"),
                 equalTo("\"1\\n2\\r3\\t4\"")
             );
         }
@@ -105,7 +105,7 @@ class BaseTracingSpecPlantumlRendererTest {
             for (val ch : CHARACTERS_TO_ESCAPE_WITH_CODEPOINT) {
                 assertThat(
                     "Character: '" + ch + '\'',
-                    BaseTracingSpecPlantumlRenderer.quoteString(ch + ""),
+                    AbstractTracingSpecPlantumlRenderer.quoteString(ch + ""),
                     equalTo("\"&#" + ((int) ch) + ";\"")
                 );
             }
@@ -116,7 +116,7 @@ class BaseTracingSpecPlantumlRendererTest {
             for (val ch : new char[]{':', ' '}) {
                 assertThat(
                     "Character: '" + ch + '\'',
-                    BaseTracingSpecPlantumlRenderer.quoteString(ch + ""),
+                    AbstractTracingSpecPlantumlRenderer.quoteString(ch + ""),
                     equalTo("\"" + ch + "\"")
                 );
             }

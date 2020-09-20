@@ -1,6 +1,5 @@
 [
   {
-    spanId: "1",
     name: "name",
     serviceName: "local",
     remoteServiceName: "remote"

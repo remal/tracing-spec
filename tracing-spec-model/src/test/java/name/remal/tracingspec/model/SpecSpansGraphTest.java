@@ -23,8 +23,8 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static utils.test.json.ObjectMapperProvider.readJsonResource;
-import static utils.test.json.ObjectMapperProvider.writeJsonString;
+import static utils.test.json.JsonUtils.readJsonResource;
+import static utils.test.json.JsonUtils.writeJsonString;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
 import java.util.ArrayList;

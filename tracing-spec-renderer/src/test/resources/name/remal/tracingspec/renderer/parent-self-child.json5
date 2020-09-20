@@ -1,13 +1,12 @@
 [
   {
-    spanId: "1",
     name: "parent",
     serviceName: "A",
-  },
-  {
-    spanId: "2",
-    parentSpanId: "1",
-    name: "child",
-    serviceName: "A",
+    children: [
+      {
+        name: "child",
+        serviceName: "A",
+      }
+    ],
   },
 ]

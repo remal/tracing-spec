@@ -28,11 +28,19 @@ public abstract class SpanIdGenerator {
 
     private static final Random RANDOM = new SecureRandom();
 
-    private static final Set<Integer> GENERATED_IDS = newSetFromMap(new ConcurrentHashMap<>());
+    private static final Set<Long> GENERATED_IDS = newSetFromMap(new ConcurrentHashMap<>());
 
+    @SuppressWarnings("java:S881")
     private static long nextLongSpanId() {
-        while (true) {
-            val id = RANDOM.nextInt();
+        int maxAttempts = 1_000_000;
+        int attempt = 0;
+        while ((++attempt) <= maxAttempts) {
+            final long id;
+            if (RANDOM.nextBoolean()) {
+                id = RANDOM.nextInt();
+            } else {
+                id = ((long) Integer.MAX_VALUE) + RANDOM.nextInt();
+            }
             if (id <= 0) {
                 continue;
             }
@@ -40,6 +48,7 @@ public abstract class SpanIdGenerator {
                 return id;
             }
         }
+        throw new RuntimeException("All " + maxAttempts + " attempts failed");
     }
 
     public static String nextSpanId() {

@@ -17,49 +17,25 @@
 package name.remal.tracingspec.renderer;
 
 import static java.nio.file.Files.createDirectories;
-import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
 
 import java.nio.file.Path;
-import java.util.List;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.model.SpecSpansGraph;
 import org.jetbrains.annotations.Contract;
 
-public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
+public abstract class AbstractTracingSpecRenderer<Result> implements TracingSpecRenderer<Result> {
 
-    protected abstract Result renderSpecSpansGraph(SpecSpansGraph graph, RenderingOptions options);
+    protected abstract Result renderTracingSpecImpl(SpecSpansGraph graph);
 
     protected abstract void writeResultToPath(Result result, Path path);
 
 
     @Override
-    public final Result renderTracingSpec(List<SpecSpan> specSpans, RenderingOptions options) {
-        if (specSpans.isEmpty()) {
-            throw new IllegalArgumentException("specSpans must not be empty");
-        }
-
-        val graph = createSpecSpansGraph(specSpans);
-        processGraph(graph, options);
-        processNodes(graph, options);
-        leaveOnlyDisplayableTags(graph, options);
+    public final Result renderTracingSpec(SpecSpansGraph graph) {
         checkServiceNameExistence(graph);
-        return renderSpecSpansGraph(graph, options);
-    }
-
-    @SneakyThrows
-    private static void processGraph(SpecSpansGraph graph, RenderingOptions options) {
-        for (val graphProcessor : options.getGraphProcessors()) {
-            graphProcessor.processGraph(graph);
-        }
-    }
-
-    private static void processNodes(SpecSpansGraph graph, RenderingOptions options) {
-        for (val nodeProcessor : options.getNodeProcessors()) {
-            graph.visit(nodeProcessor::processNode);
-        }
+        return renderTracingSpecImpl(graph);
     }
 
     private static void checkServiceNameExistence(SpecSpansGraph graph) {
@@ -70,23 +46,17 @@ public abstract class BaseTracingSpecRenderer<Result> implements TracingSpecRend
         });
     }
 
-    private static void leaveOnlyDisplayableTags(SpecSpansGraph graph, RenderingOptions options) {
-        graph.visit(node ->
-            node.getTags().keySet().removeIf(tagName -> !options.getTagsToDisplay().contains(tagName))
-        );
-    }
-
 
     @Override
     @SneakyThrows
-    public void renderTracingSpecToPath(List<SpecSpan> specSpans, RenderingOptions options, Path path) {
+    public void renderTracingSpecToPath(SpecSpansGraph graph, Path path) {
         path = path.toAbsolutePath();
         val parentPath = path.getParent();
         if (parentPath != null && !parentPath.equals(path)) {
             createDirectories(parentPath);
         }
 
-        val result = renderTracingSpec(specSpans, options);
+        val result = renderTracingSpec(graph);
         writeResultToPath(result, path);
     }
 

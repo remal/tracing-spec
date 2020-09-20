@@ -16,6 +16,7 @@
 
 package name.remal.tracingspec.application;
 
+import static name.remal.tracingspec.application.ExitException.findExitException;
 import static org.springframework.boot.Banner.Mode.OFF;
 import static org.springframework.boot.WebApplicationType.NONE;
 
@@ -45,12 +46,17 @@ public class TracingSpecSpringApplication {
                 context.close();
             }
 
-        } catch (ExitException exception) {
-            val message = exception.getMessage();
-            if (message != null && !message.isEmpty()) {
-                logger.error(message);
+        } catch (Throwable exception) {
+            val exitException = findExitException(exception);
+            if (exitException != null) {
+                val message = exitException.getMessage();
+                if (message != null && !message.isEmpty()) {
+                    logger.error(message);
+                }
+                System.exit(exitException.getExitCode());
+            } else {
+                throw exception;
             }
-            System.exit(exception.getStatus());
         }
     }
 

@@ -120,6 +120,7 @@ class EndToEndTest {
 
             val outputPath = tempDir.resolve("dir/zipkin.puml");
             TracingSpecSpringApplication.main(
+                "render",
                 "--spring.sleuth.enabled=false",
                 "--tracingspec.retriever.zipkin.url=" + retrieverProperties.getUrl(),
                 traceId,
@@ -147,6 +148,7 @@ class EndToEndTest {
 
             val outputPath = tempDir.resolve("dir/jaeger.puml");
             TracingSpecSpringApplication.main(
+                "render",
                 "--spring.sleuth.enabled=false",
                 "--tracingspec.retriever.jaeger.host=" + retrieverProperties.getHost(),
                 "--tracingspec.retriever.jaeger.port=" + retrieverProperties.getPort(),
