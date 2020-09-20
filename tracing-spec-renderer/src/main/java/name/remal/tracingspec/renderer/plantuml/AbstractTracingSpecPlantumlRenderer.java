@@ -22,9 +22,9 @@ import static java.util.Arrays.sort;
 
 import javax.annotation.Nullable;
 import lombok.val;
-import name.remal.tracingspec.renderer.BaseStringTracingSpecRenderer;
+import name.remal.tracingspec.renderer.AbstractStringTracingSpecRenderer;
 
-public abstract class BaseTracingSpecPlantumlRenderer extends BaseStringTracingSpecRenderer {
+public abstract class AbstractTracingSpecPlantumlRenderer extends AbstractStringTracingSpecRenderer {
 
     private static final char[] CHARACTERS_TO_ESCAPE_WITH_CODEPOINT = new char[]{
         '"',

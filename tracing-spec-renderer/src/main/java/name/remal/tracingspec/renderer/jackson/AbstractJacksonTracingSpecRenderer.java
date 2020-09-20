@@ -19,20 +19,19 @@ package name.remal.tracingspec.renderer.jackson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import name.remal.tracingspec.model.SpecSpansGraph;
-import name.remal.tracingspec.renderer.BaseStringTracingSpecRenderer;
-import name.remal.tracingspec.renderer.RenderingOptions;
+import name.remal.tracingspec.renderer.AbstractStringTracingSpecRenderer;
 
-abstract class BaseJacksonTracingSpecRenderer extends BaseStringTracingSpecRenderer {
+abstract class AbstractJacksonTracingSpecRenderer extends AbstractStringTracingSpecRenderer {
 
     protected final ObjectMapper objectMapper;
 
-    protected BaseJacksonTracingSpecRenderer(ObjectMapper objectMapper) {
+    protected AbstractJacksonTracingSpecRenderer(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
     @SneakyThrows
-    protected String renderSpecSpansGraph(SpecSpansGraph graph, RenderingOptions options) {
+    protected String renderTracingSpecImpl(SpecSpansGraph graph) {
         return objectMapper.writeValueAsString(graph);
     }
 

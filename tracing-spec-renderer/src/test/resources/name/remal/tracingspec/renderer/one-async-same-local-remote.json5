@@ -1,6 +1,5 @@
 [
   {
-    spanId: "1",
     async: true,
     name: "name",
     serviceName: "service",

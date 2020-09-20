@@ -5,7 +5,9 @@ dependencies {
     api project(':tracing-spec-retriever-jaeger')
     api project(':tracing-spec-retriever-zipkin')
     api project(':tracing-spec-renderer')
+    api project(':tracing-spec-matcher')
     api 'org.springframework.boot:spring-boot-starter'
+    api 'info.picocli:picocli-spring-boot-starter'
     api 'org.springframework.boot:spring-boot-starter-validation'
     api 'org.springframework.boot:spring-boot-starter-json'
     api 'com.fasterxml.jackson.module:jackson-module-parameter-names'

@@ -19,6 +19,7 @@ activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": process&#45;schema&#45;changed&#45;event
 activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": reindex&#45;documents&#45;of&#45;schema
+note left: Partition documents of the schema into several bulks
 activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": send&#45;stale&#45;documents&#45;event
 note left: Publish StaleDocumentsEvent

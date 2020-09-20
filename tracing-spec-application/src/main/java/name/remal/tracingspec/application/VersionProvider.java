@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.renderer;
+package name.remal.tracingspec.application;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.write;
+import static name.remal.gradle_plugins.api.BuildTimeConstants.getStringProperty;
 
-import java.nio.file.Path;
-import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus.Internal;
+import org.springframework.stereotype.Component;
+import picocli.CommandLine.IVersionProvider;
 
-public abstract class BaseStringTracingSpecRenderer extends BaseTracingSpecRenderer<String> {
+@Internal
+@Component
+class VersionProvider implements IVersionProvider {
 
     @Override
-    @SneakyThrows
-    protected void writeResultToPath(String result, Path path) {
-        write(path, result.getBytes(UTF_8));
+    public String[] getVersion() {
+        return new String[]{
+            getStringProperty("version")
+        };
     }
 
 }

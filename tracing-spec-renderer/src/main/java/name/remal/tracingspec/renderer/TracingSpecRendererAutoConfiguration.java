@@ -24,6 +24,7 @@ import name.remal.tracingspec.renderer.jackson.JsonTracingSpecRenderer;
 import name.remal.tracingspec.renderer.jackson.YamlTracingSpecRenderer;
 import name.remal.tracingspec.renderer.plantuml.sequence.TracingSpecPlantumlSequenceRenderer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +39,12 @@ public class TracingSpecRendererAutoConfiguration {
     @Role(ROLE_INFRASTRUCTURE)
     static RenderingOptionsBeanPostProcessor renderingOptionsBeanPostProcessor(ApplicationContext context) {
         return new RenderingOptionsBeanPostProcessor(context);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(SpecSpansGraphPreparer.class)
+    public SpecSpansGraphPreparer specSpansGraphPreparer(RenderingOptions options) {
+        return new DefaultSpecSpansGraphPreparer(options);
     }
 
     @Bean

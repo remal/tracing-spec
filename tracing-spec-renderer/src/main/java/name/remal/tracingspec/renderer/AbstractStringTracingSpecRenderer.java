@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package name.remal.tracingspec.renderer.plantuml;
+package name.remal.tracingspec.renderer;
 
-import static utils.test.normalizer.PumlNormalizer.normalizePuml;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.write;
 
-import name.remal.tracingspec.renderer.BaseStringTracingSpecRenderer;
-import name.remal.tracingspec.renderer.StringTracingSpecRendererTestBase;
+import java.nio.file.Path;
+import lombok.SneakyThrows;
 
-public abstract class PlantumlTracingSpecRendererTestBase<Renderer extends BaseStringTracingSpecRenderer>
-    extends StringTracingSpecRendererTestBase<Renderer> {
-
-    @Override
-    protected final String getExpectedResourceExtension() {
-        return "puml";
-    }
+public abstract class AbstractStringTracingSpecRenderer extends AbstractTracingSpecRenderer<String> {
 
     @Override
-    protected String normalizeResult(String diagram) {
-        return normalizePuml(diagram);
+    @SneakyThrows
+    protected void writeResultToPath(String result, Path path) {
+        write(path, result.getBytes(UTF_8));
     }
 
 }

@@ -20,8 +20,8 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
-import static utils.test.json.ObjectMapperProvider.readJsonString;
-import static utils.test.json.ObjectMapperProvider.writeJsonString;
+import static utils.test.json.JsonUtils.readJsonString;
+import static utils.test.json.JsonUtils.writeJsonString;
 
 import lombok.val;
 import org.junit.jupiter.api.Test;

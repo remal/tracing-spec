@@ -37,6 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.tracingspec.spring.SpecSpanTags;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DocumentsReindexer {
+
+    private static final int PARTITION_SIZE = 50;
+
 
     private final DocumentRepository repository;
 
@@ -57,9 +61,10 @@ public class DocumentsReindexer {
 
 
     @NewSpan("reindex-documents-of-schema")
+    @SpecSpanTags(description = "Partition documents of the schema into several bulks")
     public void reindexDocumentsBySchemaId(String schemaId) {
         val docs = repository.getAllBySchema(schemaId);
-        for (val partitionDocs : partition(docs, 50)) {
+        for (val partitionDocs : partition(docs, PARTITION_SIZE)) {
             staleDocumentsEventSender.sendStaleDocumentsEvent(ImmutableStaleDocumentsEvent.builder()
                 .ids(partitionDocs.stream().map(Document::getId).collect(toList()))
                 .build()

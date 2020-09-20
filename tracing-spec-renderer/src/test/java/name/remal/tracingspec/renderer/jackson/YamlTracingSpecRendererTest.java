@@ -16,13 +16,13 @@
 
 package name.remal.tracingspec.renderer.jackson;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static utils.test.resource.Resources.readTextResource;
-import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
+import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
 import lombok.val;
+import name.remal.tracingspec.model.SpecSpansGraph;
 import org.junit.jupiter.api.Test;
 
 class YamlTracingSpecRendererTest {
@@ -31,17 +31,19 @@ class YamlTracingSpecRendererTest {
 
     @Test
     void renderTracingSpec() {
-        val parent = nextSpecSpan(it -> {
+        val parent = nextSpecSpanNode(it -> {
             it.setName("parent");
             it.setServiceName("service");
         });
-        val child = nextSpecSpan(it -> {
-            it.setParentSpanId(parent.getSpanId());
+        val child = nextSpecSpanNode(it -> {
+            it.setParent(parent);
             it.setName("child");
             it.setServiceName("service");
         });
+        val graph = new SpecSpansGraph()
+            .addRoot(parent);
 
-        val result = renderer.renderTracingSpec(asList(parent, child));
+        val result = renderer.renderTracingSpec(graph);
         val normalizedResult = result.trim();
 
         val expectedResult = readTextResource("expected.yml");

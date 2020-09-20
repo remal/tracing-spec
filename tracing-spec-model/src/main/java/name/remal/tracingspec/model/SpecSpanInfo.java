@@ -31,12 +31,14 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.Data;
 import lombok.val;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 
+@Internal
 @NotThreadSafe
 @Data
 @JsonInclude(NON_EMPTY)
-abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparable<Self> {
+public abstract class SpecSpanInfo<Self extends SpecSpanInfo<Self>> implements Comparable<Self> {
 
     @JsonInclude(NON_DEFAULT)
     @JsonProperty(index = 101)

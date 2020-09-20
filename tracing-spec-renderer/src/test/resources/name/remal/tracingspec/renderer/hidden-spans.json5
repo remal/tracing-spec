@@ -1,41 +1,40 @@
 [
   {
-    spanId: "1",
     hidden: true,
     name: "1",
     serviceName: "A",
-  },
-  {
-    spanId: "2",
-    parentSpanId: "1",
-    name: "2",
-    serviceName: "A",
-  },
-  {
-    spanId: "3",
-    parentSpanId: "2",
-    hidden: true,
-    name: "3",
-    serviceName: "A",
-  },
-  {
-    spanId: "4",
-    parentSpanId: "3",
-    hidden: true,
-    name: "4",
-    serviceName: "B",
-  },
-  {
-    spanId: "5",
-    parentSpanId: "4",
-    name: "5",
-    serviceName: "B",
-  },
-  {
-    spanId: "6",
-    parentSpanId: "5",
-    hidden: true,
-    name: "6",
-    serviceName: "B",
+    children: [
+      {
+        name: "2",
+        serviceName: "A",
+        children: [
+          {
+            hidden: true,
+            name: "3",
+            serviceName: "A",
+            children: [
+              {
+                hidden: true,
+                name: "4",
+                serviceName: "B",
+                children: [
+                  {
+                    name: "5",
+                    serviceName: "B",
+                    children: [
+                      {
+                        hidden: true,
+                        name: "6",
+                        serviceName: "B",
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
   },
 ]
