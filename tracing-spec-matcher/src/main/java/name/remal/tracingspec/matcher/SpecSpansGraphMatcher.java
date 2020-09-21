@@ -52,15 +52,25 @@ public class SpecSpansGraphMatcher {
             return false;
         }
 
-        for (int index = 0; index < nodes.size(); ++index) {
-            val node = nodes.get(index);
-            val patternNode = patternNodes.get(index);
-            if (!new SpecSpanInfoMatcher(patternNode).matches(node)) {
+        int matchedPatternNodesCount = 0;
+        for (val node : nodes) {
+            boolean matches = false;
+            for (val patternNode : patternNodes) {
+                if (new SpecSpanInfoMatcher(patternNode).matches(node)
+                    && matches(node.getChildren(), patternNode.getChildren())
+                ) {
+                    ++matchedPatternNodesCount;
+                    matches = true;
+                    break;
+                }
+            }
+            if (!matches) {
                 return false;
             }
-            if (!matches(node.getChildren(), patternNode.getChildren())) {
-                return false;
-            }
+        }
+
+        if (matchedPatternNodesCount != patternNodes.size()) {
+            return false;
         }
 
         return true;

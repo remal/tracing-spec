@@ -1,0 +1,63 @@
+- name: post /schemas
+  serviceName: schemas-service
+  description: Save schema
+  children:
+  - name: send-schema-changed-event
+    serviceName: schemas-service
+    description: Publish SchemaChangedEvent
+    children:
+    - name: send
+      serviceName: schemas-service
+      remoteServiceName: kafka
+      tags:
+        kafka.topic: schema-changed
+      children:
+      - name: poll
+        async: true
+        serviceName: documents-service
+        remoteServiceName: kafka
+        tags:
+          kafka.topic: schema-changed
+        children:
+        - name: on-message
+          serviceName: documents-service
+          children:
+          - name: process-schema-changed-event
+            serviceName: documents-service
+            children:
+            - name: reindex-documents-of-schema
+              serviceName: documents-service
+              description: Partition documents of the schema into several bulks
+              children:
+              - name: send-stale-documents-event
+                serviceName: documents-service
+                description: Publish StaleDocumentsEvent
+                children:
+                - name: send
+                  serviceName: documents-service
+                  remoteServiceName: kafka
+                  tags:
+                    kafka.topic: stale-documents
+                  children:
+                  - name: poll
+                    async: true
+                    serviceName: documents-service
+                    remoteServiceName: kafka
+                    tags:
+                      kafka.topic: stale-documents
+                    children:
+                    - name: on-message
+                      serviceName: documents-service
+                      children:
+                      - name: process-stale-documents-event
+                        serviceName: documents-service
+                        children:
+                        - name: reindex-documents
+                          serviceName: documents-service
+                          children:
+                          - name: "get /schemas/{id}"
+                            serviceName: schemas-service
+                            description: Get schema by ID
+                          - name: "get /users/{id}"
+                            serviceName: users-service
+                            description: Get user by ID

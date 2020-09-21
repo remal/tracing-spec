@@ -23,7 +23,8 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 
-public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneContainer> {
+public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneContainer>
+    implements WithZipkinCollectorUrl {
 
     public static final String IMAGE = System.getProperty("jaeger-image", "jaegertracing/all-in-one");
     public static final String DEFAULT_TAG = System.getProperty("jaeger-image-tag", "latest");
@@ -81,6 +82,7 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
         return format("http://localhost:%d/", getZipkinPort());
     }
 
+    @Override
     public String getZipkinCollectorUrl() {
         return getZipkinBaseUrl() + "api/v2/spans";
     }

@@ -68,6 +68,29 @@ class SpecSpansGraphMatcherTest {
     }
 
     @Test
+    void order_insensitive() {
+        val patternGraph = new SpecSpansGraph()
+            .addRoot(nextSpecSpanNode(root -> root.setName("1")))
+            .addRoot(nextSpecSpanNode(root -> root.setName("2")));
+
+        val sameOrderGraph = new SpecSpansGraph()
+            .addRoot(nextSpecSpanNode(root -> root.setName("1")))
+            .addRoot(nextSpecSpanNode(root -> root.setName("2")));
+        assertThat(
+            new SpecSpansGraphMatcher(patternGraph).matches(sameOrderGraph),
+            equalTo(true)
+        );
+
+        val differentOrderGraph = new SpecSpansGraph()
+            .addRoot(nextSpecSpanNode(root -> root.setName("2")))
+            .addRoot(nextSpecSpanNode(root -> root.setName("1")));
+        assertThat(
+            new SpecSpansGraphMatcher(patternGraph).matches(differentOrderGraph),
+            equalTo(true)
+        );
+    }
+
+    @Test
     void different_roots_count() {
         val patternGraph = new SpecSpansGraph()
             .addRoot(nextSpecSpanNode())

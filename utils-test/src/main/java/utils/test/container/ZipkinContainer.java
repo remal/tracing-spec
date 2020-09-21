@@ -24,7 +24,8 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 
-public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
+public class ZipkinContainer extends GenericContainer<ZipkinContainer>
+    implements WithZipkinCollectorUrl {
 
     public static final String IMAGE = System.getProperty("zipkin-image", "openzipkin/zipkin-slim");
     public static final String DEFAULT_TAG = System.getProperty("zipkin-image-tag", "latest");
@@ -65,6 +66,7 @@ public class ZipkinContainer extends GenericContainer<ZipkinContainer> {
         return format("http://localhost:%d/", getZipkinPort());
     }
 
+    @Override
     public String getZipkinCollectorUrl() {
         return getZipkinBaseUrl() + "api/v2/spans";
     }

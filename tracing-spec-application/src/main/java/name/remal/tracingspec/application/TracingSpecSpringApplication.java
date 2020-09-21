@@ -25,26 +25,43 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
 public class TracingSpecSpringApplication {
 
     private static final Logger logger = LogManager.getLogger(TracingSpecSpringApplication.class);
 
-    public static void main(String... args) {
+    /**
+     * Same as {@link #main}, but without calling {@link System#exit(int)} on error.
+     */
+    public static void run(String... args) {
+        ConfigurableApplicationContext context = null;
         try {
             val application = new SpringApplication(TracingSpecSpringApplication.class);
             application.setBannerMode(OFF);
+            application.setLogStartupInfo(false);
             application.setWebApplicationType(NONE);
+            application.setRegisterShutdownHook(false);
+            application.setLazyInitialization(true);
 
-            val context = application.run(args);
+            context = application.run(args);
 
-            if (context.isRunning()) {
-                context.stop();
+        } finally {
+            if (context != null) {
+                if (context.isRunning()) {
+                    context.stop();
+                }
+                if (context.isActive()) {
+                    context.close();
+                }
             }
-            if (context.isActive()) {
-                context.close();
-            }
+        }
+    }
+
+    public static void main(String... args) {
+        try {
+            run(args);
 
         } catch (Throwable exception) {
             val exitException = findExitException(exception);
