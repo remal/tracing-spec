@@ -16,6 +16,7 @@
 
 package name.remal.tracingspec.application;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.write;
 import static java.util.Collections.emptyList;
@@ -177,6 +178,13 @@ class TracingSpecApplicationRunnerComponentTest {
             );
 
             assertThat(exception.getExitCode(), equalTo(1));
+            assertThat(exception.getMessage(), equalTo(
+                format(
+                    "Pattern graph%n%s%ndoesn't match to%n%s",
+                    MatchCommand.writeYamlToString(patternGraph),
+                    MatchCommand.writeYamlToString(graph)
+                )
+            ));
         }
 
     }

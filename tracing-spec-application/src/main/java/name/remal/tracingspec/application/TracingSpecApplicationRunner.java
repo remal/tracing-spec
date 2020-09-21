@@ -19,7 +19,9 @@ package name.remal.tracingspec.application;
 import static java.util.Comparator.comparing;
 
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.val;
 import org.springframework.boot.CommandLineRunner;
@@ -39,6 +41,7 @@ public class TracingSpecApplicationRunner implements CommandLineRunner {
     private final Collection<CommandLineCommand> commandLineCommands;
 
     @Override
+    @SneakyThrows
     public void run(String... args) {
         val rootCommand = new RootCommand();
         val commandLine = new CommandLine(rootCommand, picocliFactory);
@@ -49,8 +52,19 @@ public class TracingSpecApplicationRunner implements CommandLineRunner {
         commandLine.addSubcommand(new HelpCommand());
         processCommands(commandLine);
 
+        val thrownException = new AtomicReference<Throwable>();
+        commandLine.setExecutionExceptionHandler((exception, cl, pr) -> {
+            thrownException.set(exception);
+            return Integer.MIN_VALUE;
+        });
+
         val exitCode = commandLine.execute(args);
         if (exitCode != 0) {
+            val exception = thrownException.get();
+            if (exception != null) {
+                throw exception;
+            }
+
             throw new ExitException(exitCode);
         }
     }
