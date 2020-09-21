@@ -40,10 +40,6 @@
       packageNames: ["com.google.guava:guava"],
       allowedVersions: "/^\\d+(\\.\\d+)+-jre$/",
     },
-    {
-      packageNames: ["net.sourceforge.plantuml:plantuml"],
-      allowedVersions: "/^\\d+\\.\\d+(\\.\\d+)+$/",
-    },
   ],
   "git-submodules": {
     enabled: false, // This is in beta for now, so let's use Dependabot to update Git submodules
