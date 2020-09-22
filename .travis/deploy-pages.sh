@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e +o pipefail
 
+if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "test-pages" ]; then
+    echo "Skip updating GitHub pages"
+    exit
+fi
+
 echo "Updating GitHub pages..."
 
 PROJECT_SLUG=tracing-spec
