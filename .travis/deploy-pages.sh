@@ -28,7 +28,7 @@ cp -r "$DOCS_DIR"/* "$PROJECT_PAGES_DIR"
 
 git -C "$PAGES_ROOT_DIR" add --all
 
-if git -C "$PAGES_ROOT_DIR" diff-index --quiet HEAD; then
+if git -C "$PAGES_ROOT_DIR" diff-index HEAD; then
     echo "Pushing changes"
     git -C "$PAGES_ROOT_DIR" commit --all -m "Update pages for $PROJECT_SLUG"
     git -C "$PAGES_ROOT_DIR" push
