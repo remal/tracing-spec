@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e +o pipefail
 
+PROJECT_SLUG=tracing-spec
+
 if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "test-pages" ]; then
     echo "Skip updating GitHub pages"
     exit
@@ -8,9 +10,8 @@ fi
 
 echo "Updating GitHub pages..."
 
-PROJECT_SLUG=tracing-spec
-
 PAGES_ROOT_DIR=./.gh-pages
+rm -rf "${PAGES_ROOT_DIR:?}"
 PROJECT_PAGES_DIR="${PAGES_ROOT_DIR:?}/${PROJECT_SLUG:?}"
 
 echo "Cloning 'https://github.com/remal/remal.github.io.git'..."
