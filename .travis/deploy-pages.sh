@@ -20,7 +20,8 @@ git clone "https://${GITHUB_TOKEN}@github.com/remal/remal.github.io.git" "$PAGES
 #git -C "$PAGES_ROOT_DIR" config --global user.name "Travis CI"
 
 echo "Updating content"
-rm -rf "${PROJECT_PAGES_DIR:?}/*"
+rm -rf "${PROJECT_PAGES_DIR:?}"
+mkdir -p "$PROJECT_PAGES_DIR"
 cp -r "./docs/*" "$PROJECT_PAGES_DIR"
 
 git -C "$PAGES_ROOT_DIR" add --all
