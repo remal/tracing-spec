@@ -22,6 +22,7 @@ git clone "https://${GITHUB_TOKEN}@github.com/remal/remal.github.io.git" "$PAGES
 #git -C "$PAGES_ROOT_DIR" config --global user.email "travis@travis-ci.org"
 #git -C "$PAGES_ROOT_DIR" config --global user.name "Travis CI"
 ls
+ls ./docs
 
 echo "Updating content"
 rm -rf "${PROJECT_PAGES_DIR:?}"
