@@ -4,7 +4,7 @@ set -e +o pipefail
 PROJECT_SLUG=tracing-spec
 DOCS_DIR=docs
 
-if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "test-pages" ]; then
+if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then
     echo "Skip updating GitHub pages"
     exit
 fi
