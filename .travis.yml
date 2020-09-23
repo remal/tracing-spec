@@ -35,8 +35,8 @@ before_script:
 - sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
 
 script:
+- ./.travis/build.sh
 - ./.travis/deploy-pages.sh
-#- ./.travis/build.sh
 
 deploy:
   skip_cleanup: true
