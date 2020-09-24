@@ -52,7 +52,17 @@ class ExitException extends RuntimeException implements ExitCodeGenerator {
 
         val cause = throwable.getCause();
         if (cause != null) {
-            return findExitException(cause);
+            val exitException = findExitException(cause);
+            if (exitException != null) {
+                return exitException;
+            }
+        }
+
+        for (val suppressed : throwable.getSuppressed()) {
+            val exitException = findExitException(suppressed);
+            if (exitException != null) {
+                return exitException;
+            }
         }
 
         return null;

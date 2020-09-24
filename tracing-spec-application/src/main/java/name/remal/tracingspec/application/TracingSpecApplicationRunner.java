@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.val;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -34,13 +33,12 @@ import picocli.CommandLine.IFactory;
 @Component
 @RequiredArgsConstructor
 @ToString
-public class TracingSpecApplicationRunner implements CommandLineRunner {
+public class TracingSpecApplicationRunner {
 
     private final IFactory picocliFactory;
 
     private final Collection<CommandLineCommand> commandLineCommands;
 
-    @Override
     @SneakyThrows
     public void run(String... args) {
         val rootCommand = new RootCommand();

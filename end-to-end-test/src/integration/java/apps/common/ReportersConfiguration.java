@@ -42,11 +42,6 @@ import zipkin2.reporter.urlconnection.URLConnectionSender;
 public class ReportersConfiguration {
 
     @Bean
-    public Reporter<Span> logSpanReporter() {
-        return new LogSpanReporter();
-    }
-
-    @Bean
     @ConditionalOnBean(ZipkinContainer.class)
     public Reporter<Span> zipkinReporter(
         TestcontainersStarter containersStarter,

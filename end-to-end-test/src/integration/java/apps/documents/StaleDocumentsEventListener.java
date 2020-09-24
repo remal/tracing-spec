@@ -33,7 +33,7 @@ public class StaleDocumentsEventListener {
 
     private final DocumentsReindexer documentsReindexer;
 
-    @KafkaListener(topics = STALE_DOCUMENTS_TOPIC)
+    @KafkaListener(topics = STALE_DOCUMENTS_TOPIC, autoStartup = "true")
     @NewSpan("process-stale-documents-event")
     public void onDocumentsShouldBeUpdatedEvent(StaleDocumentsEvent event) {
         val docs = event.getIds().stream()

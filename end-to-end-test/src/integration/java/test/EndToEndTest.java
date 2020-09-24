@@ -20,9 +20,11 @@ import static java.lang.System.identityHashCode;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static utils.test.awaitility.AwaitilityUtils.await;
+import static utils.test.debug.TestDebug.AWAIT_TIMEOUT;
 import static utils.test.normalizer.PumlNormalizer.normalizePuml;
 import static utils.test.resource.Resources.getResourcePath;
 import static utils.test.resource.Resources.readTextResource;
@@ -39,6 +41,7 @@ import java.io.Flushable;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.application.TracingSpecSpringApplication;
@@ -60,7 +63,7 @@ import zipkin2.reporter.Reporter;
 class EndToEndTest {
 
     @Test
-    void test(@TempDir Path tempDir) throws Throwable {
+    void test(@TempDir Path tempDir) {
         val schema = ImmutableSchema.builder()
             .id("task")
             .addReference(ImmutableSchemaReference.builder()
@@ -75,21 +78,25 @@ class EndToEndTest {
         val documentsClient = sharedContext.getBean(DocumentsClient.class);
         val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
-        val tracer = getBeanFromAnyContext(Tracer.class);
-        val testSpan = tracer.startScopedSpan("test");
-        val traceId = testSpan.context().traceIdString();
-        try {
-            val schemasClient = sharedContext.getBean(SchemasClient.class);
-            schemasClient.saveSchema(schema);
-        } finally {
-            testSpan.finish();
-        }
+        val traceId = new AtomicReference<String>();
+        // Kafka listeners initialize asynchronously, so let's do several attempts:
+        await().atMost(AWAIT_TIMEOUT.multipliedBy(2)).untilAsserted(() -> {
+            val tracer = getBeanFromAnyContext(Tracer.class);
+            val testSpan = tracer.startScopedSpan("test");
+            traceId.set(testSpan.context().traceIdString());
+            try {
+                val schemasClient = sharedContext.getBean(SchemasClient.class);
+                schemasClient.saveSchema(schema);
+            } finally {
+                testSpan.finish();
+            }
 
-        // Let's wait until all documents are processed:
-        await().until(
-            () -> documentsClient.getAllDocumentsBySchema(schema.getId()),
-            docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
-        );
+            // Let's wait until all documents are processed:
+            await().atMost(AWAIT_TIMEOUT.dividedBy(5)).until(
+                () -> documentsClient.getAllDocumentsBySchema(schema.getId()),
+                docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
+            );
+        });
 
         flushAllSpans();
 
@@ -106,7 +113,7 @@ class EndToEndTest {
                     "--spring.application.name=zipkin",
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.zipkin.url=" + retrieverProperties.getUrl(),
-                    traceId,
+                    requireNonNull(traceId.get()),
                     expectedGraphPath.toString()
                 );
             });
@@ -118,7 +125,7 @@ class EndToEndTest {
                     "--spring.application.name=zipkin",
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.zipkin.url=" + retrieverProperties.getUrl(),
-                    traceId,
+                    requireNonNull(traceId.get()),
                     "plantuml-sequence",
                     outputPath.toString()
                 );
@@ -143,7 +150,7 @@ class EndToEndTest {
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.jaeger.host=" + retrieverProperties.getHost(),
                     "--tracingspec.retriever.jaeger.port=" + retrieverProperties.getPort(),
-                    traceId,
+                    requireNonNull(traceId.get()),
                     expectedGraphPath.toString()
                 );
             });
@@ -156,7 +163,7 @@ class EndToEndTest {
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.jaeger.host=" + retrieverProperties.getHost(),
                     "--tracingspec.retriever.jaeger.port=" + retrieverProperties.getPort(),
-                    traceId,
+                    requireNonNull(traceId.get()),
                     "plantuml-sequence",
                     outputPath.toString()
                 );

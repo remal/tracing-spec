@@ -30,7 +30,7 @@ public class SchemaChangedEventListener {
 
     private final DocumentsReindexer documentsReindexer;
 
-    @KafkaListener(topics = SCHEMA_CHANGED_TOPIC)
+    @KafkaListener(topics = SCHEMA_CHANGED_TOPIC, autoStartup = "true")
     @NewSpan("process-schema-changed-event")
     public void onSchemaChangedEvent(SchemaChangedEvent event) {
         documentsReindexer.reindexDocumentsBySchemaId(event.getId());

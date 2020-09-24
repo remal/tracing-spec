@@ -47,6 +47,9 @@ public class TracingSpecSpringApplication {
 
             context = application.run(args);
 
+            val runner = context.getBean(TracingSpecApplicationRunner.class);
+            runner.run(args);
+
         } finally {
             if (context != null) {
                 if (context.isRunning()) {
