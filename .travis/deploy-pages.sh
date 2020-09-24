@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e +o pipefail
+set -x -e +o pipefail
 
 PROJECT_SLUG=tracing-spec
 DOCS_DIR=docs
@@ -8,8 +8,6 @@ if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then
     echo "Skip updating GitHub pages"
     exit
 fi
-
-set -x
 
 PAGES_ROOT_DIR=.gh-pages
 rm -rf "${PAGES_ROOT_DIR:?}"

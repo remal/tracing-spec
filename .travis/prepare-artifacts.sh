@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e +o pipefail
+set -x -e +o pipefail
 
 ARTIFACTS_FILE=./.artifacts.zip
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e +o pipefail
+set -x -e +o pipefail
 
 chmod -R 0777 .
 ./gradlew build runAllTests

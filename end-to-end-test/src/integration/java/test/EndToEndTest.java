@@ -18,7 +18,10 @@ package test;
 
 import static java.lang.System.identityHashCode;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.deleteIfExists;
+import static java.nio.file.Files.exists;
 import static java.nio.file.Files.readAllBytes;
+import static java.nio.file.Files.walkFileTree;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,10 +41,15 @@ import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
 import brave.Tracer;
 import java.io.Flushable;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.application.TracingSpecSpringApplication;
@@ -63,7 +71,28 @@ import zipkin2.reporter.Reporter;
 class EndToEndTest {
 
     @Test
-    void test(@TempDir Path tempDir) {
+    @SuppressWarnings({"BusyWait", "java:S2925"})
+    void end_to_end(@TempDir Path tempDir) throws Throwable {
+        int attempt = 0;
+        while (true) {
+            ++attempt;
+            cleanTempDir(tempDir);
+
+            try {
+                endToEndImpl(tempDir);
+                return;
+
+            } catch (Throwable exception) {
+                if (attempt >= 3) {
+                    throw exception;
+                } else {
+                    Thread.sleep(1_000);
+                }
+            }
+        }
+    }
+
+    private void endToEndImpl(Path tempDir) {
         val schema = ImmutableSchema.builder()
             .id("task")
             .addReference(ImmutableSchemaReference.builder()
@@ -243,6 +272,34 @@ class EndToEndTest {
         if (context.isActive()) {
             context.close();
         }
+    }
+
+    @SneakyThrows
+    private static void cleanTempDir(Path tempDir) {
+        if (!exists(tempDir)) {
+            return;
+        }
+
+        walkFileTree(tempDir, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (!file.equals(tempDir)) {
+                    deleteIfExists(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, @Nullable IOException exc) throws IOException {
+                if (exc != null) {
+                    throw exc;
+                }
+                if (!dir.equals(tempDir)) {
+                    deleteIfExists(dir);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
 }
