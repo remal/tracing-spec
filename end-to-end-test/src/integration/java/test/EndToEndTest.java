@@ -22,7 +22,7 @@ import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static utils.test.debug.TestDebug.AWAIT_TIMEOUT;
+import static utils.test.awaitility.AwaitilityUtils.await;
 import static utils.test.normalizer.PumlNormalizer.normalizePuml;
 import static utils.test.resource.Resources.getResourcePath;
 import static utils.test.resource.Resources.readTextResource;
@@ -37,7 +37,6 @@ import apps.users.UsersApplication;
 import brave.Tracer;
 import java.io.Flushable;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.SneakyThrows;
@@ -45,8 +44,6 @@ import lombok.val;
 import name.remal.tracingspec.application.TracingSpecSpringApplication;
 import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetrieverProperties;
 import name.remal.tracingspec.retriever.zipkin.ZipkinSpecSpansRetrieverProperties;
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -61,9 +58,6 @@ import utils.test.container.ZipkinContainer;
 import zipkin2.reporter.Reporter;
 
 class EndToEndTest {
-
-    private static final Duration AWAIT_DELAY = Duration.ofSeconds(1);
-    private static final Duration AWAIT_INTERVAL = Duration.ofSeconds(1);
 
     @Test
     void test(@TempDir Path tempDir) throws Throwable {
@@ -242,15 +236,6 @@ class EndToEndTest {
         if (context.isActive()) {
             context.close();
         }
-    }
-
-
-    private static ConditionFactory await() {
-        return Awaitility.await()
-            .atMost(AWAIT_TIMEOUT)
-            .pollDelay(AWAIT_DELAY)
-            .pollInterval(AWAIT_INTERVAL)
-            .ignoreExceptions();
     }
 
 }

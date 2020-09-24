@@ -21,12 +21,11 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.testcontainers.images.PullPolicy.ageBased;
-import static utils.test.debug.TestDebug.AWAIT_TIMEOUT;
+import static utils.test.awaitility.AwaitilityUtils.await;
 
 import brave.Tracer;
 import brave.Tracing;
@@ -104,7 +103,7 @@ class ZipkinSpecSpansRetrieverVersionTest {
 
         val traceId = rootSpan.context().traceIdString();
         List<SpecSpan> specSpans = new ArrayList<>();
-        await().atMost(AWAIT_TIMEOUT).until(
+        await().until(
             () -> {
                 specSpans.clear();
                 specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));

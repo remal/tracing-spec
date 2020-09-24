@@ -19,12 +19,11 @@ package name.remal.tracingspec.retriever.jaeger;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.testcontainers.images.PullPolicy.ageBased;
-import static utils.test.debug.TestDebug.AWAIT_TIMEOUT;
+import static utils.test.awaitility.AwaitilityUtils.await;
 
 import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.reporters.RemoteReporter;
@@ -96,7 +95,7 @@ class JaegerSpecSpansRetrieverVersionTest {
 
         val traceId = rootSpan.context().getTraceId();
         List<SpecSpan> specSpans = new ArrayList<>();
-        await().atMost(AWAIT_TIMEOUT).until(
+        await().until(
             () -> {
                 specSpans.clear();
                 specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));

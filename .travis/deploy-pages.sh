@@ -28,11 +28,11 @@ cp -r "$DOCS_DIR"/* "$PROJECT_PAGES_DIR"
 
 git -C "$PAGES_ROOT_DIR" add --all
 
+echo "Committing changes"
 ret=0
-git -C "$PAGES_ROOT_DIR" diff-index HEAD || ret=$?
+git -C "$PAGES_ROOT_DIR" commit --all -m "Update pages for $PROJECT_SLUG" || ret=$?
 if [ $ret -eq 0 ]; then
     echo "Pushing changes"
-    git -C "$PAGES_ROOT_DIR" commit --all -m "Update pages for $PROJECT_SLUG"
     git -C "$PAGES_ROOT_DIR" push
 else
     echo "Nothing changed"
