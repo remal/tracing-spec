@@ -32,7 +32,8 @@ public abstract class AwaitilityUtils {
             .atMost(AWAIT_TIMEOUT)
             .pollDelay(AWAIT_DELAY)
             .pollInterval(AWAIT_INTERVAL)
-            .ignoreExceptions();
+            .ignoreExceptions()
+            .pollInSameThread();
     }
 
 

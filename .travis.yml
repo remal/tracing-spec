@@ -35,7 +35,6 @@ before_script:
 
 script:
 - ./.travis/build.sh
-- ./.travis/deploy-pages.sh
 
 deploy:
   skip_cleanup: true

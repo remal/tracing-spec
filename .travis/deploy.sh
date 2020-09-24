@@ -2,3 +2,5 @@
 set -e +o pipefail
 
 echo "Deploying..."
+
+./.travis/deploy-pages.sh
