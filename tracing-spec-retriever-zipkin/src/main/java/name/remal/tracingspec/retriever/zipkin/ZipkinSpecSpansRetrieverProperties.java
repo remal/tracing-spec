@@ -41,19 +41,19 @@ public class ZipkinSpecSpansRetrieverProperties {
      * Connect timeout in milliseconds
      */
     @Min(1)
-    long connectTimeoutMillis = 5_000;
+    long connectTimeoutMillis = 1_000;
 
     /**
      * Write timeout in milliseconds
      */
     @Min(1)
-    long writeTimeoutMillis = 10_000;
+    long writeTimeoutMillis = 1_000;
 
     /**
      * Read timeout in milliseconds
      */
     @Min(1)
-    long readTimeoutMillis = 60_000;
+    long readTimeoutMillis = 10_000;
 
 
     @Tolerate

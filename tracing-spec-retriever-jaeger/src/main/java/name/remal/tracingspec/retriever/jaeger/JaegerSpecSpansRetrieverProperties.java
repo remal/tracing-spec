@@ -48,6 +48,6 @@ public class JaegerSpecSpansRetrieverProperties {
      * Retrieving timeout in milliseconds
      */
     @Min(1)
-    long timeoutMillis = 60_000;
+    long timeoutMillis = 10_000;
 
 }

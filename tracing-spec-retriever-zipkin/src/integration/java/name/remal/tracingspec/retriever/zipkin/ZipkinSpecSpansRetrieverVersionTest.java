@@ -72,9 +72,6 @@ class ZipkinSpecSpansRetrieverVersionTest {
 
         val retrieverProperties = new ZipkinSpecSpansRetrieverProperties();
         retrieverProperties.setUrl(format("http://localhost:%d/", zipkinContainer.getZipkinPort()));
-        retrieverProperties.setConnectTimeoutMillis(1_000);
-        retrieverProperties.setWriteTimeoutMillis(1_000);
-        retrieverProperties.setReadTimeoutMillis(5_000);
         retriever = new ZipkinSpecSpansRetriever(retrieverProperties);
     }
 

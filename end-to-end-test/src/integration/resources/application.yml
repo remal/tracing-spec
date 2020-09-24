@@ -24,14 +24,6 @@ logging:
     org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplierBuilder: ERROR
 
 tracingspec:
-  retriever:
-    zipkin:
-      connect-timeout-millis: 1000
-      write-timeout-millis: 1000
-      read-timeout-millis: 5000
-    jaeger:
-      timeout-millis: 10000
-
   renderer:
     options:
       graph-processors:
