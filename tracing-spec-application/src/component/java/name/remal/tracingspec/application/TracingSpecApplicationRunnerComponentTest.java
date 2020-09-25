@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static picocli.CommandLine.defaultFactory;
@@ -39,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpansGraph;
 import name.remal.tracingspec.renderer.SpecSpansGraphPreparer;
@@ -55,6 +57,8 @@ class TracingSpecApplicationRunnerComponentTest {
     final Collection<CommandLineCommand> commands = new ArrayList<>();
 
     final TracingSpecApplicationRunner runner = new TracingSpecApplicationRunner(defaultFactory(), commands);
+
+    final SystemUtils systemUtils = mock(SystemUtils.class);
 
     @Nested
     class Render {
@@ -120,7 +124,7 @@ class TracingSpecApplicationRunnerComponentTest {
 
         final SpecSpansGraphPreparer preparer = mock(SpecSpansGraphPreparer.class);
 
-        final MatchCommand matchCommand = new MatchCommand(retrieverProvider, preparer);
+        final MatchCommand matchCommand = new MatchCommand(retrieverProvider, preparer, systemUtils);
 
         {
             commands.add(matchCommand);
@@ -167,22 +171,29 @@ class TracingSpecApplicationRunnerComponentTest {
             when(preparer.prepareSpecSpansGraph(emptyList())).thenReturn(graph);
 
             val patternGraphFilePath = patternGraphFile.toString();
+            int maxAttempts = ThreadLocalRandom.current().nextInt(10, 20);
+            long delayMillis = ThreadLocalRandom.current().nextInt(1000, 2000);
             val exception = assertThrows(
                 ExitException.class,
                 () -> runner.run(
                     "match",
                     "--spring.application.name=test",
+                    "--attempts=" + maxAttempts,
+                    "--attempts-delay=" + delayMillis,
                     traceId,
                     patternGraphFilePath
                 )
             );
 
+            verify(systemUtils, times(maxAttempts - 1)).sleep(delayMillis);
+
             assertThat(exception.getExitCode(), equalTo(1));
             assertThat(exception.getMessage(), equalTo(
                 format(
-                    "Pattern graph%n%s%ndoesn't match to%n%s",
+                    "Pattern graph%n%s%ndoesn't match to%n%s%n%nRetrieved spans:%n%s",
                     MatchCommand.writeYamlToString(patternGraph),
-                    MatchCommand.writeYamlToString(graph)
+                    MatchCommand.writeYamlToString(graph),
+                    MatchCommand.writeJsonToString(emptyList())
                 )
             ));
         }

@@ -63,6 +63,7 @@ class RenderCommand implements CommandLineCommand {
     @Parameters(index = "2", description = "Output path")
     private Path outputPath;
 
+
     @Override
     public void run() {
         val renderer = renderers.stream()

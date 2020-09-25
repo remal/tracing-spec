@@ -16,7 +16,9 @@
 
 package test;
 
-import static java.lang.System.identityHashCode;
+import static java.lang.Math.ceil;
+import static java.lang.Math.round;
+import static java.lang.Math.toIntExact;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.exists;
@@ -26,6 +28,7 @@ import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static utils.test.awaitility.AwaitilityUtils.await;
 import static utils.test.debug.TestDebug.AWAIT_TIMEOUT;
 import static utils.test.normalizer.PumlNormalizer.normalizePuml;
@@ -53,11 +56,12 @@ import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.tracingspec.application.TracingSpecSpringApplication;
-import name.remal.tracingspec.retriever.jaeger.JaegerSpecSpansRetrieverProperties;
-import name.remal.tracingspec.retriever.zipkin.ZipkinSpecSpansRetrieverProperties;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.builder.ParentContextApplicationContextInitializer;
@@ -70,29 +74,16 @@ import zipkin2.reporter.Reporter;
 
 class EndToEndTest {
 
+    private static final Logger logger = LogManager.getLogger(EndToEndTest.class);
+
     @Test
-    @SuppressWarnings({"BusyWait", "java:S2925"})
-    void end_to_end(@TempDir Path tempDir) throws Throwable {
-        int attempt = 0;
-        while (true) {
-            ++attempt;
-            cleanTempDir(tempDir);
-
-            try {
-                endToEndImpl(tempDir);
-                return;
-
-            } catch (Throwable exception) {
-                if (attempt >= 3) {
-                    throw exception;
-                } else {
-                    Thread.sleep(1_000);
-                }
-            }
-        }
+    void end_to_end(@TempDir Path tempDir) {
+        attempt(() -> endToEndImpl(tempDir));
     }
 
     private void endToEndImpl(Path tempDir) {
+        cleanTempDir(tempDir);
+
         val schema = ImmutableSchema.builder()
             .id("task")
             .addReference(ImmutableSchemaReference.builder()
@@ -129,23 +120,30 @@ class EndToEndTest {
 
         flushAllSpans();
 
+
+        val zipkinUrl = sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl();
+        val jaegerPort = sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort();
+
         val expectedGraphPath = getResourcePath("expected.yml");
+        long matchAttemptsDelayMillis = 1_000;
+        int matchAttempts = toIntExact(round(ceil(60_000.0 / matchAttemptsDelayMillis)));
+
         val expectedDiagram = normalizePuml(readTextResource("expected.puml"));
         {
-            val retrieverProperties = applyBeanPostProcessors(
-                new ZipkinSpecSpansRetrieverProperties()
+            assertDoesNotThrow(
+                (Executable) () ->
+                    TracingSpecSpringApplication.run(
+                        "match",
+                        "--spring.application.name=zipkin",
+                        "--spring.sleuth.enabled=false",
+                        "--tracingspec.retriever.zipkin.url=" + zipkinUrl,
+                        "--attempts=" + matchAttempts,
+                        "--attempts-delay=" + matchAttemptsDelayMillis,
+                        requireNonNull(traceId.get()),
+                        expectedGraphPath.toString()
+                    ),
+                "Zipkin match"
             );
-            retrieverProperties.setUrl(sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl());
-            await().untilAsserted(() -> {
-                TracingSpecSpringApplication.run(
-                    "match",
-                    "--spring.application.name=zipkin",
-                    "--spring.sleuth.enabled=false",
-                    "--tracingspec.retriever.zipkin.url=" + retrieverProperties.getUrl(),
-                    requireNonNull(traceId.get()),
-                    expectedGraphPath.toString()
-                );
-            });
 
             val outputPath = tempDir.resolve("dir/zipkin.puml");
             await().untilAsserted(() -> {
@@ -153,7 +151,7 @@ class EndToEndTest {
                     "render",
                     "--spring.application.name=zipkin",
                     "--spring.sleuth.enabled=false",
-                    "--tracingspec.retriever.zipkin.url=" + retrieverProperties.getUrl(),
+                    "--tracingspec.retriever.zipkin.url=" + zipkinUrl,
                     requireNonNull(traceId.get()),
                     "plantuml-sequence",
                     outputPath.toString()
@@ -167,22 +165,21 @@ class EndToEndTest {
         }
 
         {
-            val retrieverProperties = applyBeanPostProcessors(
-                new JaegerSpecSpansRetrieverProperties()
+            assertDoesNotThrow(
+                (Executable) () ->
+                    TracingSpecSpringApplication.run(
+                        "match",
+                        "--spring.application.name=jaeger",
+                        "--spring.sleuth.enabled=false",
+                        "--tracingspec.retriever.jaeger.host=localhost",
+                        "--tracingspec.retriever.jaeger.port=" + jaegerPort,
+                        "--attempts=" + matchAttempts,
+                        "--attempts-delay=" + matchAttemptsDelayMillis,
+                        requireNonNull(traceId.get()),
+                        expectedGraphPath.toString()
+                    ),
+                "Jaeger match"
             );
-            retrieverProperties.setHost("localhost");
-            retrieverProperties.setPort(sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort());
-            await().untilAsserted(() -> {
-                TracingSpecSpringApplication.run(
-                    "match",
-                    "--spring.application.name=jaeger",
-                    "--spring.sleuth.enabled=false",
-                    "--tracingspec.retriever.jaeger.host=" + retrieverProperties.getHost(),
-                    "--tracingspec.retriever.jaeger.port=" + retrieverProperties.getPort(),
-                    requireNonNull(traceId.get()),
-                    expectedGraphPath.toString()
-                );
-            });
 
             val outputPath = tempDir.resolve("dir/jaeger.puml");
             await().untilAsserted(() -> {
@@ -190,8 +187,8 @@ class EndToEndTest {
                     "render",
                     "--spring.application.name=jaeger",
                     "--spring.sleuth.enabled=false",
-                    "--tracingspec.retriever.jaeger.host=" + retrieverProperties.getHost(),
-                    "--tracingspec.retriever.jaeger.port=" + retrieverProperties.getPort(),
+                    "--tracingspec.retriever.jaeger.host=localhost",
+                    "--tracingspec.retriever.jaeger.port=" + jaegerPort,
                     requireNonNull(traceId.get()),
                     "plantuml-sequence",
                     outputPath.toString()
@@ -215,23 +212,22 @@ class EndToEndTest {
     }
 
     @SneakyThrows
+    @SuppressWarnings("java:S2925")
     private static void flushAllSpans() {
+        boolean isSomethingFlushed = false;
         for (val context : applicationContexts.values()) {
             for (val reporter : context.getBeansOfType(Reporter.class).values()) {
                 if (reporter instanceof Flushable) {
                     ((Flushable) reporter).flush();
+                    isSomethingFlushed = true;
                 }
             }
         }
-    }
 
-    @SuppressWarnings("unchecked")
-    private static <T> T applyBeanPostProcessors(T object) {
-        val beanFactory = getAnyContext().getAutowireCapableBeanFactory();
-        val beanName = object.getClass().getName() + '$' + identityHashCode(object);
-        object = (T) beanFactory.applyBeanPostProcessorsBeforeInitialization(object, beanName);
-        object = (T) beanFactory.applyBeanPostProcessorsAfterInitialization(object, beanName);
-        return object;
+        if (isSomethingFlushed) {
+            // Give spans collectors some time to process our spans
+            Thread.sleep(1_000);
+        }
     }
 
     private static final AnnotationConfigApplicationContext sharedContext = new AnnotationConfigApplicationContext();
@@ -300,6 +296,38 @@ class EndToEndTest {
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+
+    private static void attempt(Executable executable) {
+        attempt(executable, 3);
+    }
+
+    @SneakyThrows
+    @SuppressWarnings({"BusyWait", "java:S2925"})
+    private static void attempt(Executable executable, int attempts) {
+        int attempt = 0;
+        while (true) {
+            ++attempt;
+
+            try {
+                executable.execute();
+                return;
+
+            } catch (Throwable exception) {
+                if (attempt >= attempts) {
+                    throw exception;
+                } else {
+                    long sleepMillis = 5_000;
+                    logger.warn(
+                        "Attempt {}/{} failed, waiting {} millis and try again",
+                        attempt,
+                        attempts,
+                        sleepMillis
+                    );
+                    Thread.sleep(sleepMillis);
+                }
+            }
+        }
     }
 
 }
