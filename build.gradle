@@ -7,6 +7,7 @@ import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.regex.Pattern
+import name.remal.gradle_plugins.plugins.generate_sources.GenerateClassTask
 import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jdom2.Document
@@ -62,6 +63,7 @@ buildscript {
 if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
     List<Class<Task>> tasksToDisable = [
         AbstractCompile.class,
+        GenerateClassTask.class,
         License.class,
     ]
     allprojects {
@@ -640,7 +642,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-//*
+/*
 forBuildOnLocal {
     apply plugin: 'java-library'
 
