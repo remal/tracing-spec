@@ -14,10 +14,22 @@
 
 # TracingSpec
 
+<!-- description -->
+
 <img align="left" width="100" height="100" src="https://raw.githubusercontent.com/remal/tracing-spec/master/logo.svg" alt="logo"/>
 
-1
+Sometimes you have really complex business scenarios with a lot of different services involved. Especially in microservices architecture. Just imagine: you have a scenario where the logic is distributes among several (micro)services with different communication styles - some services interact via REST HTTP, another - via some messaging system (like Kafka). Also, these services publish different notifications that can be consumed by some external services.
+
+How to document it? How to make it obvious to QA team or newcomers?
+
+Yes, you can write documentation manually, but there are some problems here:
+1. The documentation should be maintained, which is hard in active development stage of the project
+1. How to validate it?
+
+This projects helps to solve such problems by handling data from distributed tracing system (e.g. [Zipkin](https://zipkin.io/), [Jaeger](https://www.jaegertracing.io/)) and providing visualization and validation functionality
 
 <br clear="left"/>
+
+<!--/ description ->>
 
 2
