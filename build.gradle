@@ -60,12 +60,17 @@ buildscript {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
+    List<Class<Task>> tasksToDisable = [
+        AbstractCompile.class,
+        License.class,
+    ]
     allprojects {
-        tasks.all {
-            if (it instanceof AbstractCompile) {
+        tasks
+            .matching { task -> tasksToDisable.any { it.isInstance(task) } }
+            .configureEach {
                 it.enabled = false
+                it.onlyIf { false }
             }
-        }
     }
 }
 
@@ -635,7 +640,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*
+//*
 forBuildOnLocal {
     apply plugin: 'java-library'
 
