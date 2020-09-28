@@ -12,12 +12,12 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=code_smells)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
 <!--/ build-status -->
 
-# TracingSpec
-
 <img align="left" width="100" height="100" src="https://raw.githubusercontent.com/remal/tracing-spec/master/distributed-tracing.svg" alt="logo"/>
+
+# TracingSpec
 
 1
 
-<div class="clearfix"></div>
+<br clear="left"/>
 
 2
