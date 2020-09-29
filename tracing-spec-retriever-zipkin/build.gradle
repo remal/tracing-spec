@@ -4,6 +4,7 @@ import name.remal.version.Version
 
 apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
+apply plugin: 'maven-publish'
 
 dependencies {
     relocateClasses project(':utils-okhttp')

@@ -16,8 +16,8 @@ fi
 
 chmod -R 0777 .
 ./gradlew clean
-#./gradlew allClasses
-#export DISABLE_COMPILATION=true
-#./gradlew build
+./gradlew allClasses
+export DISABLE_COMPILATION=true
+./gradlew build
 #./gradlew runAllTests
 #./gradlew sonarqube

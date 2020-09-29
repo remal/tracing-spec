@@ -7,7 +7,6 @@ import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.regex.Pattern
-import name.remal.gradle_plugins.plugins.generate_sources.GenerateClassTask
 import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jdom2.Document
@@ -63,8 +62,8 @@ buildscript {
 if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
     List<Class<Task>> tasksToDisable = [
         AbstractCompile.class,
-        GenerateClassTask.class,
-        License.class,
+        Class.forName('name.remal.gradle_plugins.plugins.generate_sources.GenerateClassTask'),
+        Class.forName('nl.javadude.gradle.plugins.license.License'),
     ]
     allprojects {
         tasks
@@ -303,6 +302,18 @@ allprojects {
                     '-Xlint:-processing',
                 ]
             )
+
+            doLast {
+                destinationDir.traverse { File file ->
+                    if (file.name != 'spring-configuration-metadata.json' || !file.isFile()) {
+                        return
+                    }
+
+                    String content = file.getText('UTF-8')
+                    content = content.replaceAll(/\{@\S+ ([^}]+?)\s*}/, '$1')
+                    file.setText(content, 'UTF-8')
+                }
+            }
         }
 
         aptOptions {
@@ -404,17 +415,24 @@ allprojects {
     }
 
     pluginManager.withPlugin('maven-publish') {
-        String prefix = rootProject.name + '-'
-        if (!project.name.startsWith(prefix)) {
-            throw new GradleScriptException(
-                "Gradle plugin maven-publish can be applied only to projects with name prefixed with '$prefix'"
+        String prefix = rootProject.name
+        if (project.name != prefix && !project.name.startsWith("$prefix-")) {
+            throw new GradleException(
+                "Gradle plugin maven-publish can be applied only to projects with name prefixed with '$prefix-'"
+                    + ": $project"
             )
         }
 
         pluginManager.withPlugin('name.remal.test-fixtures') {
-            throw new GradleScriptException(
+            throw new GradleException(
                 "Gradle plugin maven-publish can't be applied to test fixtures project"
             )
+        }
+
+        if (project != rootProject) {
+            publishing.publications {
+                mavenDefault()
+            }
         }
     }
 
@@ -642,7 +660,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*
+//*
 forBuildOnLocal {
     apply plugin: 'java-library'
 
@@ -661,6 +679,92 @@ forBuildOnLocal {
         .forEach { configurations.runtimeOnly.dependencies.add(it) }
 }
 //*/
+
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
+publishing.publications {
+    mavenBom()
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+TaskProvider<Task> documentSpringProperties = tasks.register('documentSpringProperties') { Task task ->
+    Closure<List<MavenArtifact>> getAllMavenJarArtifacts = {
+        task.project.allprojects
+            .findAll { it.pluginManager.hasPlugin('maven-publish') }
+            .collect { it.publishing.publications.withType(MavenPublication.class) }
+            .flatten()
+            .collect { it.artifacts }
+            .flatten()
+            .findAll { it.extension == 'jar' && (it.classifier == null || it.classifier == '') }
+    }
+    //dependsOn { getAllMavenJarArtifacts() }
+
+    Closure<List<File>> getAllPublicizedJarFiles = {
+        getAllMavenJarArtifacts().collect { it.file }
+    }
+    inputs.files(provider { getAllPublicizedJarFiles() })
+
+    File readmeFile = rootProject.file('README.md')
+    outputs.file(readmeFile)
+
+    doLast {
+        Map<String, Object> springProperties = new TreeMap<>()
+        JsonSlurper jsonSlurper = new JsonSlurper()
+        getAllPublicizedJarFiles().forEach { File jarFile ->
+            zipTree(jarFile)
+                .matching { include('META-INF/spring-configuration-metadata.json') }
+                .visit { FileVisitDetails details ->
+                    if (details.directory) {
+                        return
+                    }
+
+                    details.open().withCloseable { InputStream input ->
+                        def content = jsonSlurper.parse(input)
+                        content.properties?.forEach { prop ->
+                            String name = prop.name
+                            if (name != null) {
+                                springProperties.put(name, prop)
+                            }
+                        }
+                    }
+                }
+        }
+
+        StringBuilder markdownTable = new StringBuilder()
+        markdownTable.append('| Property | Description | Type | Default value |\n')
+        markdownTable.append('| --- | --- | --- | --- |\n')
+        springProperties.values().forEach { prop ->
+            String name = prop.name
+            String descr = prop.description ?: ''
+            String type = (prop.type ?: '').replaceAll(/(\w+\.)/, '')
+            Object defaultValue = prop.defaultValue ?: ''
+
+            if (type == 'Boolean' && prop.defaultValue == null) {
+                defaultValue = false
+            }
+
+            String row = "| `$name` | $descr | `$type` | `$defaultValue` |\n".replace('``', '')
+            markdownTable.append(row)
+        }
+
+        String content = readmeFile.getText('UTF-8')
+
+        println content.findAll(/<!--\s*properties\s*:\s*(.+)\s*-->/) { it.get(2) }
+
+        content = content.replaceAll(
+            /<!--\s*(properties)(?:\s*:\s*(.+))?\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/,
+            '<!-- $1 -->\n' + markdownTable + '<!--/ $1 -->'
+        )
+        readmeFile.setText(content, 'UTF-8')
+    }
+}
+
+tasks.maybeCreate('build').with {
+    group = 'build'
+    dependsOn(documentSpringProperties)
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
