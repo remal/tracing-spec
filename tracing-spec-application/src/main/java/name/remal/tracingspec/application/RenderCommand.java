@@ -60,7 +60,7 @@ class RenderCommand implements CommandLineCommand {
     @Parameters(index = "1", description = "Renderer name")
     private String rendererName;
 
-    @Parameters(index = "2", description = "Output path")
+    @Parameters(index = "2", description = "Output file path")
     private Path outputPath;
 
 

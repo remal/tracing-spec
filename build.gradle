@@ -732,31 +732,51 @@ TaskProvider<Task> documentSpringProperties = tasks.register('documentSpringProp
                 }
         }
 
-        StringBuilder markdownTable = new StringBuilder()
-        markdownTable.append('| Property | Description | Type | Default value |\n')
-        markdownTable.append('| --- | --- | --- | --- |\n')
-        springProperties.values().forEach { prop ->
-            String name = prop.name
-            String descr = prop.description ?: ''
-            String type = (prop.type ?: '').replaceAll(/(\w+\.)/, '')
-            Object defaultValue = prop.defaultValue ?: ''
-
-            if (type == 'Boolean' && prop.defaultValue == null) {
-                defaultValue = false
+        Closure<String> createMarkdownDoc = { String prefix ->
+            List<Object> curSpringProperties = springProperties.values().findAll { prop ->
+                return (
+                    prefix == null || prefix.isEmpty()
+                        || prop.name == prefix || prop.name.startsWith("$prefix.")
+                )
             }
 
-            String row = "| `$name` | $descr | `$type` | `$defaultValue` |\n".replace('``', '')
-            markdownTable.append(row)
+            StringBuilder markdownDoc = new StringBuilder()
+            curSpringProperties.forEach { prop ->
+                String name = prop.name
+                String descr = prop.description ?: ''
+                String type = (prop.type ?: '').replaceAll(/(\w+\.)/, '')
+                Object defaultValue = prop.defaultValue?.toString() ?: ''
+
+                if (type == 'Boolean' && prop.defaultValue == null) {
+                    defaultValue = false
+                }
+
+                markdownDoc.append("`$name`")
+                if (!descr.isEmpty()) {
+                    markdownDoc.append("<br>\n$descr")
+                }
+                if (!type.isEmpty()) {
+                    markdownDoc.append("<br>\nType: `$type`")
+                }
+                if (!defaultValue.isEmpty()) {
+                    markdownDoc.append("<br>\nDefault value: `$defaultValue`")
+                }
+                markdownDoc.append('\n\n')
+            }
+            return markdownDoc.toString()
         }
 
         String content = readmeFile.getText('UTF-8')
-
-        println content.findAll(/<!--\s*properties\s*:\s*(.+)\s*-->/) { it.get(2) }
-
-        content = content.replaceAll(
-            /<!--\s*(properties)(?:\s*:\s*(.+))?\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/,
-            '<!-- $1 -->\n' + markdownTable + '<!--/ $1 -->'
-        )
+        content = content.replaceAll(/<!--\s*(properties)(?:\s*:\s*(.+?))?\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/) {
+            String tag = it[1]
+            String prefix = it[2]
+            String markdownTable = createMarkdownDoc(prefix)
+            if (prefix != null && !prefix.isEmpty()) {
+                return "<!-- $tag: $prefix -->\n$markdownTable<!--/ $tag -->"
+            } else {
+                return "<!-- $tag -->\n$markdownTable<!--/ $tag -->"
+            }
+        }
         readmeFile.setText(content, 'UTF-8')
     }
 }

@@ -26,27 +26,92 @@ This projects helps to solve such problems by handling data from distributed tra
 <br clear="left">
 <!--/ description -->
 
-## Application usage
+## Application
 
 Download [tracing-spec-app.jar](#) and use it as a general Spring Boot application.
 
 ### Configuration
 
-The application should be configured using [Spring Boot Externalized Configuration feature](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config). You can configure these properties:
+The application should be configured using [Spring Boot Externalized Configuration feature](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config).
 
-<!-- properties -->
-| Property | Description | Type | Default value |
-| --- | --- | --- | --- |
-| `tracingspec.renderer.options.graph-processors` | SpecSpansGraph processors | `List<SpecSpansGraphProcessor>` |  |
-| `tracingspec.renderer.options.node-processors` | SpecSpanNode processors | `List<SpecSpanNodeProcessor>` |  |
-| `tracingspec.renderer.options.tags-to-display` | Only tags listed here are rendered | `Set<String>` |  |
-| `tracingspec.retriever.jaeger.host` | Jaeger Query service host | `String` |  |
-| `tracingspec.retriever.jaeger.port` | Jaeger Query service port | `Integer` | `16686` |
-| `tracingspec.retriever.jaeger.timeout-millis` | Retrieving timeout in milliseconds | `Long` | `10000` |
-| `tracingspec.retriever.zipkin.connect-timeout-millis` | Connect timeout in milliseconds | `Long` | `1000` |
-| `tracingspec.retriever.zipkin.read-timeout-millis` | Read timeout in milliseconds | `Long` | `10000` |
-| `tracingspec.retriever.zipkin.url` | Zipkin URL (for example: http://localhost:9411/) | `URL` |  |
-| `tracingspec.retriever.zipkin.write-timeout-millis` | Write timeout in milliseconds | `Long` | `1000` |
-| `tracingspec.spring.description-only-if-debug` | Add SpecSpan description only if B3 Propagation debug flag is set | `Boolean` |  |
-| `tracingspec.spring.enabled` | Is TracingSpec integration with Spring enabled? | `Boolean` | `true` |
+Spring properties a listed [below](#spring-properties).
+
+### Usage
+
+#### Render
+
+Command: `java -jar render <traceId> <rendererName> <outputPath>`
+* `traceId` - Trace ID
+* `rendererName` - Renderer name
+* `outputPath` - Output file path
+
+Current renderer names:
+* `plantuml-sequence` - [plantuml sequence diagram](https://plantuml.com/sequence-diagram)
+* `json` - JSON
+* `yaml` - YAML
+
+#### Match
+
+Command: `java -jar match <traceId> <patternGraphFile>`
+* `traceId` - Trace ID
+* `patternGraphFile` - Pattern graph file (YAML/JSON/JSON5)
+* Optional parameters:
+  * `--attempts=<number>` - Number of attempts to retrieve spans and match them
+  * `--attempts-delay=<number>` - Delay between attempts, in milliseconds
+
+### Spring properties
+
+#### Distributed tracing spans retrieving properties
+
+<!-- properties: tracingspec.retriever -->
+`tracingspec.retriever.jaeger.host`<br>
+Jaeger Query service host<br>
+Type: `String`
+
+`tracingspec.retriever.jaeger.port`<br>
+Jaeger Query service port<br>
+Type: `Integer`<br>
+Default value: `16686`
+
+`tracingspec.retriever.jaeger.timeout-millis`<br>
+Retrieving timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `10000`
+
+`tracingspec.retriever.zipkin.connect-timeout-millis`<br>
+Connect timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `1000`
+
+`tracingspec.retriever.zipkin.read-timeout-millis`<br>
+Read timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `10000`
+
+`tracingspec.retriever.zipkin.url`<br>
+Zipkin URL (for example: http://localhost:9411/)<br>
+Type: `URL`
+
+`tracingspec.retriever.zipkin.write-timeout-millis`<br>
+Write timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `1000`
+
+<!--/ properties -->
+
+#### Rendering properties
+
+<!-- properties: tracingspec.renderer -->
+`tracingspec.renderer.options.graph-processors`<br>
+SpecSpansGraph processors<br>
+Type: `List<SpecSpansGraphProcessor>`
+
+`tracingspec.renderer.options.node-processors`<br>
+SpecSpanNode processors<br>
+Type: `List<SpecSpanNodeProcessor>`
+
+`tracingspec.renderer.options.tags-to-display`<br>
+Only tags listed here are rendered<br>
+Type: `Set<String>`
+
 <!--/ properties -->
