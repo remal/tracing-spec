@@ -28,7 +28,7 @@ This projects helps to solve such problems by handling data from distributed tra
 
 ## Application
 
-Download [tracing-spec-app.jar](#) and use it as a general Spring Boot application.
+Download [tracing-spec-app.jar](https://github.com/jaegertracing/jaeger/releases/latest/download/tracing-spec-app.jar) and use it as a general Spring Boot application.
 
 ### Configuration
 
@@ -58,6 +58,34 @@ Command: `java -jar match <traceId> <patternGraphFile>`
 * Optional parameters:
   * `--attempts=<number>` - Number of attempts to retrieve spans and match them
   * `--attempts-delay=<number>` - Delay between attempts, in milliseconds
+
+Pattern graph file can look like this (YAML):
+```yaml
+- name: post /resource # span name equals to 'post /resource'
+  serviceName: /(\w+-)?service/ # service name matches to '(\w+-)?service' regex
+  kind: CLIENT # span kind, can be one of: CLIENT, SERVER, PRODUCER, CONSUMER
+  children:
+  - # name is not set, so tested span can have any
+    async: true # span is marked as an async on, of its kind equals to CONSUMER
+    serviceName: service # service name equals to 'service'
+    remoteServiceName: kafka # remote service name equals to 'kafka'
+    tags:
+      topic: notification # span should have a tag with name equals to 'topic' and value equals to 'notification'
+```
+
+Every string value in pattern file can be a regex. If a string value is `/[regex]/i`, this pattern will be used for matching:
+```java
+Pattern.compile("[regex]", CASE_INSENSITIVE | UNICODE_CASE | UNICODE_CHARACTER_CLASS)
+```
+
+These regex modifiers are supported:
+* `d` - `UNIX_LINES`
+* `i` - `CASE_INSENSITIVE`
+* `x` - `COMMENTS`
+* `m` - `MULTILINE`
+* `s` - `DOTALL`
+
+`UNICODE_CASE` and `UNICODE_CHARACTER_CLASS` modifiers are added to all regexps.
 
 ### Spring properties
 
@@ -115,3 +143,42 @@ Only tags listed here are rendered<br>
 Type: `Set<String>`
 
 <!--/ properties -->
+
+##### `SpecSpansGraphProcessor`
+
+Processors that process span graphs
+
+```yaml
+tracingspec:
+  renderer:
+    options:
+      graph-processors:
+      - replace-single-root-with-children # If a graph has only one root, the root will be replaced with its children
+      - script: # Java Scripting API (JSR 223) processor
+          language: js # engine name
+          script: graph.roots.clear() # script
+      - js: # Java Scripting API (JSR 223) processor: js engine
+          script: graph.roots.clear() # script
+      - groovy: # Java Scripting API (JSR 223) processor: groovy engine
+          script: graph.roots.clear() # script
+```
+
+##### `SpecSpanNodeProcessor`
+
+Processors that process span graph nodes
+
+```yaml
+tracingspec:
+  renderer:
+    options:
+      graph-processors:
+      - append-server-to-client # Merge client and server spans
+      - set-kafka-remote-service-name-from-tag # If 'kafka.topic. tag is set and kind is PRODUCER or CONSUMER, the processor sets remoteServiceName to 'kafka'
+      - script: # Java Scripting API (JSR 223) processor
+          language: js # engine name
+          script: node.name = 'name' # script
+      - js: # Java Scripting API (JSR 223) processor: js engine
+          script: node.name = 'name' # script
+      - groovy: # Java Scripting API (JSR 223) processor: groovy engine
+          script: node.name = 'name' # script
+```

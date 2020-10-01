@@ -12,4 +12,5 @@ dependencies {
 
     testImplementation 'org.graalvm.js:js'
     testImplementation 'org.graalvm.js:js-scriptengine'
+    testImplementation 'org.codehaus.groovy:groovy-jsr223'
 }

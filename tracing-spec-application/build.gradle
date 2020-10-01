@@ -15,6 +15,9 @@ dependencies {
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    api 'org.graalvm.js:js'
+    api 'org.graalvm.js:js-scriptengine'
+    api 'org.codehaus.groovy:groovy-jsr223'
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
