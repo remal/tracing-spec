@@ -13,25 +13,20 @@ export DISABLE_COMPILATION=true
 git add --all
 
 if [ -n "$TRAVIS_TAG" ]; then
-    # building tag
-    echo "Building tag"
+    echo "Tag has been built"
 
 elif [ -n "$TRAVIS_PULL_REQUEST" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-    # building PR
-    echo "Building PR"
+    echo "PR has been built"
 
-else
-    # building push
-    echo "Building push"
+if [ -n "$TRAVIS_BRANCH" ]; then
+    echo "Push has been built"
 
     if [ "$TRAVIS_REPO_SLUG" == "remal/tracing-spec" ]; then
         ret=0
         git commit README.md -m "[skip ci] Update README" || ret=$?
         if [ $ret -eq 0 ]; then
             git remote set-url origin "https://${GITHUB_TOKEN}@github.com/remal/tracing-spec.git"
-            git push
+            git push origin HEAD:$TRAVIS_BRANCH
         fi
-
-        git status
     fi
 fi
