@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -x -e +o pipefail
 
-echo "Deploying..."
+export DISABLE_COMPILATION=true
+
+
 
 ./.travis/deploy-pages.sh
