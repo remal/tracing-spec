@@ -59,20 +59,34 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+List<Class<Task>> tasksToDisable = []
+
 if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
-    List<Class<Task>> tasksToDisable = [
+    tasksToDisable += [
         AbstractCompile.class,
-        Class.forName('name.remal.gradle_plugins.plugins.generate_sources.GenerateClassTask'),
-        Class.forName('nl.javadude.gradle.plugins.license.License'),
+        License.class,
     ]
-    allprojects {
-        tasks
-            .matching { task -> tasksToDisable.any { it.isInstance(task) } }
-            .configureEach {
-                it.enabled = false
-                it.onlyIf { false }
+}
+
+if (System.getenv('DISABLE_JAR_TASKS') == 'true' || findProperty('disable-jar-tasks') == 'true') {
+    tasksToDisable += [
+        Jar.class,
+    ]
+}
+
+allprojects {
+    tasks
+        .matching { task -> tasksToDisable.any { it.isInstance(task) } }
+        .configureEach {
+            it.enabled = false
+            it.onlyIf { false }
+
+            Iterator filePropsIterator = it.inputs.registeredFileProperties.iterator()
+            while (filePropsIterator.hasNext()) {
+                filePropsIterator.next()
+                filePropsIterator.remove()
             }
-    }
+        }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

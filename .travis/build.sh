@@ -18,7 +18,7 @@ if [ -n "$TRAVIS_TAG" ]; then
 elif [ -n "$TRAVIS_PULL_REQUEST" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
     echo "PR has been built"
 
-if [ -n "$TRAVIS_BRANCH" ]; then
+elif [ -n "$TRAVIS_BRANCH" ]; then
     echo "Push has been built"
 
     if [ "$TRAVIS_REPO_SLUG" == "remal/tracing-spec" ]; then
@@ -26,7 +26,7 @@ if [ -n "$TRAVIS_BRANCH" ]; then
         git commit README.md -m "[skip ci] Update README" || ret=$?
         if [ $ret -eq 0 ]; then
             git remote set-url origin "https://${GITHUB_TOKEN}@github.com/remal/tracing-spec.git"
-            git push origin HEAD:$TRAVIS_BRANCH
+            git push origin "HEAD:$TRAVIS_BRANCH"
         fi
     fi
 fi
