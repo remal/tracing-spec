@@ -92,11 +92,56 @@ These regex modifiers are supported:
 #### Distributed tracing spans retrieving properties
 
 <!-- properties: tracingspec.retriever -->
+`tracingspec.retriever.jaeger.host`<br>
+Jaeger Query service host<br>
+Type: `String`
+
+`tracingspec.retriever.jaeger.port`<br>
+Jaeger Query service port<br>
+Type: `Integer`<br>
+Default value: `16686`
+
+`tracingspec.retriever.jaeger.timeout-millis`<br>
+Retrieving timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `10000`
+
+`tracingspec.retriever.zipkin.connect-timeout-millis`<br>
+Connect timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `1000`
+
+`tracingspec.retriever.zipkin.read-timeout-millis`<br>
+Read timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `10000`
+
+`tracingspec.retriever.zipkin.url`<br>
+Zipkin URL (for example: http://localhost:9411/)<br>
+Type: `URL`
+
+`tracingspec.retriever.zipkin.write-timeout-millis`<br>
+Write timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `1000`
+
 <!--/ properties -->
 
 #### Rendering properties
 
 <!-- properties: tracingspec.renderer -->
+`tracingspec.renderer.options.graph-processors`<br>
+SpecSpansGraph processors<br>
+Type: `List<SpecSpansGraphProcessor>`
+
+`tracingspec.renderer.options.node-processors`<br>
+SpecSpanNode processors<br>
+Type: `List<SpecSpanNodeProcessor>`
+
+`tracingspec.renderer.options.tags-to-display`<br>
+Only tags listed here are rendered<br>
+Type: `Set<String>`
+
 <!--/ properties -->
 
 ##### `SpecSpansGraphProcessor`
