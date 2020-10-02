@@ -666,7 +666,7 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-//*
+/*
 forBuildOnLocal {
     apply plugin: 'java-library'
 
