@@ -31,7 +31,7 @@ else
             git remote set-url origin "https://${GITHUB_TOKEN}@github.com/remal/tracing-spec.git"
             git push
         fi
+
+        git status
     fi
 fi
-
-git status
