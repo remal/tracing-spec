@@ -705,7 +705,7 @@ TaskProvider<Task> documentSpringProperties = tasks.register('documentSpringProp
             .flatten()
             .findAll { it.extension == 'jar' && (it.classifier == null || it.classifier == '') }
     }
-    //dependsOn { getAllMavenJarArtifacts() }
+    dependsOn { getAllMavenJarArtifacts() }
 
     Closure<List<File>> getAllPublicizedJarFiles = {
         getAllMavenJarArtifacts().collect { it.file }

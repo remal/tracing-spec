@@ -24,10 +24,14 @@ else
     # building push
     echo "Building push"
 
-    ret=0
-    git commit README.md -m "[skip ci] Update README" || ret=$?
-    if [ $ret -eq 0 ]; then
-        git remote set-url origin "https://${GITHUB_TOKEN}@github.com/remal/tracing-spec.git"
-        git push
+    if [ "$TRAVIS_REPO_SLUG" == "remal/tracing-spec" ]; then
+        ret=0
+        git commit README.md -m "[skip ci] Update README" || ret=$?
+        if [ $ret -eq 0 ]; then
+            git remote set-url origin "https://${GITHUB_TOKEN}@github.com/remal/tracing-spec.git"
+            git push
+        fi
     fi
 fi
+
+git status
