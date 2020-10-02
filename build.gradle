@@ -453,9 +453,14 @@ allprojects {
             )
         }
 
-        if (project != rootProject) {
-            publishing.publications {
-                mavenDefault()
+        publishing {
+            repositories {
+                ossrh()
+            }
+            if (project != rootProject) {
+                publications {
+                    mavenDefault()
+                }
             }
         }
     }
