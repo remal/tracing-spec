@@ -458,8 +458,15 @@ allprojects {
                 ossrh()
             }
             if (project != rootProject) {
-                publications {
-                    mavenDefault()
+                publications { mavenDefault() }
+                pluginManager.withPlugin('org.springframework.boot') {
+                    afterEvaluate {
+                        Task bootJar = tasks.bootJar
+                        String classifier = bootJar.archiveClassifier.getOrElse('')
+                        if (!classifier.isEmpty()) {
+                            publications.mavenDefault.artifact(bootJar)
+                        }
+                    }
                 }
             }
         }
