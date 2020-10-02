@@ -15,7 +15,7 @@
 # TracingSpec
 
 <!-- description -->
-<img align="left" width="125" height="125" src="https://raw.githubusercontent.com/remal/tracing-spec/master/logo.svg" alt="logo">
+<img align="left" width="150" height="150" src="https://raw.githubusercontent.com/remal/tracing-spec/master/logo.svg" alt="logo">
 
 Sometimes you have really complex business scenarios with a lot of different services involved. You can write documentation manually, but there are some problems here.
 
