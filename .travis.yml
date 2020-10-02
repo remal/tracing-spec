@@ -43,4 +43,4 @@ deploy:
   on:
     repo: remal/tracing-spec
     tags: true
-    condition: $TRAVIS_TAG =~ ^ver-\d+(\.\d+)*$
+    condition: $TRAVIS_TAG =~ ^ver-[0-9]+(\.[0-9]+)*$

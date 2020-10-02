@@ -102,6 +102,9 @@ allprojects {
         String tagVersion = System.getenv('TRAVIS_TAG').replaceFirst(/^ver-/, '')
         if (tagVersion.matches(/\d+(\.\d+)*/)) {
             version = tagVersion
+            if (project == rootProject) {
+                println "Version: $version"
+            }
         }
     }
 
