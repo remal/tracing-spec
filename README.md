@@ -17,9 +17,11 @@
 <!-- description -->
 <img align="left" width="100" height="100" src="https://raw.githubusercontent.com/remal/tracing-spec/master/logo.svg" alt="logo">
 
-Sometimes you have really complex business scenarios with a lot of different services involved. You can write documentation manually, but there are some problems here:
-1. The documentation should be maintained, which is hard in active development stage of the project
-1. How to validate it?
+Sometimes you have really complex business scenarios with a lot of different services involved. You can write documentation manually, but there are some problems here.
+
+The documentation should be maintained, which is hard in active development stage of the project.
+
+How to validate it?
 
 This projects helps to solve such problems by handling data from distributed tracing system (e.g. [Zipkin](https://zipkin.io/), [Jaeger](https://www.jaegertracing.io/)) and providing visualization and validation functionality
 
