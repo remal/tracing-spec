@@ -41,4 +41,6 @@ deploy:
   provider: script
   script: ./.travis/deploy.sh
   on:
+    repo: remal/tracing-spec
     tags: true
+    condition: $TRAVIS_TAG =~ ^ver-\d+(\.\d+)*$

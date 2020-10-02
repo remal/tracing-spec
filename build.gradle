@@ -59,13 +59,37 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+List<Class<Task>> tasksToDisable = []
+
 if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
-    allprojects {
-        tasks.all {
-            if (it instanceof AbstractCompile) {
+    tasksToDisable += [
+        AbstractCompile.class,
+        License.class,
+    ]
+}
+
+if (System.getenv('DISABLE_JAR_TASKS') == 'true' || findProperty('disable-jar-tasks') == 'true') {
+    tasksToDisable += [
+        Jar.class,
+    ]
+}
+
+allprojects {
+    afterEvaluate {
+        tasks
+            .matching { task -> tasksToDisable.any { it.isInstance(task) } }
+            .configureEach {
                 it.enabled = false
+                it.onlyIf { false }
+
+                it.dependsOn.clear()
+
+                Iterator filePropsIterator = it.inputs.registeredFileProperties.iterator()
+                while (filePropsIterator.hasNext()) {
+                    filePropsIterator.next()
+                    filePropsIterator.remove()
+                }
             }
-        }
     }
 }
 
@@ -74,6 +98,12 @@ if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-comp
 allprojects {
     group = 'name.remal.tracing-spec'
     version = '0.0.0-SNAPSHOT'
+    if (System.getenv('TRAVIS_TAG') != null) {
+        String tagVersion = System.getenv('TRAVIS_TAG').replaceFirst(/^ver-/, '')
+        if (tagVersion.matches(/\d+(\.\d+)*/)) {
+            version = tagVersion
+        }
+    }
 
     apply plugin: 'name.remal.default-plugins'
 
@@ -296,6 +326,18 @@ allprojects {
                     '-Xlint:-processing',
                 ]
             )
+
+            doLast {
+                destinationDir.traverse { File file ->
+                    if (file.name != 'spring-configuration-metadata.json' || !file.isFile()) {
+                        return
+                    }
+
+                    String content = file.getText('UTF-8')
+                    content = content.replaceAll(/\{@\S+ ([^}]+?)\s*}/, '$1')
+                    file.setText(content, 'UTF-8')
+                }
+            }
         }
 
         aptOptions {
@@ -397,17 +439,24 @@ allprojects {
     }
 
     pluginManager.withPlugin('maven-publish') {
-        String prefix = rootProject.name + '-'
-        if (!project.name.startsWith(prefix)) {
-            throw new GradleScriptException(
-                "Gradle plugin maven-publish can be applied only to projects with name prefixed with '$prefix'"
+        String prefix = rootProject.name
+        if (project.name != prefix && !project.name.startsWith("$prefix-")) {
+            throw new GradleException(
+                "Gradle plugin maven-publish can be applied only to projects with name prefixed with '$prefix-'"
+                    + ": $project"
             )
         }
 
         pluginManager.withPlugin('name.remal.test-fixtures') {
-            throw new GradleScriptException(
+            throw new GradleException(
                 "Gradle plugin maven-publish can't be applied to test fixtures project"
             )
+        }
+
+        if (project != rootProject) {
+            publishing.publications {
+                mavenDefault()
+            }
         }
     }
 
@@ -654,6 +703,112 @@ forBuildOnLocal {
         .forEach { configurations.runtimeOnly.dependencies.add(it) }
 }
 //*/
+
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
+publishing.publications {
+    mavenBom()
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+TaskProvider<Task> documentSpringProperties = tasks.register('documentSpringProperties') { Task task ->
+    Closure<List<MavenArtifact>> getAllMavenJarArtifacts = {
+        task.project.allprojects
+            .findAll { it.pluginManager.hasPlugin('maven-publish') }
+            .collect { it.publishing.publications.withType(MavenPublication.class) }
+            .flatten()
+            .collect { it.artifacts }
+            .flatten()
+            .findAll { it.extension == 'jar' && (it.classifier == null || it.classifier == '') }
+    }
+    dependsOn { getAllMavenJarArtifacts() }
+
+    Closure<List<File>> getAllPublicizedJarFiles = {
+        getAllMavenJarArtifacts().collect { it.file }
+    }
+    inputs.files(provider { getAllPublicizedJarFiles() })
+
+    File readmeFile = rootProject.file('README.md')
+    outputs.file(readmeFile)
+
+    doLast {
+        Map<String, Object> springProperties = new TreeMap<>()
+        JsonSlurper jsonSlurper = new JsonSlurper()
+        getAllPublicizedJarFiles().forEach { File jarFile ->
+            zipTree(jarFile)
+                .matching { include('META-INF/spring-configuration-metadata.json') }
+                .visit { FileVisitDetails details ->
+                    if (details.directory) {
+                        return
+                    }
+
+                    details.open().withCloseable { InputStream input ->
+                        def content = jsonSlurper.parse(input)
+                        content.properties?.forEach { prop ->
+                            String name = prop.name
+                            if (name != null) {
+                                springProperties.put(name, prop)
+                            }
+                        }
+                    }
+                }
+        }
+
+        Closure<String> createMarkdownDoc = { String prefix ->
+            List<Object> curSpringProperties = springProperties.values().findAll { prop ->
+                return (
+                    prefix == null || prefix.isEmpty()
+                        || prop.name == prefix || prop.name.startsWith("$prefix.")
+                )
+            }
+
+            StringBuilder markdownDoc = new StringBuilder()
+            curSpringProperties.forEach { prop ->
+                String name = prop.name
+                String descr = prop.description ?: ''
+                String type = (prop.type ?: '').replaceAll(/(\w+\.)/, '')
+                Object defaultValue = prop.defaultValue?.toString() ?: ''
+
+                if (type == 'Boolean' && prop.defaultValue == null) {
+                    defaultValue = false
+                }
+
+                markdownDoc.append("`$name`")
+                if (!descr.isEmpty()) {
+                    markdownDoc.append("<br>\n$descr")
+                }
+                if (!type.isEmpty()) {
+                    markdownDoc.append("<br>\nType: `$type`")
+                }
+                if (!defaultValue.isEmpty()) {
+                    markdownDoc.append("<br>\nDefault value: `$defaultValue`")
+                }
+                markdownDoc.append('\n\n')
+            }
+            return markdownDoc.toString()
+        }
+
+        String content = readmeFile.getText('UTF-8')
+        content = content.replaceAll(/<!--\s*(properties)(?:\s*:\s*(.+?))?\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/) {
+            String tag = it[1]
+            String prefix = it[2]
+            String markdownTable = createMarkdownDoc(prefix)
+            if (prefix != null && !prefix.isEmpty()) {
+                return "<!-- $tag: $prefix -->\n$markdownTable<!--/ $tag -->"
+            } else {
+                return "<!-- $tag -->\n$markdownTable<!--/ $tag -->"
+            }
+        }
+        readmeFile.setText(content, 'UTF-8')
+    }
+}
+
+tasks.maybeCreate('build').with {
+    group = 'build'
+    dependsOn(documentSpringProperties)
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

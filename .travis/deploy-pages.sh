@@ -2,7 +2,6 @@
 set -x -e +o pipefail
 
 PROJECT_SLUG=tracing-spec
-DOCS_DIR=docs
 
 if [ -z "$TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" != "master" ]; then
     echo "Skip updating GitHub pages"
@@ -22,7 +21,7 @@ git clone "https://${GITHUB_TOKEN}@github.com/remal/remal.github.io.git" "$PAGES
 echo "Updating content"
 rm -rf "${PROJECT_PAGES_DIR:?}"
 mkdir -p "$PROJECT_PAGES_DIR"
-cp -r "$DOCS_DIR"/* "$PROJECT_PAGES_DIR"
+cp "README.md" "$PROJECT_PAGES_DIR"
 
 git -C "$PAGES_ROOT_DIR" add --all
 

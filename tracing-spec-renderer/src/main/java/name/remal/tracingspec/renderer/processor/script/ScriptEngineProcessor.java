@@ -37,9 +37,9 @@ public class ScriptEngineProcessor implements SpecSpansGraphProcessor, SpecSpanN
     private final NodeFunction nodeFunction;
 
     @SneakyThrows
-    public ScriptEngineProcessor(String engineName, String script) {
+    public ScriptEngineProcessor(String language, String script) {
         val manager = new ScriptEngineManager();
-        val engine = manager.getEngineByName(engineName);
+        val engine = manager.getEngineByName(language);
 
         Optional.ofNullable(engine.getBindings(ENGINE_SCOPE)).ifPresent(this::processEngineBindings);
 

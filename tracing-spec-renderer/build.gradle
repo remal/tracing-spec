@@ -1,5 +1,6 @@
 apply plugin: 'java-library'
 apply plugin: 'name.remal.classes-relocation'
+apply plugin: 'maven-publish'
 
 dependencies {
     compileOnly 'com.google.guava:guava'
@@ -11,4 +12,5 @@ dependencies {
 
     testImplementation 'org.graalvm.js:js'
     testImplementation 'org.graalvm.js:js-scriptengine'
+    testImplementation 'org.codehaus.groovy:groovy-jsr223'
 }
