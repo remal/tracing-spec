@@ -23,7 +23,7 @@ elif [ -n "$TRAVIS_BRANCH" ]; then
 
     if [ "$TRAVIS_REPO_SLUG" == "remal/tracing-spec" ]; then
         ret=0
-        git commit README.md -m "[skip ci] Update README" || ret=$?
+        git commit --short -o -m "[skip ci] Update README" README.md || ret=$?
         if [ $ret -eq 0 ]; then
             git remote set-url origin "https://${GITHUB_TOKEN}@github.com/remal/tracing-spec.git"
             git push origin "HEAD:$TRAVIS_BRANCH"
