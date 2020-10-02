@@ -75,18 +75,22 @@ if (System.getenv('DISABLE_JAR_TASKS') == 'true' || findProperty('disable-jar-ta
 }
 
 allprojects {
-    tasks
-        .matching { task -> tasksToDisable.any { it.isInstance(task) } }
-        .configureEach {
-            it.enabled = false
-            it.onlyIf { false }
+    afterEvaluate {
+        tasks
+            .matching { task -> tasksToDisable.any { it.isInstance(task) } }
+            .configureEach {
+                it.enabled = false
+                it.onlyIf { false }
 
-            Iterator filePropsIterator = it.inputs.registeredFileProperties.iterator()
-            while (filePropsIterator.hasNext()) {
-                filePropsIterator.next()
-                filePropsIterator.remove()
+                it.dependsOn.clear()
+
+                Iterator filePropsIterator = it.inputs.registeredFileProperties.iterator()
+                while (filePropsIterator.hasNext()) {
+                    filePropsIterator.next()
+                    filePropsIterator.remove()
+                }
             }
-        }
+    }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
