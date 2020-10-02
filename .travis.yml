@@ -5,6 +5,12 @@ language: java
 jdk: openjdk11
 install: skip
 
+before_install:
+- sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+- sudo apt-add-repository https://cli.github.com/packages
+- sudo apt-get -q update
+- sudo apt-get -y install gh
+
 addons:
   sonarcloud:
     organization: "remal"
@@ -32,6 +38,7 @@ cache:
 
 before_script:
 - sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
+- gh config set prompt disabled
 
 script:
 - ./.travis/build.sh
