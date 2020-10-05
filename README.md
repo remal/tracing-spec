@@ -30,7 +30,7 @@ This projects helps to solve such problems by handling data from distributed tra
 
 ## Application
 
-Download [tracing-spec-app.jar](https://github.com/jaegertracing/jaeger/releases/latest/download/tracing-spec-app.jar) and use it as a general Spring Boot application.
+Download [tracing-spec-app.jar](https://github.com/remal/tracing-spec/releases/latest/download/tracing-spec-app.jar) and use it as a general Spring Boot application.
 
 ### Configuration
 
