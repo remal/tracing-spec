@@ -4,8 +4,8 @@ set -x -e +o pipefail
 export DISABLE_COMPILATION=true
 export DISABLE_JAR_TASKS=true
 
-./retry ./gradlew publishToOssrh
-./gradlew releaseNexusRepositories
+#./retry ./gradlew publishToOssrh
+#./gradlew releaseNexusRepositories
 
 RELEASE_ASSET=./build/tracing-spec-app.jar
 RELEASE_ASSET_DIR=$(dirname $RELEASE_ASSET)
