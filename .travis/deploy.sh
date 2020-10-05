@@ -17,6 +17,7 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
 sudo apt-add-repository https://cli.github.com/packages
 sudo apt-get -q update
 sudo apt-get -y install gh
+gh config set prompt disabled
 gh release upload --clobber "$TRAVIS_TAG" "$RELEASE_ASSET"
 
 ./.travis/deploy-pages.sh

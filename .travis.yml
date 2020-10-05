@@ -32,7 +32,6 @@ cache:
 
 before_script:
 - sed -i 's/-all\.zip/-bin.zip/' ./gradle/wrapper/gradle-wrapper.properties
-- gh config set prompt disabled
 
 script:
 - ./.travis/build.sh
