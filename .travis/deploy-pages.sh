@@ -10,7 +10,7 @@ fi
 
 PAGES_ROOT_DIR=.gh-pages
 rm -rf "${PAGES_ROOT_DIR:?}"
-PROJECT_PAGES_DIR="${PAGES_ROOT_DIR:?}/${PROJECT_SLUG:?}"
+PROJECT_PAGES_DIR="${PAGES_ROOT_DIR:?}/docs/projects/${PROJECT_SLUG:?}"
 
 echo "Cloning 'https://github.com/remal/remal.github.io.git'..."
 git clone "https://${GITHUB_TOKEN}@github.com/remal/remal.github.io.git" "$PAGES_ROOT_DIR"
