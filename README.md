@@ -43,6 +43,7 @@ Spring properties a listed [below](#spring-properties).
 #### Render
 
 Command: `java -jar render <traceId> <rendererName> <outputPath>`
+
 * `traceId` - Trace ID
 * `rendererName` - Renderer name
 * `outputPath` - Output file path
@@ -55,6 +56,7 @@ Current renderer names:
 #### Match
 
 Command: `java -jar match <traceId> <patternGraphFile>`
+
 * `traceId` - Trace ID
 * `patternGraphFile` - Pattern graph file (YAML/JSON/JSON5)
 * Optional parameters:
@@ -81,6 +83,7 @@ Pattern.compile("[regex]", CASE_INSENSITIVE | UNICODE_CASE | UNICODE_CHARACTER_C
 ```
 
 These regex modifiers are supported:
+
 * `d` - `UNIX_LINES`
 * `i` - `CASE_INSENSITIVE`
 * `x` - `COMMENTS`
