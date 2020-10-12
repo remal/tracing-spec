@@ -835,8 +835,8 @@ forBuildOnLocal {
     idea {
         project {
             jdkName = '11'
-            languageLevel = new IdeaLanguageLevel('8')
             targetBytecodeVersion = JavaVersion.VERSION_1_8
+            languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
 
             settings {
                 doNotDetectFrameworks('android', 'web')
