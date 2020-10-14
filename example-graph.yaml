@@ -1,0 +1,19 @@
+- name: post /documents
+  serviceName: documents
+  children:
+  - name: send
+    serviceName: documents
+    remoteServiceName: kafka
+    kind: producer
+    tags:
+      kafka.topic: new-documents
+    children:
+    - name: poll
+      serviceName: search
+      remoteServiceName: kafka
+      kind: consumer
+      tags:
+        kafka.topic: new-documents
+      children:
+      - name: index-document
+        serviceName: search

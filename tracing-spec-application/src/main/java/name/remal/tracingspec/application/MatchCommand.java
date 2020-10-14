@@ -16,27 +16,17 @@
 
 package name.remal.tracingspec.application;
 
-import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_JAVA_COMMENTS;
-import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_MISSING_VALUES;
-import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_SINGLE_QUOTES;
-import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_TRAILING_COMMA;
-import static com.fasterxml.jackson.core.json.JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES;
-import static com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.MINIMIZE_QUOTES;
-import static com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.WRITE_DOC_START_MARKER;
 import static java.lang.String.format;
 import static lombok.AccessLevel.PROTECTED;
+import static name.remal.tracingspec.application.SerializationUtils.readYamlOrJson;
+import static name.remal.tracingspec.application.SerializationUtils.writeJsonToString;
+import static name.remal.tracingspec.application.SerializationUtils.writeYamlToString;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import java.nio.file.Path;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.val;
 import name.remal.tracingspec.matcher.SpecSpansGraphMatcher;
@@ -44,7 +34,6 @@ import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.model.SpecSpansGraph;
 import name.remal.tracingspec.renderer.SpecSpansGraphPreparer;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.ApiStatus.Experimental;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -134,56 +123,5 @@ class MatchCommand implements CommandLineCommand {
             }
         }
     }
-
-
-    @SneakyThrows
-    private static <T> T readYamlOrJson(Class<T> type, Path path) {
-        val url = path.toUri().toURL();
-        try {
-            return YAML_MAPPER.readValue(url, type);
-        } catch (JsonParseException yamlException) {
-            try {
-                return JSON_MAPPER.readValue(url, type);
-            } catch (Throwable jsonException) {
-                jsonException.addSuppressed(yamlException);
-                throw jsonException;
-            }
-        }
-    }
-
-    @Language("YAML")
-    @SneakyThrows
-    @VisibleForTesting
-    static String writeYamlToString(Object object) {
-        return YAML_MAPPER.writeValueAsString(object);
-    }
-
-    @Language("JSON")
-    @SneakyThrows
-    @VisibleForTesting
-    static String writeJsonToString(Object object) {
-        return JSON_MAPPER.writeValueAsString(object);
-    }
-
-    private static final YAMLMapper YAML_MAPPER = YAMLMapper.builder(
-        YAMLFactory.builder()
-            .build()
-    )
-        .disable(WRITE_DOC_START_MARKER)
-        .enable(MINIMIZE_QUOTES)
-        .findAndAddModules()
-        .build();
-
-    private static final JsonMapper JSON_MAPPER = JsonMapper.builder(
-        JsonFactory.builder()
-            .enable(ALLOW_JAVA_COMMENTS)
-            .enable(ALLOW_SINGLE_QUOTES)
-            .enable(ALLOW_UNQUOTED_FIELD_NAMES)
-            .enable(ALLOW_MISSING_VALUES)
-            .enable(ALLOW_TRAILING_COMMA)
-            .build()
-    )
-        .findAndAddModules()
-        .build();
 
 }

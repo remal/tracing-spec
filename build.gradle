@@ -7,6 +7,8 @@ import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.regex.Pattern
+import net.sourceforge.plantuml.SourceStringReader
+import net.sourceforge.plantuml.core.DiagramDescription
 import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jdom2.Document
@@ -29,6 +31,7 @@ buildscript {
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
+        classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.9'
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
     }
@@ -177,7 +180,7 @@ allprojects {
         apply plugin: 'com.github.hierynomus.license'
 
         sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = sourceCompatibility
 
         testSourceSets.create('component')
 
@@ -728,7 +731,63 @@ publishing.publications {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-TaskProvider<Task> documentSpringProperties = tasks.register('documentSpringProperties') { Task task ->
+File exampleGraphPumlFile = file("$buildDir/example-graph.puml")
+
+TaskProvider<Task> renderExampleGraphPuml = tasks.register('renderExampleGraphPuml', JavaExec.class) { JavaExec task ->
+    dependsOn(':tracing-spec-application:bootJar')
+
+    File graphFile = file("example-graph.yaml")
+    task.inputs.file(graphFile)
+
+    task.outputs.file(exampleGraphPumlFile)
+    doFirst {
+        exampleGraphPumlFile.parentFile.mkdirs()
+        exampleGraphPumlFile.delete()
+    }
+
+    task.onlyIf {
+        AbstractArchiveTask bootJar = tasks.getByPath(':tracing-spec-application:bootJar')
+        task.main = '-jar'
+        task.args = [
+            bootJar.archiveFile.get().asFile.toString(),
+            'render-graph',
+            graphFile.toString(),
+            'plantuml-sequence',
+            exampleGraphPumlFile.toString(),
+        ]
+        return true
+    }
+}
+
+TaskProvider<Task> renderExampleGraphPng = tasks.register('renderExampleGraphPng') { Task task ->
+    dependsOn(renderExampleGraphPuml)
+
+    task.inputs.file(exampleGraphPumlFile)
+
+    File exampleGraphPngFile = file('example-graph.png')
+    task.outputs.file(exampleGraphPngFile)
+    doFirst { exampleGraphPngFile.parentFile.mkdirs() }
+
+    doLast {
+        String puml = exampleGraphPumlFile.getText('UTF-8')
+        SourceStringReader reader = new SourceStringReader(puml)
+        exampleGraphPngFile.newOutputStream().withCloseable { OutputStream outputStream ->
+            DiagramDescription descr = reader.outputImage(outputStream)
+            if (descr == null) {
+                throw new GradleException("Example graph rendering failed for PlantUML diagram:\n$puml")
+            }
+        }
+    }
+}
+
+tasks.maybeCreate('build').with {
+    group = 'build'
+    dependsOn(renderExampleGraphPng)
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+TaskProvider<Task> processDocumentation = tasks.register('processDocumentation') { Task task ->
     Closure<List<MavenArtifact>> getAllMavenJarArtifacts = {
         task.project.allprojects
             .findAll { it.pluginManager.hasPlugin('maven-publish') }
@@ -818,11 +877,33 @@ TaskProvider<Task> documentSpringProperties = tasks.register('documentSpringProp
         }
         readmeFile.setText(content, 'UTF-8')
     }
+
+    doLast {
+        String content = readmeFile.getText('UTF-8')
+        content = content.replaceAll(/<!--\s*(include(?:-(\w+))?)\s*:\s*(.+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/) {
+            String tag = it[1]
+            String lang = it[2] ?: ''
+            String filePath = it[3]
+            File file = file(filePath)
+            String includeContent = file.getText('UTF-8')
+                .replace('\r\n', '\n')
+                .replace('\n\r', '\n')
+                .replace('\r', '\n')
+            while (includeContent.startsWith('\n')) {
+                includeContent = includeContent.substring(1)
+            }
+            while (includeContent.endsWith('\n')) {
+                includeContent = includeContent.substring(0, includeContent.length() - 1)
+            }
+            return "<!-- $tag: $filePath -->\n```$lang\n$includeContent\n```\n<!--/ $tag -->"
+        }
+        readmeFile.setText(content, 'UTF-8')
+    }
 }
 
 tasks.maybeCreate('build').with {
     group = 'build'
-    dependsOn(documentSpringProperties)
+    dependsOn(processDocumentation)
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

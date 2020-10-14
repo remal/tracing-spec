@@ -16,20 +16,15 @@
 
 package name.remal.tracingspec.application;
 
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PROTECTED;
-import static name.remal.tracingspec.application.ExitException.INCORRECT_CMD_PARAM_EXIT_CODE;
 
 import java.nio.file.Path;
-import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.val;
 import name.remal.tracingspec.renderer.SpecSpansGraphPreparer;
-import name.remal.tracingspec.renderer.TracingSpecRenderer;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.springframework.beans.factory.ObjectProvider;
@@ -38,20 +33,20 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
 @Internal
-@Command(name = "render", description = "Render tracing spans into a file")
+@Command(name = "render-trace", description = "Render tracing spans into a file")
 @Component
 @RequiredArgsConstructor
 @ToString
 @Setter(PROTECTED)
 @Getter(PROTECTED)
 @SuppressWarnings("java:S3749")
-class RenderCommand implements CommandLineCommand {
+class RenderTraceCommand implements CommandLineCommand {
 
     private final ObjectProvider<SpecSpansRetriever> retriever;
 
     private final SpecSpansGraphPreparer graphPreparer;
 
-    private final List<TracingSpecRenderer<?>> renderers;
+    private final RendersRegistry rendersRegistry;
 
 
     @Parameters(index = "0", description = "Trace ID")
@@ -66,27 +61,10 @@ class RenderCommand implements CommandLineCommand {
 
     @Override
     public void run() {
-        val renderer = renderers.stream()
-            .filter(it -> it.getRendererName().equals(rendererName))
-            .findAny()
-            .orElse(null);
-        if (renderer == null) {
-            throw new ExitException(format(
-                "Renderer doesn't exist or isn't configured: %s. These renderers are configured: %s.",
-                rendererName,
-                String.join(", ", getConfiguredRendererNames())
-            ), INCORRECT_CMD_PARAM_EXIT_CODE);
-        }
-
+        val renderer = rendersRegistry.getRendererByName(rendererName);
         val spans = retriever.getObject().retrieveSpecSpansForTrace(traceId);
         val graph = graphPreparer.prepareSpecSpansGraph(spans);
         renderer.renderTracingSpecToPath(graph, outputPath);
-    }
-
-    private List<String> getConfiguredRendererNames() {
-        return renderers.stream()
-            .map(TracingSpecRenderer::getRendererName)
-            .collect(toList());
     }
 
 }

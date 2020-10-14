@@ -21,6 +21,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.write;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static name.remal.tracingspec.application.SerializationUtils.writeJsonToString;
+import static name.remal.tracingspec.application.SerializationUtils.writeYamlToString;
 import static name.remal.tracingspec.model.SpecSpansGraphs.createSpecSpansGraph;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -31,13 +33,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static picocli.CommandLine.defaultFactory;
-import static utils.test.text.RandomString.nextRandomString;
 import static utils.test.tracing.SpanIdGenerator.nextSpanId;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpan;
 import static utils.test.tracing.SpecSpanGenerator.nextSpecSpanNode;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ThreadLocalRandom;
@@ -52,6 +52,7 @@ import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.ObjectProvider;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 class TracingSpecApplicationRunnerComponentTest {
 
     final Collection<CommandLineCommand> commands = new ArrayList<>();
@@ -61,7 +62,7 @@ class TracingSpecApplicationRunnerComponentTest {
     final SystemUtils systemUtils = mock(SystemUtils.class);
 
     @Nested
-    class Render {
+    class RenderTrace {
 
         final SpecSpansRetriever retriever = mock(SpecSpansRetriever.class);
 
@@ -76,35 +77,93 @@ class TracingSpecApplicationRunnerComponentTest {
 
         final TracingSpecRenderer<?> renderer = mock(TracingSpecRenderer.class);
 
-        final RenderCommand renderCommand = new RenderCommand(
+        {
+            when(renderer.getRendererName()).thenReturn("test");
+        }
+
+        final RendersRegistry rendersRegistry = mock(RendersRegistry.class);
+
+        {
+            when(rendersRegistry.getRendererByName(renderer.getRendererName()))
+                .thenReturn((TracingSpecRenderer) renderer);
+        }
+
+        final RenderTraceCommand renderTraceCommand = new RenderTraceCommand(
             retrieverProvider,
             preparer,
-            singletonList(renderer)
+            rendersRegistry
         );
 
         {
-            commands.add(renderCommand);
+            commands.add(renderTraceCommand);
         }
 
         @Test
-        void positive_scenario() {
+        void positive_scenario(@TempDir Path tempDir) {
             val traceId = nextSpanId();
-            val targetPath = Paths.get(nextRandomString());
+            val outputFile = tempDir.resolve("output");
             val span = nextSpecSpan();
             val graph = createSpecSpansGraph(singletonList(span));
             when(retriever.retrieveSpecSpansForTrace(traceId)).thenReturn(singletonList(span));
             when(preparer.prepareSpecSpansGraph(singletonList(span))).thenReturn(graph);
-            when(renderer.getRendererName()).thenReturn("test");
 
             runner.run(
-                "render",
+                "render-trace",
                 "--spring.application.name=test",
                 traceId,
                 "test",
-                targetPath.toString()
+                outputFile.toString()
             );
 
-            verify(renderer).renderTracingSpecToPath(graph, targetPath);
+            verify(renderer).renderTracingSpecToPath(graph, outputFile);
+        }
+
+    }
+
+
+    @Nested
+    class RenderGraph {
+
+        final TracingSpecRenderer<?> renderer = mock(TracingSpecRenderer.class);
+
+        {
+            when(renderer.getRendererName()).thenReturn("test");
+        }
+
+        final RendersRegistry rendersRegistry = mock(RendersRegistry.class);
+
+        {
+            when(rendersRegistry.getRendererByName(renderer.getRendererName()))
+                .thenReturn((TracingSpecRenderer) renderer);
+        }
+
+        final RenderGraphCommand renderGraphCommand = new RenderGraphCommand(
+            rendersRegistry
+        );
+
+        {
+            commands.add(renderGraphCommand);
+        }
+
+        @Test
+        void positive_scenario(@TempDir Path tempDir) throws Throwable {
+            val graph = new SpecSpansGraph()
+                .addRoot(nextSpecSpanNode(it -> it.setName("name")));
+
+            val graphFile = tempDir.resolve("graph");
+            write(graphFile, writeYamlToString(graph).getBytes(UTF_8));
+
+            val outputFile = tempDir.resolve("output");
+
+            runner.run(
+                "render-graph",
+                "--spring.application.name=test",
+                graphFile.toString(),
+                "test",
+                outputFile.toString()
+            );
+
+            verify(renderer).renderTracingSpecToPath(graph, outputFile);
         }
 
     }
@@ -137,7 +196,7 @@ class TracingSpecApplicationRunnerComponentTest {
                     root.setName("root");
                 }));
             val patternGraphFile = tempDir.resolve("pattern-graph.yaml");
-            write(patternGraphFile, MatchCommand.writeYamlToString(patternGraph).getBytes(UTF_8));
+            write(patternGraphFile, writeYamlToString(patternGraph).getBytes(UTF_8));
 
             val traceId = nextSpanId();
             val span = nextSpecSpan(it -> {
@@ -163,7 +222,7 @@ class TracingSpecApplicationRunnerComponentTest {
                     root.setName("root");
                 }));
             val patternGraphFile = tempDir.resolve("pattern-graph.yaml");
-            write(patternGraphFile, MatchCommand.writeYamlToString(patternGraph).getBytes(UTF_8));
+            write(patternGraphFile, writeYamlToString(patternGraph).getBytes(UTF_8));
 
             val traceId = nextSpanId();
             val graph = new SpecSpansGraph();
@@ -191,9 +250,9 @@ class TracingSpecApplicationRunnerComponentTest {
             assertThat(exception.getMessage(), equalTo(
                 format(
                     "Pattern graph%n%s%ndoesn't match to%n%s%n%nRetrieved spans:%n%s",
-                    MatchCommand.writeYamlToString(patternGraph),
-                    MatchCommand.writeYamlToString(graph),
-                    MatchCommand.writeJsonToString(emptyList())
+                    writeYamlToString(patternGraph),
+                    writeYamlToString(graph),
+                    writeJsonToString(emptyList())
                 )
             ));
         }

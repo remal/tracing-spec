@@ -81,6 +81,10 @@ public class SpecSpanNode extends SpecSpanInfo<SpecSpanNode> {
         return unmodifiableList(children);
     }
 
+    public void clearChildren() {
+        this.children.clear();
+    }
+
     public void setChildren(Iterable<SpecSpanNode> children) {
         this.children.forEach(child -> child.parent = null);
         this.children.clear();
