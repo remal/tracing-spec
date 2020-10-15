@@ -148,7 +148,7 @@ class EndToEndTest {
             val outputPath = tempDir.resolve("dir/zipkin.puml");
             await().untilAsserted(() -> {
                 TracingSpecSpringApplication.run(
-                    "render",
+                    "render-trace",
                     "--spring.application.name=zipkin",
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.zipkin.url=" + zipkinUrl,
@@ -184,7 +184,7 @@ class EndToEndTest {
             val outputPath = tempDir.resolve("dir/jaeger.puml");
             await().untilAsserted(() -> {
                 TracingSpecSpringApplication.run(
-                    "render",
+                    "render-trace",
                     "--spring.application.name=jaeger",
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.jaeger.host=localhost",
