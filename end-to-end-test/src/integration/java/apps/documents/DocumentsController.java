@@ -31,4 +31,9 @@ public class DocumentsController implements DocumentsApi {
         return repository.getAllBySchema(schemaId);
     }
 
+    @Override
+    public void resetAllDocumentsBySchema(String schemaId) {
+        repository.resetAllBySchema(schemaId);
+    }
+
 }

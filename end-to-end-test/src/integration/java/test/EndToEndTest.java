@@ -76,6 +76,8 @@ class EndToEndTest {
 
     private static final Logger logger = LogManager.getLogger(EndToEndTest.class);
 
+    private static int globalAttempt = 0;
+
     @Test
     void end_to_end(@TempDir Path tempDir) {
         attempt(() -> endToEndImpl(tempDir));
@@ -96,6 +98,7 @@ class EndToEndTest {
             .build();
 
         val documentsClient = sharedContext.getBean(DocumentsClient.class);
+        documentsClient.resetAllDocumentsBySchema(schema.getId());
         val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
         val traceId = new AtomicReference<String>();

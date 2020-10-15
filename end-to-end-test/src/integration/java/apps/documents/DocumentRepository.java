@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 @SuppressWarnings("java:S1171")
 public class DocumentRepository extends AbstractInMemoryRepository<DocumentId, Document> {
 
+    private final List<Document> originalDocuments;
+
     {
         for (long key = 1; key <= 25; ++key) {
             save(ImmutableDocument.builder()
@@ -43,12 +45,25 @@ public class DocumentRepository extends AbstractInMemoryRepository<DocumentId, D
                 .build()
             );
         }
+
+        this.originalDocuments = getAll();
     }
 
     public List<Document> getAllBySchema(String schema) {
         return getAll().stream()
             .filter(doc -> doc.getId().getSchema().equals(schema))
             .collect(toList());
+    }
+
+    public void resetAllBySchema(String schema) {
+        forEntities(entities -> {
+            entities.values().removeIf(doc -> doc.getId().getSchema().equals(schema));
+            originalDocuments.stream()
+                .filter(doc -> doc.getId().getSchema().equals(schema))
+                .forEach(doc ->
+                    entities.put(doc.getId(), doc)
+                );
+        });
     }
 
 }
