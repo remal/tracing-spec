@@ -153,7 +153,7 @@ allprojects {
                     "org.graalvm.truffle:truffle-api:$graalvmVersion",
                     'io.swagger.core.v3:swagger-annotations:2.1.5',
                     'io.swagger:swagger-annotations:1.6.2',
-                    'info.picocli:picocli-spring-boot-starter:4.5.1',
+                    'info.picocli:picocli-spring-boot-starter:4.5.2',
 
                     // Test
                     'org.awaitility:awaitility:4.0.3',
