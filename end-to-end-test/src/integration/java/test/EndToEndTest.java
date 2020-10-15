@@ -76,8 +76,6 @@ class EndToEndTest {
 
     private static final Logger logger = LogManager.getLogger(EndToEndTest.class);
 
-    private static int globalAttempt = 0;
-
     @Test
     void end_to_end(@TempDir Path tempDir) {
         attempt(() -> endToEndImpl(tempDir));
