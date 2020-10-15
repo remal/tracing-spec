@@ -96,6 +96,7 @@ class EndToEndTest {
             .build();
 
         val documentsClient = sharedContext.getBean(DocumentsClient.class);
+        documentsClient.resetAllDocumentsBySchema(schema.getId());
         val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
 
         val traceId = new AtomicReference<String>();
