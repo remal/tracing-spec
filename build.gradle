@@ -498,7 +498,12 @@ allprojects {
                 if (licenseTemplate == null) {
                     throw new GradleScriptException('IDEA license template can\'t be retrieved ')
                 }
-                licenseTemplate = licenseTemplate.replaceAll(/(?:\$|&#36;)([\w.]+)/, '\\$\\{$1\\}')
+
+                licenseTemplate = licenseTemplate
+                    .replace('\r\n', '\n')
+                    .replace('\n\r', '\n')
+                    .replace('\r', '\n')
+                    .replaceAll(/(?:\$|&#36;)([\w.]+)/, '\\$\\{$1\\}')
 
                 licenseTemplateFile.parentFile?.mkdirs()
                 licenseTemplateFile.setText(licenseTemplate, 'UTF-8')
