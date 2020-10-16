@@ -69,6 +69,9 @@ Create this `expected.yml` file:
   - name: send
     serviceName: documents
     remoteServiceName: kafka
+    kind: producer
+    tags:
+      kafka.topic: new-documents
     children:
     - name: poll
       serviceName: search
