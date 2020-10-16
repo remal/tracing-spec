@@ -2,15 +2,14 @@
 set -x -e +o pipefail
 
 chmod -R 0777 .
-#./gradlew allClasses
-./gradlew processDocumentation
+./gradlew allClasses
 
 export DISABLE_COMPILATION=true
-#./gradlew build
-#./gradlew runAllTests
+./gradlew build
+./gradlew runAllTests
 
 export DISABLE_JAR_TASKS=true
-#./gradlew sonarqube
+./gradlew sonarqube
 
 
 git add --all
