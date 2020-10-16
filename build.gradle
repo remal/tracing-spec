@@ -6,6 +6,7 @@ import java.time.ZonedDateTime
 import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
 import net.sourceforge.plantuml.SourceStringReader
 import net.sourceforge.plantuml.core.DiagramDescription
@@ -812,6 +813,9 @@ TaskProvider<Task> processDocumentation = tasks.register('processDocumentation')
     File readmeFile = rootProject.file('README.md')
     outputs.file(readmeFile)
 
+    AtomicReference<String> originalContent = new AtomicReference<>()
+    doFirst { originalContent.set(readmeFile.getText('UTF-8')) }
+
     doLast {
         Map<String, Object> springProperties = new TreeMap<>()
         JsonSlurper jsonSlurper = new JsonSlurper()
@@ -872,11 +876,13 @@ TaskProvider<Task> processDocumentation = tasks.register('processDocumentation')
         String content = readmeFile.getText('UTF-8')
         content = content.replaceAll(/<!--\s*(properties)(?:\s*:\s*(.+?))?\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/) {
             String tag = it[1]
-            String prefix = it[2]
+            String prefix = it[2] ?: ''
             String markdownTable = createMarkdownDoc(prefix)
-            if (prefix != null && !prefix.isEmpty()) {
+            if (!prefix.isEmpty()) {
+                logger.lifecycle('Handling {}: {}', tag, prefix)
                 return "<!-- $tag: $prefix -->\n$markdownTable<!--/ $tag -->"
             } else {
+                logger.lifecycle('Handling {}', tag)
                 return "<!-- $tag -->\n$markdownTable<!--/ $tag -->"
             }
         }
@@ -900,9 +906,24 @@ TaskProvider<Task> processDocumentation = tasks.register('processDocumentation')
             while (includeContent.endsWith('\n')) {
                 includeContent = includeContent.substring(0, includeContent.length() - 1)
             }
+            logger.lifecycle('Handling {}: {}', tag, filePath)
             return "<!-- $tag: $filePath -->\n```$lang\n$includeContent\n```\n<!--/ $tag -->"
         }
         readmeFile.setText(content, 'UTF-8')
+    }
+
+    doLast {
+        String content = readmeFile.getText('UTF-8')
+        String normalizedContent = content
+            .replace('\r\n', '\n')
+            .replace('\n\r', '\n')
+            .replace('\r', '\n')
+        if (normalizedContent != content
+            || normalizedContent != originalContent.get()
+        ) {
+            readmeFile.setText(normalizedContent, 'UTF-8')
+            logger.lifecycle('Updated content of {}:\n{}', readmeFile, normalizedContent)
+        }
     }
 }
 
