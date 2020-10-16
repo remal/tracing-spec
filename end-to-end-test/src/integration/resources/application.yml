@@ -31,5 +31,10 @@ tracingspec:
       node-processors:
       - append-server-to-client
       - set-kafka-remote-service-name-from-tag
+      - js:
+          script: |
+            if (node.serviceName == 'documents-service' && node.name == 'reindex-schema-documents') {
+                node.clearChildren()
+            }
       tags-to-display:
       - kafka.topic

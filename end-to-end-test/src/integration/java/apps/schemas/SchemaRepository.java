@@ -35,18 +35,4 @@ public class SchemaRepository extends AbstractInMemoryRepository<String, Schema>
         );
     }
 
-
-    {
-        save(ImmutableSchema.builder()
-            .id("task")
-            .addReference(ImmutableSchemaReference.builder()
-                .dataType("user")
-                .idField("userId")
-                .putFieldMapping("email", "userEmail")
-                .build()
-            )
-            .build()
-        );
-    }
-
 }

@@ -17,7 +17,6 @@
 package apps.schemas;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,9 +26,8 @@ public class SchemasController implements SchemasApi {
     private final SchemaRepository repository;
 
     @Override
-    public ResponseEntity<Void> saveSchema(Schema schema) {
+    public void saveSchema(Schema schema) {
         repository.save(schema);
-        return ResponseEntity.accepted().body(null);
     }
 
     @Override

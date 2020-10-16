@@ -18,8 +18,8 @@ activate "documents&#45;service"
 activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": process&#45;schema&#45;changed&#45;event
 activate "documents&#45;service"
-"documents&#45;service" -> "documents&#45;service": reindex&#45;documents&#45;of&#45;schema
-note left: Partition documents of the schema into several bulks
+"documents&#45;service" -> "documents&#45;service": schedule&#45;reindexing&#45;schema&#45;documents
+note left: Partition documents of the schema into several bulks and schedule their reindexing
 activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": send&#45;stale&#45;documents&#45;event
 note left: Publish StaleDocumentsEvent
@@ -28,7 +28,7 @@ activate "documents&#45;service"
 activate kafka
 return <size:9>send</size>
 return <size:9>send&#45;stale&#45;documents&#45;event</size>
-return <size:9>reindex&#45;documents&#45;of&#45;schema</size>
+return <size:9>schedule&#45;reindexing&#45;schema&#45;documents</size>
 return <size:9>process&#45;schema&#45;changed&#45;event</size>
 return <size:9>on&#45;message</size>
 deactivate "documents&#45;service"
@@ -38,17 +38,9 @@ activate "documents&#45;service"
 activate "documents&#45;service"
 "documents&#45;service" -> "documents&#45;service": process&#45;stale&#45;documents&#45;event
 activate "documents&#45;service"
-"documents&#45;service" -> "documents&#45;service": reindex&#45;documents
+"documents&#45;service" -> "documents&#45;service": reindex&#45;schema&#45;documents
 activate "documents&#45;service"
-"documents&#45;service" -> "schemas&#45;service": get &#47;schemas&#47;{id}
-note left: Get schema by ID
-activate "schemas&#45;service"
-return <size:9>get &#47;schemas&#47;{id}</size>
-"documents&#45;service" -> "users&#45;service": get &#47;users&#47;{id}
-note left: Get user by ID
-activate "users&#45;service"
-return <size:9>get &#47;users&#47;{id}</size>
-return <size:9>reindex&#45;documents</size>
+return <size:9>reindex&#45;schema&#45;documents</size>
 return <size:9>process&#45;stale&#45;documents&#45;event</size>
 return <size:9>on&#45;message</size>
 deactivate "documents&#45;service"

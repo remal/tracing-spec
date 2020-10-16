@@ -26,7 +26,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import lombok.val;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 import org.jetbrains.annotations.Unmodifiable;
@@ -37,10 +36,6 @@ public abstract class AbstractInMemoryRepository<ID, EntityType extends Entity<I
     protected static final Faker FAKER = new Faker(ENGLISH);
 
     private final Map<ID, EntityType> entities = synchronizedMap(new LinkedHashMap<>());
-
-    protected final void forEntities(Consumer<Map<ID, EntityType>> action) {
-        action.accept(entities);
-    }
 
     @Override
     @Unmodifiable

@@ -60,8 +60,8 @@ public class DocumentsReindexer {
     private final StaleDocumentsEventSender staleDocumentsEventSender;
 
 
-    @NewSpan("reindex-documents-of-schema")
-    @SpecSpanTags(description = "Partition documents of the schema into several bulks")
+    @NewSpan("schedule-reindexing-schema-documents")
+    @SpecSpanTags(description = "Partition documents of the schema into several bulks and schedule their reindexing")
     public void reindexDocumentsBySchemaId(String schemaId) {
         val docs = repository.getAllBySchema(schemaId);
         for (val partitionDocs : partition(docs, PARTITION_SIZE)) {
@@ -73,7 +73,7 @@ public class DocumentsReindexer {
     }
 
 
-    @NewSpan("reindex-documents")
+    @NewSpan("reindex-schema-documents")
     public void reindexDocuments(List<Document> documents) {
         val cache = new Cache();
         for (val doc : documents) {

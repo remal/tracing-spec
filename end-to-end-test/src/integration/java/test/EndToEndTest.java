@@ -25,7 +25,7 @@ import static java.nio.file.Files.exists;
 import static java.nio.file.Files.readAllBytes;
 import static java.nio.file.Files.walkFileTree;
 import static java.util.Arrays.asList;
-import static java.util.Objects.requireNonNull;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -37,12 +37,15 @@ import static utils.test.resource.Resources.readTextResource;
 
 import apps.documents.DocumentsApplication;
 import apps.documents.DocumentsClient;
+import apps.documents.ImmutableDocument;
+import apps.documents.ImmutableDocumentId;
 import apps.schemas.ImmutableSchema;
 import apps.schemas.ImmutableSchemaReference;
 import apps.schemas.SchemasApplication;
 import apps.schemas.SchemasClient;
 import apps.users.UsersApplication;
 import brave.Tracer;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.io.Flushable;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -51,7 +54,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -78,56 +80,74 @@ class EndToEndTest {
 
     @Test
     void end_to_end(@TempDir Path tempDir) {
-        attempt(() -> endToEndImpl(tempDir));
+        // Kafka listeners initialize asynchronously, so let's do several attempts:
+        attempt(attempt -> endToEndImpl(tempDir, attempt));
     }
 
-    private void endToEndImpl(Path tempDir) {
+    private void endToEndImpl(Path tempDir, int attempt) {
         cleanTempDir(tempDir);
 
-        val schema = ImmutableSchema.builder()
-            .id("task")
-            .addReference(ImmutableSchemaReference.builder()
-                .dataType("user")
-                .idField("userId")
-                .putFieldMapping("fullName", "userFullName")
-                .putFieldMapping("email", "userEmail")
+        // Create initial data:
+        val initialSchema = ImmutableSchema.builder()
+            .id("task" + attempt)
+            .references(singletonList(
+                ImmutableSchemaReference.builder()
+                    .dataType("user")
+                    .idField("userId")
+                    .putFieldMapping("email", "userEmail")
+                    .build()
+            ))
+            .build();
+        val schemasClient = sharedContext.getBean(SchemasClient.class);
+        schemasClient.saveSchema(initialSchema);
+
+        val initialDocument = ImmutableDocument.builder()
+            .id(ImmutableDocumentId.builder()
+                .schema(initialSchema.getId())
+                .key(1)
                 .build()
             )
+            .content(JsonNodeFactory.instance.objectNode()
+                .put("userId", attempt)
+            )
             .build();
-
         val documentsClient = sharedContext.getBean(DocumentsClient.class);
-        documentsClient.resetAllDocumentsBySchema(schema.getId());
-        val oldSchemaDocuments = documentsClient.getAllDocumentsBySchema(schema.getId());
+        documentsClient.saveDocument(initialDocument);
 
-        val traceId = new AtomicReference<String>();
-        // Kafka listeners initialize asynchronously, so let's do several attempts:
-        await().atMost(AWAIT_TIMEOUT.multipliedBy(2)).untilAsserted(() -> {
-            val tracer = getBeanFromAnyContext(Tracer.class);
-            val testSpan = tracer.startScopedSpan("test");
-            traceId.set(testSpan.context().traceIdString());
-            try {
-                val schemasClient = sharedContext.getBean(SchemasClient.class);
-                schemasClient.saveSchema(schema);
-            } finally {
-                testSpan.finish();
-            }
 
-            // Let's wait until all documents are processed:
-            await().atMost(AWAIT_TIMEOUT.dividedBy(5)).until(
-                () -> documentsClient.getAllDocumentsBySchema(schema.getId()),
-                docs -> docs.stream().noneMatch(oldSchemaDocuments::contains)
-            );
-        });
+        // Update schema:
+        val tracer = getBeanFromAnyContext(Tracer.class);
+        val testSpan = tracer.startScopedSpan("test");
+        val traceId = testSpan.context().traceIdString();
+        try {
+            val updatedSchema = ImmutableSchema.builder().from(initialSchema)
+                .references(singletonList(
+                    ImmutableSchemaReference.builder().from(initialSchema.getReferences().get(0))
+                        .putFieldMapping("fullName", "userFullName")
+                        .build()
+                ))
+                .build();
+            schemasClient.saveSchema(updatedSchema);
+        } finally {
+            testSpan.finish();
+        }
+
+        // Let's wait until all documents are processed:
+        await().atMost(AWAIT_TIMEOUT).until(
+            () -> documentsClient.getAllDocumentsBySchema(initialSchema.getId()),
+            docs -> docs.size() == 1 && !docs.get(0).equals(initialDocument)
+        );
 
         flushAllSpans();
 
 
+        // Do tests:
         val zipkinUrl = sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl();
         val jaegerPort = sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort();
 
         val expectedGraphPath = getResourcePath("expected.yml");
-        long matchAttemptsDelayMillis = 1_000;
-        int matchAttempts = toIntExact(round(ceil(60_000.0 / matchAttemptsDelayMillis)));
+        long matchAttemptsDelayMillis = 2_500;
+        int matchAttempts = toIntExact(round(ceil(15_000.0 / matchAttemptsDelayMillis)));
 
         val expectedDiagram = normalizePuml(readTextResource("expected.puml"));
         {
@@ -140,7 +160,7 @@ class EndToEndTest {
                         "--tracingspec.retriever.zipkin.url=" + zipkinUrl,
                         "--attempts=" + matchAttempts,
                         "--attempts-delay=" + matchAttemptsDelayMillis,
-                        requireNonNull(traceId.get()),
+                        traceId,
                         expectedGraphPath.toString()
                     ),
                 "Zipkin match"
@@ -153,7 +173,7 @@ class EndToEndTest {
                     "--spring.application.name=zipkin",
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.zipkin.url=" + zipkinUrl,
-                    requireNonNull(traceId.get()),
+                    traceId,
                     "plantuml-sequence",
                     outputPath.toString()
                 );
@@ -176,7 +196,7 @@ class EndToEndTest {
                         "--tracingspec.retriever.jaeger.port=" + jaegerPort,
                         "--attempts=" + matchAttempts,
                         "--attempts-delay=" + matchAttemptsDelayMillis,
-                        requireNonNull(traceId.get()),
+                        traceId,
                         expectedGraphPath.toString()
                     ),
                 "Jaeger match"
@@ -190,7 +210,7 @@ class EndToEndTest {
                     "--spring.sleuth.enabled=false",
                     "--tracingspec.retriever.jaeger.host=localhost",
                     "--tracingspec.retriever.jaeger.port=" + jaegerPort,
-                    requireNonNull(traceId.get()),
+                    traceId,
                     "plantuml-sequence",
                     outputPath.toString()
                 );
@@ -299,19 +319,23 @@ class EndToEndTest {
         });
     }
 
-    private static void attempt(Executable executable) {
+    private static void attempt(AttemptAction executable) {
         attempt(executable, 3);
     }
 
     @SneakyThrows
     @SuppressWarnings({"BusyWait", "java:S2925"})
-    private static void attempt(Executable executable, int attempts) {
+    private static void attempt(AttemptAction executable, int attempts) {
+        if (attempts < 1) {
+            throw new IllegalArgumentException("attempts must be greater or equals to 1");
+        }
+
         int attempt = 0;
         while (true) {
             ++attempt;
 
             try {
-                executable.execute();
+                executable.execute(attempt);
                 return;
 
             } catch (Throwable exception) {
@@ -329,6 +353,11 @@ class EndToEndTest {
                 }
             }
         }
+    }
+
+    @FunctionalInterface
+    private interface AttemptAction {
+        void execute(int attempt) throws Throwable;
     }
 
 }

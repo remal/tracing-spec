@@ -27,13 +27,13 @@ public class DocumentsController implements DocumentsApi {
     private final DocumentRepository repository;
 
     @Override
-    public List<Document> getAllDocumentsBySchema(String schemaId) {
-        return repository.getAllBySchema(schemaId);
+    public void saveDocument(Document document) {
+        repository.save(document);
     }
 
     @Override
-    public void resetAllDocumentsBySchema(String schemaId) {
-        repository.resetAllBySchema(schemaId);
+    public List<Document> getAllDocumentsBySchema(String schemaId) {
+        return repository.getAllBySchema(schemaId);
     }
 
 }
