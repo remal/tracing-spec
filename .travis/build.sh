@@ -6,10 +6,10 @@ chmod -R 0777 .
 
 export DISABLE_COMPILATION=true
 ./gradlew build
-./gradlew runAllTests
+#./gradlew runAllTests
 
 export DISABLE_JAR_TASKS=true
-./gradlew sonarqube
+#./gradlew sonarqube
 
 
 git add --all

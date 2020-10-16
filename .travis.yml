@@ -15,7 +15,7 @@ addons:
 #    - ./.artifacts.zip
 
 git:
-  depth: false
+  depth: 2
 
 env:
   global:
