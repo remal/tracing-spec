@@ -54,7 +54,7 @@ tracingspec:
       - js: # For this scenario we aren't interested in children of 'index-document' span of 'search' service, let's remove its children using JavaScript processor
           script: |
             if (node.serviceName == 'search' && node.name == 'index-document') {
-              node.clearChildren()
+                node.clearChildren()
             }
       tags-to-display:
       - kafka.topic # We'd like to render this tag
