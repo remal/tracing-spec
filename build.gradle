@@ -421,15 +421,14 @@ allprojects {
     }
 
     pluginManager.withPlugin('jacoco') {
-        jacoco.toolVersion = ''
-        project.configurations
+        jacoco.toolVersion = project.configurations
             .matching { it.name.matches(/^jacoco($|[A-Z].*$)/) }
-            .all { Configuration conf ->
-                conf.allDependencyConstraints
-                    .matching { it.group == 'org.jacoco' }
-                    .matching { it.version != null && !it.version.isEmpty() }
-                    .all { project.jacoco.toolVersion = it.version }
-            }
+            .first()
+            .allDependencyConstraints
+            .matching { it.group == 'org.jacoco' }
+            .matching { it.version != null && !it.version.isEmpty() }
+            .first()
+            .version
     }
 
     pluginManager.withPlugin('checkstyle') {
@@ -437,12 +436,12 @@ allprojects {
             configDirectory = rootProject.projectDir
         }
 
-        checkstyle.toolVersion = ''
-        project.configurations.checkstyle
+        checkstyle.toolVersion = project.configurations.checkstyle
             .allDependencyConstraints
             .matching { it.group == 'com.puppycrawl.tools' && it.name == 'checkstyle' }
             .matching { it.version != null && !it.version.isEmpty() }
-            .all { project.checkstyle.toolVersion = it.version }
+            .first()
+            .version
     }
 
     pluginManager.withPlugin('maven-publish') {
