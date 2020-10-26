@@ -27,7 +27,7 @@ elif [ -n "$TRAVIS_BRANCH" ]; then
         ret=0
         git commit --no-status -o -m "Update documentation" README.md example-graph.png || ret=$?
         if [ $ret -eq 0 ]; then
-            git remote set-url origin "https://${GITHUB_TOKEN}@github.com/remal/tracing-spec.git"
+            git remote set-url origin "https://${GITHUB_TOKEN}@github.com/$TRAVIS_REPO_SLUG.git"
             git push origin "HEAD:$TRAVIS_BRANCH"
         fi
     fi
