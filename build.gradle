@@ -160,7 +160,7 @@ allprojects {
                     'org.awaitility:awaitility:4.0.3',
                     'io.jaegertracing:jaeger-thrift:1.4.0',
                     'com.github.javafaker:javafaker:1.0.2',
-                    'org.fusesource.jansi:jansi:1.18',
+                    'org.fusesource.jansi:jansi:2.0',
 
                     // Jacoco
                     'org.jacoco:org.jacoco.agent:0.8.6',
