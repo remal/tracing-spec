@@ -228,13 +228,13 @@ allprojects {
             apt 'org.springframework.boot:spring-boot-autoconfigure-processor'
             apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
             apt 'org.mapstruct:mapstruct-processor'
+            apt 'org.projectlombok:lombok-mapstruct-binding'
 
             compileOnlyAll 'org.mapstruct:mapstruct'
 
             annotationProcessing 'name.remal:gradle-plugins-api'
             annotationProcessing 'org.immutables:value'
             annotationProcessing 'org.projectlombok:lombok'
-            annotationProcessing 'org.projectlombok:lombok-mapstruct-binding'
 
             optional 'com.fasterxml.jackson.core:jackson-databind'
             optional 'org.hibernate.validator:hibernate-validator'
