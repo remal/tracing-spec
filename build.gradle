@@ -145,6 +145,7 @@ allprojects {
                     "org.immutables:value:$immutablesVersion",
                     "org.immutables:gson:$immutablesVersion",
                     "org.mapstruct:mapstruct-processor:$mapstructVersion",
+                    'org.projectlombok:lombok-mapstruct-binding:0.1.0',
 
                     // Compile
                     "org.mapstruct:mapstruct:$mapstructVersion",
@@ -233,6 +234,7 @@ allprojects {
             annotationProcessing 'name.remal:gradle-plugins-api'
             annotationProcessing 'org.immutables:value'
             annotationProcessing 'org.projectlombok:lombok'
+            annotationProcessing 'org.projectlombok:lombok-mapstruct-binding'
 
             optional 'com.fasterxml.jackson.core:jackson-databind'
             optional 'org.hibernate.validator:hibernate-validator'
