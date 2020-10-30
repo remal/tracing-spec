@@ -350,8 +350,12 @@ allprojects {
         }
 
         aptOptions {
-            processorArgs.put('mapstruct.suppressGeneratorTimestamp', true)
-            processorArgs.put('mapstruct.suppressGeneratorVersionInfoComment', true)
+            configurations.apt.allDependencies.all { Dependency dep ->
+                if ("${dep.group}:${dep.name}" == 'org.mapstruct:mapstruct-processor') {
+                    processorArgs.put('mapstruct.suppressGeneratorTimestamp', true)
+                    processorArgs.put('mapstruct.suppressGeneratorVersionInfoComment', true)
+                }
+            }
         }
 
         tasks.generateModuleInfo {
