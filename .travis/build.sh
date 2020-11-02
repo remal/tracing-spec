@@ -25,6 +25,11 @@ elif [ -n "$TRAVIS_BRANCH" ]; then
 
     if [ "$TRAVIS_REPO_SLUG" == "remal/tracing-spec" ]; then
         ret=0
+        git commit --no-status -o -m "Update IDEA settings" .idea || ret=$?
+        if [ $ret -eq 0 ]; then
+            git remote set-url origin "https://${GITHUB_TOKEN}@github.com/$TRAVIS_REPO_SLUG.git"
+            git push origin "HEAD:$TRAVIS_BRANCH"
+        fi
         git commit --no-status -o -m "Update documentation" README.md example-graph.png || ret=$?
         if [ $ret -eq 0 ]; then
             git remote set-url origin "https://${GITHUB_TOKEN}@github.com/$TRAVIS_REPO_SLUG.git"

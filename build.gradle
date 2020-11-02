@@ -939,48 +939,45 @@ tasks.maybeCreate('build').with {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-forBuildOnLocal {
-    apply plugin: 'idea'
-    apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
-    apply plugin: 'name.remal.idea-settings'
+apply plugin: 'idea'
+apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
+apply plugin: 'name.remal.idea-settings'
 
-    idea {
-        project {
-            jdkName = '11'
-            targetBytecodeVersion = JavaVersion.VERSION_1_8
-            languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
+idea {
+    project {
+        jdkName = '11'
+        targetBytecodeVersion = JavaVersion.VERSION_1_8
+        languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
 
-            settings {
-                doNotDetectFrameworks('android', 'web')
+        settings {
+            doNotDetectFrameworks('android', 'web')
 
-                encodings {
-                    encoding = 'UTF-8'
-                    bomPolicy = 'WITH_NO_BOM'
-                    properties {
-                        encoding = 'US-ASCII'
-                        transparentNativeToAsciiConversion = true
-                    }
+            encodings {
+                encoding = 'UTF-8'
+                bomPolicy = 'WITH_NO_BOM'
+                properties {
+                    encoding = 'US-ASCII'
+                    transparentNativeToAsciiConversion = true
                 }
             }
         }
     }
+}
 
-    ideaSettings {
-        configureIDEAComponent('CheckStyle-IDEA', null) { Element element ->
-            String toolVersion = project.configurations.allResolvable
-                .allDependencyConstraints
-                .findAll { it.group == 'com.puppycrawl.tools' && it.name == 'checkstyle' }
-                .findAll { it.version != null && !it.version.isEmpty() }
-                .first()
-                ?.version
-            if (toolVersion == null) return
+ideaSettings {
+    configureIDEAComponent('CheckStyle-IDEA', null) { Element element ->
+        String toolVersion = project.configurations.allResolvable
+            .allDependencyConstraints
+            .findAll { it.group == 'com.puppycrawl.tools' && it.name == 'checkstyle' }
+            .findAll { it.version != null && !it.version.isEmpty() }
+            .first()
+            ?.version
+        if (toolVersion == null) return
 
-            element.getDescendants(Filters.element("entry")).forEach { Element entry ->
-                if (entry.getAttributeValue('key') == 'checkstyle-version') {
-                    entry.setAttribute('value', toolVersion)
-                }
+        element.getDescendants(Filters.element("entry")).forEach { Element entry ->
+            if (entry.getAttributeValue('key') == 'checkstyle-version') {
+                entry.setAttribute('value', toolVersion)
             }
         }
     }
-
 }
