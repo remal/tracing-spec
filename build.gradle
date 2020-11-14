@@ -123,7 +123,7 @@ allprojects {
         allResolvable enforcedPlatform("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
         allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR9')
         allResolvable platform('io.grpc:grpc-bom:1.33.1')
-        allResolvable platform('com.google.protobuf:protobuf-bom:3.13.0')
+        allResolvable platform('com.google.protobuf:protobuf-bom:3.14.0')
         allResolvable platform('org.testcontainers:testcontainers-bom:1.14.3')
         allResolvable platform('io.opentracing:parent:0.33.0')
         allResolvable platform('io.zipkin.brave:brave-bom:5.13.1')
