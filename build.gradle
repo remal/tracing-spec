@@ -131,7 +131,7 @@ allprojects {
 
         String immutablesVersion = '2.8.8'
         String mapstructVersion = '1.4.1.Final'
-        String graalvmVersion = '20.2.0'
+        String graalvmVersion = '20.3.0'
 
         configurations.matching { it.canBeResolved }.all { Configuration conf ->
             conf.dependencyConstraints.addAll(
