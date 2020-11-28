@@ -55,7 +55,7 @@ class JaegerSpanConverterTest {
                     .setSpanId(ByteString.copyFrom(new byte[]{1, -1, 9}))
                     .build()
             ),
-            hasProperty("spanId", equalTo("1ff09"))
+            hasProperty("spanId", equalTo("000000000001ff09"))
         );
     }
 
@@ -72,7 +72,7 @@ class JaegerSpanConverterTest {
                     ))
                     .build()
             ),
-            hasProperty("parentSpanId", equalTo("1ff09"))
+            hasProperty("parentSpanId", equalTo("000000000001ff09"))
         );
     }
 

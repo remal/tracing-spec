@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 import utils.test.container.JaegerAllInOneContainer;
 import utils.test.container.ZipkinContainer;
 
@@ -57,7 +58,7 @@ public class TestcontainersConfiguration {
 
     @Bean
     public KafkaContainer kafkaContainer() {
-        return new KafkaContainer();
+        return new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka"));
     }
 
     @Bean
