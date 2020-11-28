@@ -1,60 +1,8 @@
 {
-  extends: ["config:base"],
-  stabilityDays: 1,
-  separateMajorMinor: false,
-  separateMinorPatch: false,
-  prCreation: "immediate",
-  prHourlyLimit: 0,
-  prConcurrentLimit: 0,
-  assigneesFromCodeOwners: true,
-  reviewersFromCodeOwners: true,
-  dependencyDashboard: false,
-  dependencyDashboardAutoclose: true,
-  dependencyDashboardTitle: "Renovate updates",
-  labels: [
-    "dependencies",
-  ],
-  packageRules: [
-    {
-      datasources: ["maven"],
-      labels: [
-        "dependencies",
-        "java",
-      ],
-    },
-    {
-      datasources: ["gradle-version"],
-      labels: [
-        "dependencies",
-        "gradle",
-      ],
-    },
-    {
-      datasources: ["docker"],
-      labels: [
-        "dependencies",
-        "docker",
-      ],
-    },
-    {
-      // Deny 'ea' versions for all packages
-      packagePatterns: [".*"],
-      allowedVersions: "!/.*[-.]ea[-.\d].*/",
-    },
-    {
-      packageNames: ["com.google.guava:guava"],
-      allowedVersions: "/^\\d+(\\.\\d+)+-jre$/",
-    },
-    {
-      packageNames: ["net.sourceforge.plantuml:plantuml"],
-      allowedVersions: "/^\\d+(\\.\\d+){3,}$/",
-    },
-  ],
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>remal/renovate-config:jre"],
+
   "git-submodules": {
     enabled: false, // This is in beta for now, so let's use Dependabot to update Git submodules
-    labels: [
-      "dependencies",
-      "submodules",
-    ],
   },
 }
