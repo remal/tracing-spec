@@ -37,6 +37,11 @@
       ],
     },
     {
+      // Deny 'ea' versions for all packages
+      packagePatterns: [".*"],
+      allowedVersions: "!/.*[-.]ea[-.\d].*/",
+    },
+    {
       packageNames: ["com.google.guava:guava"],
       allowedVersions: "/^\\d+(\\.\\d+)+-jre$/",
     },
