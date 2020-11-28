@@ -53,7 +53,10 @@ public class PropertiesApplicationRunListener implements SpringApplicationRunLis
     }
 
     @Override
-    public void environmentPrepared(ConfigurableEnvironment environment) {
+    public void environmentPrepared(
+        /*ConfigurableBootstrapContext bootstrapContext,*/
+        ConfigurableEnvironment environment
+    ) {
         Map<String, Object> properties = new LinkedHashMap<>();
         properties.put("server.port", 0);
         properties.put("spring.cloud.bootstrap.enabled", false);
