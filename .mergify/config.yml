@@ -52,7 +52,7 @@ pull_request_rules:
   actions:
     update: { }
 
-- name: Auto merge by authors
+- name: Merge by authors automatically
   conditions:
   - author=remal
   - -closed
