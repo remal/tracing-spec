@@ -17,6 +17,10 @@ addons:
 git:
   depth: 2
 
+branches:
+  only:
+  - master
+
 env:
   global:
   - GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4 -Dorg.gradle.warning.mode=all -Dsun.net.client.defaultConnectTimeout=15000 -Dsun.net.client.defaultReadTimeout=600000 -Dsun.io.useCanonCaches=false -Djava.awt.headless=true -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
