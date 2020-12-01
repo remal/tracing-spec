@@ -13,8 +13,6 @@ import net.sourceforge.plantuml.core.DiagramDescription
 import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jdom2.Document
-import org.jdom2.Element
-import org.jdom2.filter.Filters
 import org.jdom2.input.SAXBuilder
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -959,24 +957,6 @@ idea {
                     encoding = 'US-ASCII'
                     transparentNativeToAsciiConversion = true
                 }
-            }
-        }
-    }
-}
-
-ideaSettings {
-    configureIDEAComponent('CheckStyle-IDEA', null) { Element element ->
-        String toolVersion = project.configurations.allResolvable
-            .allDependencyConstraints
-            .findAll { it.group == 'com.puppycrawl.tools' && it.name == 'checkstyle' }
-            .findAll { it.version != null && !it.version.isEmpty() }
-            .first()
-            ?.version
-        if (toolVersion == null) return
-
-        element.getDescendants(Filters.element("entry")).forEach { Element entry ->
-            if (entry.getAttributeValue('key') == 'checkstyle-version') {
-                entry.setAttribute('value', toolVersion)
             }
         }
     }
