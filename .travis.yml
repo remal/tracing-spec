@@ -15,7 +15,7 @@ addons:
 #    - ./.artifacts.zip
 
 git:
-  depth: 2
+  depth: 10
 
 branches:
   only:
