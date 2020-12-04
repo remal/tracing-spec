@@ -143,7 +143,7 @@ allprojects {
                     "org.immutables:value:$immutablesVersion",
                     "org.immutables:gson:$immutablesVersion",
                     "org.mapstruct:mapstruct-processor:$mapstructVersion",
-                    'org.projectlombok:lombok-mapstruct-binding:0.1.0',
+                    'org.projectlombok:lombok-mapstruct-binding:0.2.0',
 
                     // Compile
                     "org.mapstruct:mapstruct:$mapstructVersion",
