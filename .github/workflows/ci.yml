@@ -35,15 +35,16 @@ jobs:
         ./gradlew allClasses
         export DISABLE_COMPILATION=true
 
-        ./gradlew assemble
-        export DISABLE_JAR_TASKS=true
-
         ./gradlew build
-
+    #
     #    - name: Run all tests
     #      run: |
     #        ./gradlew runAllTests
+    #      env:
+    #        DISABLE_COMPILATION: true
 
     - name: Analyze with SonarQube
       run: |
-        ./gradlew sonarqube -Psonar.login=${{ secrets.SONAR_TOKEN }}
+        ./gradlew sonarqube -Psonar.host.url=https://sonarcloud.io -Psonar.login=${{ secrets.SONAR_TOKEN }}
+      env:
+        DISABLE_COMPILATION: true
