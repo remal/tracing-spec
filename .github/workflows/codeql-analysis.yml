@@ -1,8 +1,8 @@
-name: "CodeQL"
+name: CodeQL
 
 on:
   schedule:
-  - cron: '0 3 * * 0/2'
+  - cron: '0 3 */2 * *'
 
 jobs:
   analyze:
@@ -15,11 +15,6 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 2
-
-    # If this run was triggered by a pull request event, then checkout
-    # the head of the pull request instead of the merge commit.
-    - if: ${{ github.event_name == 'pull_request' }}
-      run: git checkout --recurse-submodules HEAD^2
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
