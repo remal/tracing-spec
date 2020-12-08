@@ -12,8 +12,9 @@ on:
 jobs:
   build:
     if: ${{
-      (github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || !startsWith(github.event.head_commit.message, '[push-back]')))
-      || github.event_name == 'pull_request'
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+      || (github.event_name == 'push' && !startsWith(github.event.head_commit.message, '[push-back]') && !startsWith(github.event.head_commit.message, '[skip ci]'))
+      || (github.event_name == 'pull_request')
       || (github.event_name == 'pull_request_target' && github.event.pull_request.base.repo.id != github.event.pull_request.head.repo.id)
       }}
     name: build
