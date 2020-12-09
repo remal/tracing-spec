@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: recursive
-        fetch-depth: 0
+        fetch-depth: 2
 
     - name: Setup Java 11
       uses: actions/setup-java@v1
@@ -36,15 +36,26 @@ jobs:
         export DISABLE_COMPILATION=true
 
         ./gradlew build
-    #
-    #    - name: Run all tests
-    #      run: |
-    #        ./gradlew runAllTests
-    #      env:
-    #        DISABLE_COMPILATION: true
 
     - name: Analyze with SonarQube
       run: |
         ./gradlew sonarqube -Psonar.host.url=https://sonarcloud.io -Psonar.login=${{ secrets.SONAR_TOKEN }}
       env:
         DISABLE_COMPILATION: true
+
+    #    - name: Run full test suit
+    #      run: |
+    #        ./gradlew runAllTests
+    #      env:
+    #        DISABLE_COMPILATION: true
+
+    - name: Push-back
+      if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
+      run: |
+        git remote set-url origin https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
+
+        git add --all .idea
+        git commit --no-status -o -m "[push-back] Update IDEA settings" .idea && git push origin "HEAD:${{ github.ref }}"
+
+        git add --all README.md example-graph.png
+        git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png && git push origin "HEAD:${{ github.ref }}"
