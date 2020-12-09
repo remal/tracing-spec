@@ -70,19 +70,19 @@ jobs:
         echo "::group::Push settings"
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
-        git remote set-url origin https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
+        git remote add push-back https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
         echo "::endgroup::"
 
         echo "::group::Update IDEA settings"
         git add --all .idea
         if git commit --no-status -o -m "[push-back] Update IDEA settings" .idea ; then
-          git push origin "HEAD:${{ github.ref }}"
+          git push push-back "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
 
         echo "::group::Update documentation"
         git add --all README.md example-graph.png
         if git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png ; then
-          git push origin "HEAD:${{ github.ref }}"
+          git push push-back "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
