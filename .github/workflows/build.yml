@@ -38,24 +38,19 @@ jobs:
 
     - name: Compile
       run: |
-        echo "::debug::debug"
-        echo "::warning::warning"
-        echo "::error::error"
         chmod -R 0777 .
         ./gradlew allClasses
+        echo "DISABLE_COMPILATION=true" >> "$GITHUB_ENV"
 
     - name: Build
       run: |
         ./gradlew build
-      env:
-        DISABLE_COMPILATION: true
 
     - name: Analyze with SonarQube
       run: |
         ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        DISABLE_COMPILATION: true
 
     #    - name: Run full test suit
     #      if: ${{ github.event.pull_request.sender.login != 'renovate[bot]' }}
@@ -64,19 +59,30 @@ jobs:
     #      env:
     #        DISABLE_COMPILATION: true
 
+    - name: 'Run full test suit: integration.versions-count=3'
+      if: ${{ github.event.pull_request.sender.login == 'renovate[bot]' }}
+      run: |
+        ./gradlew runAllTests -Dintegration.versions-count=3
+
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
       run: |
+        echo "::group::Push settings"
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
         git remote set-url origin https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
+        echo "::endgroup::"
 
+        echo "::group::Update IDEA settings"
         git add --all .idea
         if git commit --no-status -o -m "[push-back] Update IDEA settings" .idea ; then
           git push origin "HEAD:${{ github.ref }}"
         fi
+        echo "::endgroup::"
 
+        echo "::group::Update documentation"
         git add --all README.md example-graph.png
         if git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png ; then
           git push origin "HEAD:${{ github.ref }}"
         fi
+        echo "::endgroup::"

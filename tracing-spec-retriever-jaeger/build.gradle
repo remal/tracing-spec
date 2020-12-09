@@ -169,22 +169,33 @@ Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") 
     tasks.runAllTests.dependsOn(it)
 }
 
-Map<String, String> dockerTagImages = [:]
+SortedMap<String, String> dockerTagImages = new TreeMap<>(Comparator.comparing({ Version.parse(it) }))
 [
     'jaegertracing/all-in-one',
 ].forEach { imageName ->
     dockerImages.getAllTags(imageName).forEach { String tagName ->
+        Version version = Version.parseOrNull(tagName)
+        // Only versions of <major>.<minor> format
+        if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
+
+        // https://github.com/remal/tracing-spec/issues/19
+        if (version < Version.create(1, 14)) return
+
         dockerTagImages.putIfAbsent(tagName, imageName)
     }
 }
+
+with {
+    Integer versionsCount = System.getProperty('integration.versions-count')?.toInteger()
+        ?: project.findProperty('integration.versions-count')?.toString()?.toInteger()
+    if (versionsCount == null) return true
+
+    List<String> tags = dockerTagImages.keySet().toList().reverse()
+    List<String> enabledTags = tags.subList(0, Math.min(versionsCount, tags.size()))
+    dockerTagImages.keySet().removeIf { !enabledTags.contains(it) }
+}
+
 dockerTagImages.forEach { String tagName, String imageName ->
-    Version version = Version.parseOrNull(tagName)
-    // Only versions of <major>.<minor> format
-    if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
-
-    // https://github.com/remal/tracing-spec/issues/19
-    if (version < Version.create(1, 14)) return
-
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
 
