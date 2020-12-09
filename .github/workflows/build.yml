@@ -48,6 +48,7 @@ jobs:
       run: |
         ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DISABLE_COMPILATION: true
 
     #    - name: Run full test suit
