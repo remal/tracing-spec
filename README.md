@@ -66,7 +66,6 @@ tracingspec:
 
 Create this `expected.yml` file:
 <!-- include-yaml: example-graph.yaml -->
-
 ```yaml
 - name: post /documents
   serviceName: documents
@@ -88,7 +87,6 @@ Create this `expected.yml` file:
       - name: index-document
         serviceName: search
 ```
-
 <!--/ include-yaml -->
 
 Send an HTTP request to `documents` service from your CI service (that is integrated with the Jaeger instance). This HTTP request should be sent inside a new span:
