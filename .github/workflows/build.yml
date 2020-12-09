@@ -55,19 +55,15 @@ jobs:
     #    - name: Run full test suit
     #      if: ${{ github.event_name != 'pull_request' || github.event.pull_request.sender.login != 'renovate[bot]' }}
     #      run: |
-    #        ./gradlew runAllTests
+    #        ./gradlew runAllTests -Dintegration.versions-count=
     #      env:
     #        DISABLE_COMPILATION: true
-
-    - name: 'Run full test suit: integration.versions-count=3'
-      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.sender.login == 'renovate[bot]' }}
-      run: |
-        ./gradlew runAllTests -Dintegration.versions-count=3
 
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
       run: |
-        git config --local http.https://github.com/.extraheader "AUTHORIZATION: token ${{ secrets.PUSH_BACK_TOKEN }}"
+        git config --unset-all http.https://github.com/.extraheader
+        git remote set-url origin https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
 
