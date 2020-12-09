@@ -70,12 +70,6 @@ if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-comp
     ]
 }
 
-if (System.getenv('DISABLE_JAR_TASKS') == 'true' || findProperty('disable-jar-tasks') == 'true') {
-    tasksToDisable += [
-        Jar.class,
-    ]
-}
-
 allprojects {
     afterEvaluate {
         tasks

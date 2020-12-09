@@ -38,6 +38,9 @@ jobs:
 
     - name: Compile
       run: |
+        echo "::debug::debug"
+        echo "::warning::warning"
+        echo "::error::error"
         chmod -R 0777 .
         ./gradlew allClasses
 
@@ -55,7 +58,7 @@ jobs:
         DISABLE_COMPILATION: true
 
     #    - name: Run full test suit
-    #      if: ${{ github.actor != 'renovate[bot]' }}
+    #      if: ${{ github.event.pull_request.sender.login != 'renovate[bot]' }}
     #      run: |
     #        ./gradlew runAllTests
     #      env:
@@ -69,7 +72,11 @@ jobs:
         git remote set-url origin https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
 
         git add --all .idea
-        git commit --no-status -o -m "[push-back] Update IDEA settings" .idea && git push origin "HEAD:${{ github.ref }}"
+        if git commit --no-status -o -m "[push-back] Update IDEA settings" .idea ; then
+          git push origin "HEAD:${{ github.ref }}"
+        fi
 
         git add --all README.md example-graph.png
-        git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png && git push origin "HEAD:${{ github.ref }}"
+        if git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png ; then
+          git push origin "HEAD:${{ github.ref }}"
+        fi
