@@ -1,15 +1,17 @@
 <!-- build-status -->
-[![Build](https://travis-ci.com/remal/tracing-spec.svg?branch=master)](https://travis-ci.com/github/remal/tracing-spec)
+![Build](https://github.com/remal/tracing-spec/workflows/build/badge.svg?event=push)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/name.remal.tracing-spec/tracing-spec-application/badge.svg)](https://maven-badges.herokuapp.com/maven-central/name.remal.tracing-spec/tracing-spec-application)
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=coverage)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=alert_status)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
+
 * [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=security_rating)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
+  [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
 * [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=bugs)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
+  [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=bugs)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
 * [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=code_smells)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
+  [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=name.remal.tracing-spec%3Atracing-spec&metric=code_smells)](https://sonarcloud.io/dashboard?id=name.remal.tracing-spec%3Atracing-spec)
+
 <!--/ build-status -->
 
 # TracingSpec
@@ -35,10 +37,12 @@ We send a new document to `documents` service via REST API. Then `documents` ser
 In this scenario we except having these flow: ![example graph](example-graph.png)
 
 Additional conditions:
+
 * Our distributed tracing system is [Jaeger](https://www.jaegertracing.io/)
 * Our tests on CI are integrated with the Jaeger instance
 
 Configure TracingSpec application by creating this `application.yml` file:
+
 ```yaml
 tracingspec:
   retriever:
@@ -62,6 +66,7 @@ tracingspec:
 
 Create this `expected.yml` file:
 <!-- include-yaml: example-graph.yaml -->
+
 ```yaml
 - name: post /documents
   serviceName: documents
@@ -83,20 +88,22 @@ Create this `expected.yml` file:
       - name: index-document
         serviceName: search
 ```
+
 <!--/ include-yaml -->
 
 Send an HTTP request to `documents` service from your CI service (that is integrated with the Jaeger instance). This HTTP request should be sent inside a new span:
+
 ```java
 // tracer - an instance of brave.Tracer
-ScopedSpan scopedSpan = tracer.startScopedSpan("test");
-String traceId = testSpan.context().traceIdString();
-try {
-    // documentsServiceClient - an instance of HTTP client to documents service
-    // document - document to save
-    documentsServiceClient.saveNewDocument(document);
-} finally {
-    testSpan.finish();
-}
+ScopedSpan scopedSpan=tracer.startScopedSpan("test");
+  String traceId=testSpan.context().traceIdString();
+  try{
+  // documentsServiceClient - an instance of HTTP client to documents service
+  // document - document to save
+  documentsServiceClient.saveNewDocument(document);
+  }finally{
+  testSpan.finish();
+  }
 // now you can use traceId for further actions
 ```
 
@@ -125,6 +132,7 @@ Spring properties a listed [below](#spring-properties).
 ### Usage
 
 Current renderer names:
+
 * `plantuml-sequence` - [plantuml sequence diagram](https://plantuml.com/sequence-diagram)
 * `json` - JSON
 * `yaml` - YAML
@@ -132,6 +140,7 @@ Current renderer names:
 #### Render trace
 
 Command: `java -jar tracing-spec-app.jar render-trace <traceId> <rendererName> <outputFile>`
+
 * `traceId` - Trace ID
 * `rendererName` - Renderer name
 * `outputFile` - Output file path
@@ -139,6 +148,7 @@ Command: `java -jar tracing-spec-app.jar render-trace <traceId> <rendererName> <
 #### Render graph
 
 Command: `java -jar tracing-spec-app.jar render-graph <graphFile> <rendererName> <outputFile>`
+
 * `graphFile` - Pattern graph file (YAML/JSON/JSON5)
 * `rendererName` - Renderer name
 * `outputFile` - Output file path
@@ -146,6 +156,7 @@ Command: `java -jar tracing-spec-app.jar render-graph <graphFile> <rendererName>
 #### Match
 
 Command: `java -jar tracing-spec-app.jar match <traceId> <patternGraphFile>`
+
 * `traceId` - Trace ID
 * `patternGraphFile` - Pattern graph file (YAML/JSON/JSON5)
 * Optional parameters:
@@ -153,6 +164,7 @@ Command: `java -jar tracing-spec-app.jar match <traceId> <patternGraphFile>`
   * `--attempts-delay=<number>` - Delay between attempts, in milliseconds
 
 Pattern graph file can look like this (YAML):
+
 ```yaml
 - name: post /resource # span name equals to 'post /resource'
   serviceName: /(\w+-)?service/ # service name matches to '(\w+-)?service' regex
@@ -167,11 +179,13 @@ Pattern graph file can look like this (YAML):
 ```
 
 Every string value in pattern file can be a regex. If a string value is `/[regex]/i`, this pattern will be used for matching:
+
 ```java
-Pattern.compile("[regex]", CASE_INSENSITIVE | UNICODE_CASE | UNICODE_CHARACTER_CLASS)
+Pattern.compile("[regex]",CASE_INSENSITIVE|UNICODE_CASE|UNICODE_CHARACTER_CLASS)
 ```
 
 These regex modifiers are supported:
+
 * `d` - `UNIX_LINES`
 * `i` - `CASE_INSENSITIVE`
 * `x` - `COMMENTS`
