@@ -36,13 +36,16 @@ jobs:
       with:
         java-version: 11
 
-    - name: Build
+    - name: Compile
       run: |
         chmod -R 0777 .
         ./gradlew allClasses
-        export DISABLE_COMPILATION=true
 
-      # ./gradlew build
+    - name: Build
+      run: |
+        ./gradlew build
+      env:
+        DISABLE_COMPILATION: true
 
     - name: Analyze with SonarQube
       run: |
@@ -52,6 +55,7 @@ jobs:
         DISABLE_COMPILATION: true
 
     #    - name: Run full test suit
+    #      if: ${{ github.actor != 'renovate[bot]' }}
     #      run: |
     #        ./gradlew runAllTests
     #      env:
@@ -60,6 +64,8 @@ jobs:
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
       run: |
+        git config user.name "${{ github.event.head_commit.committer.name }}"
+        git config user.email "${{ github.event.head_commit.committer.email }}"
         git remote set-url origin https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
 
         git add --all .idea
