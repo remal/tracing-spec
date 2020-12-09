@@ -67,20 +67,20 @@ jobs:
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
       run: |
-        git remote add push-back https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
+        git config --local http.https://github.com/.extraheader "AUTHORIZATION: token ${{ secrets.PUSH_BACK_TOKEN }}"
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
 
         echo "::group::Update IDEA settings"
         git add --all .idea
         if git commit --no-status -o -m "[push-back] Update IDEA settings" .idea ; then
-          git push push-back "HEAD:${{ github.ref }}"
+          git push origin "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
 
         echo "::group::Update documentation"
         git add --all README.md example-graph.png
         if git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png ; then
-          git push push-back "HEAD:${{ github.ref }}"
+          git push origin "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
