@@ -53,25 +53,23 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     #    - name: Run full test suit
-    #      if: ${{ github.event.pull_request.sender.login != 'renovate[bot]' }}
+    #      if: ${{ github.event_name != 'pull_request' || github.event.pull_request.sender.login != 'renovate[bot]' }}
     #      run: |
     #        ./gradlew runAllTests
     #      env:
     #        DISABLE_COMPILATION: true
 
     - name: 'Run full test suit: integration.versions-count=3'
-      if: ${{ github.event.pull_request.sender.login == 'renovate[bot]' }}
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.sender.login == 'renovate[bot]' }}
       run: |
         ./gradlew runAllTests -Dintegration.versions-count=3
 
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
       run: |
-        echo "::group::Push settings"
+        git remote add push-back https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
-        git remote add push-back https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
-        echo "::endgroup::"
 
         echo "::group::Update IDEA settings"
         git add --all .idea

@@ -57,8 +57,6 @@ with {
     dockerTagImages.keySet().removeIf { !enabledTags.contains(it) }
 }
 
-println dockerTagImages
-
 dockerTagImages.forEach { String tagName, String imageName ->
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
