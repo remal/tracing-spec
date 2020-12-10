@@ -44,7 +44,7 @@ jobs:
 
     - name: Cache
       if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-      uses: actions/cache@v2
+      uses: remal/always-cache
       with:
         key: ${{ runner.os }}-${{ github.ref }}
         restore-keys: |
@@ -85,16 +85,22 @@ jobs:
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
 
-        echo "::group::Update IDEA settings"
+        echo "::group::IDEA settings"
         git add --all .idea
         if git commit --no-status -o -m "[push-back] Update IDEA settings" .idea ; then
           git push origin "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
 
-        echo "::group::Update documentation"
+        echo "::group::Documentation"
         git add --all README.md example-graph.png
         if git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png ; then
           git push origin "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
+
+    - name: Remove files that shouldn't be cached
+      if: ${{ always() }}
+      run: |
+        rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
+        find $HOME/.gradle -name '*.lock' -type f -delete
