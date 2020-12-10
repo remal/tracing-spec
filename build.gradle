@@ -119,7 +119,7 @@ allprojects {
         allResolvable platform('org.testcontainers:testcontainers-bom:1.15.0')
         allResolvable platform('io.opentracing:parent:0.33.0')
         allResolvable platform('io.zipkin.brave:brave-bom:5.13.2')
-        allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.16.1')
+        allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.16.2')
 
         String immutablesVersion = '2.8.8'
         String mapstructVersion = '1.4.1.Final'
