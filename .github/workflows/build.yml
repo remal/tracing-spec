@@ -62,7 +62,13 @@ jobs:
 
     - name: Build
       run: |
-        ./gradlew build
+        ./gradlew build runAllTests -Dintegration.versions-count=0
+
+    - name: Analyze with SonarQube
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
 
     - name: Run full test suit
       env:
@@ -75,12 +81,6 @@ jobs:
         fi
         echo "integration.versions-count=$integrationVersionsCount"
         ./gradlew runAllTests -Dintegration.versions-count=$integrationVersionsCount
-
-    - name: Analyze with SonarQube
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
 
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
