@@ -16,7 +16,7 @@ pull_request_rules:
   - -draft
   - -locked
   - "#changes-requested-reviews-by=0"
-  - status-success=build / build (pull_request)
+  - status-success=build
   - status-success=SonarCloud Code Analysis
   - status-success=CodeFactor
   - status-success=WIP
@@ -60,7 +60,7 @@ pull_request_rules:
   - -draft
   - -locked
   - "#changes-requested-reviews-by=0"
-  - status-success=build / build (pull_request)
+  - status-success=build
   - status-success=SonarCloud Code Analysis
   - status-success=CodeFactor
   - status-success=WIP
