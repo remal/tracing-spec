@@ -54,28 +54,31 @@ jobs:
           ~/.gradle
           ~/.sonar/cache
 
-    - name: Compile
+    - name: Assemble
       run: |
         chmod -R 0777 .
-        ./gradlew allClasses
+        ./gradlew assemble allClasses
         echo "DISABLE_COMPILATION=true" >> "$GITHUB_ENV"
 
-    - name: Build
+    - name: Execute checks
       run: |
         ./gradlew build
 
     - name: Analyze with SonarQube
-      run: |
-        ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
 
-    #    - name: Run full test suit
-    #      if: ${{ github.event_name != 'pull_request' || github.event.pull_request.sender.login != 'renovate[bot]' }}
-    #      run: |
-    #        ./gradlew runAllTests -Dintegration.versions-count=
-    #      env:
-    #        DISABLE_COMPILATION: true
+    - name: Run full test suit
+      env:
+        RENOVATE_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]' }}
+      run: |
+        if [ "$RENOVATE_PR" == "true" ]; then
+          ./gradlew runAllTests -Dintegration.versions-count=3
+        else
+          ./gradlew runAllTests
+        fi
 
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
