@@ -77,7 +77,7 @@ jobs:
       run: |
         integrationVersionsCount=
         if [ "$RENOVATE_PR" == "true" ] || [ "$DEPENDABOT_PR" == "true" ]; then
-          integrationVersionsCount=3
+          integrationVersionsCount=2
         fi
         echo "integration.versions-count=$integrationVersionsCount"
         ./gradlew runAllTests -Dintegration.versions-count=$integrationVersionsCount

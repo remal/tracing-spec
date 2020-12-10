@@ -191,8 +191,10 @@ with {
     if (versionsCountString == null || versionsCountString.isEmpty()) return true
     int versionsCount = versionsCountString.toInteger()
 
-    List<String> tags = dockerTagImages.keySet().toList().reverse()
+    List<String> tags = dockerTagImages.keySet().toList()
     List<String> enabledTags = tags.subList(0, Math.min(versionsCount, tags.size()))
+    tags = tags.reverse()
+    enabledTags += tags.subList(0, Math.min(versionsCount, tags.size()))
     dockerTagImages.keySet().removeIf { !enabledTags.contains(it) }
 }
 
