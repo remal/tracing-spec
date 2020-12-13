@@ -116,7 +116,7 @@ allprojects {
         allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR9')
         allResolvable platform('io.grpc:grpc-bom:1.34.0')
         allResolvable platform('com.google.protobuf:protobuf-bom:3.14.0')
-        allResolvable platform('org.testcontainers:testcontainers-bom:1.15.0')
+        allResolvable platform('org.testcontainers:testcontainers-bom:1.15.1')
         allResolvable platform('io.opentracing:parent:0.33.0')
         allResolvable platform('io.zipkin.brave:brave-bom:5.13.2')
         allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.16.2')
