@@ -70,7 +70,7 @@ jobs:
       run: |
         ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
 
-    - name: Run full test suit
+    - name: Run integration tests against different depedency versions
       env:
         RENOVATE_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]' }}
         DEPENDABOT_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]' }}
