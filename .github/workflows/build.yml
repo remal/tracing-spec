@@ -116,6 +116,7 @@ jobs:
         mkdir -p "$RELEASE_ASSET_DIR"
         cp tracing-spec-application/build/libs/tracing-spec-application-*-fatjar.jar "$RELEASE_ASSET"
 
+        sudo apt-get -y install gh
         gh config set prompt disabled
         gh release upload --clobber "${GITHUB_REF#refs/tags/}" "$RELEASE_ASSET"
 
