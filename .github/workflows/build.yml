@@ -82,6 +82,7 @@ jobs:
         echo "integration.versions-count=$integrationVersionsCount"
         ./gradlew runAllTests -Dintegration.versions-count=$integrationVersionsCount
 
+
     - name: Push back
       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
       run: |
@@ -103,6 +104,26 @@ jobs:
           git push origin "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
+
+
+    - name: Upload release asset
+      if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        RELEASE_ASSET=build/tracing-spec-app.jar
+        RELEASE_ASSET_DIR=$(dirname $RELEASE_ASSET)
+        mkdir -p "$RELEASE_ASSET_DIR"
+        cp tracing-spec-application/build/libs/tracing-spec-application-*-fatjar.jar "$RELEASE_ASSET"
+
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+        sudo apt-add-repository https://cli.github.com/packages
+        sudo apt-get -q update
+        sudo apt-get -y install gh
+        gh config set prompt disabled
+        gh release upload --clobber "${GITHUB_REF#refs/tags/}" "$RELEASE_ASSET"
+
 
     - name: Remove files that shouldn't be cached
       if: ${{ always() }}
