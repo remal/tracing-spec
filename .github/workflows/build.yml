@@ -62,7 +62,7 @@ jobs:
 
     - name: Build
       run: |
-        ./gradlew build runAllTests -Dintegration.versions-count=0
+        ./gradlew build runAllTests -Dtest.versions-count=0
 
     - name: Analyze with SonarQube
       env:
@@ -75,12 +75,12 @@ jobs:
         RENOVATE_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]' }}
         DEPENDABOT_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]' }}
       run: |
-        integrationVersionsCount=
+        testVersionsCount=
         if [ "$RENOVATE_PR" == "true" ] || [ "$DEPENDABOT_PR" == "true" ]; then
-          integrationVersionsCount=2
+          testVersionsCount=2
         fi
-        echo "integration.versions-count=$integrationVersionsCount"
-        ./gradlew runAllTests -Dintegration.versions-count=$integrationVersionsCount
+        echo "test.versions-count=$testVersionsCount"
+        ./gradlew testAllVersions -Dtest.versions-count=$testVersionsCount
 
 
     - name: Push back
@@ -116,10 +116,6 @@ jobs:
         mkdir -p "$RELEASE_ASSET_DIR"
         cp tracing-spec-application/build/libs/tracing-spec-application-*-fatjar.jar "$RELEASE_ASSET"
 
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-        sudo apt-add-repository https://cli.github.com/packages
-        sudo apt-get -q update
-        sudo apt-get -y install gh
         gh config set prompt disabled
         gh release upload --clobber "${GITHUB_REF#refs/tags/}" "$RELEASE_ASSET"
 

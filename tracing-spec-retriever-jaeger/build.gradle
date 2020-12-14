@@ -164,9 +164,13 @@ TaskProvider<Task> pullProtobufDockerImage = tasks.register('pullProtobufDockerI
 SourceSet versionTestSourceSet = sourceSets.integration
 String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
 
-Task allTestVersionTask = tasks.create("$baseVersionTestTaskName-all-versions") {
+Task testSourceSetVersionsTask = tasks.create("${baseVersionTestTaskName}Versions") {
     group = 'verification'
     tasks.runAllTests.dependsOn(it)
+}
+
+tasks.create("testAllVersions") {
+    dependsOn(testSourceSetVersionsTask)
 }
 
 SortedMap<String, String> dockerTagImages = new TreeMap<>(Comparator.comparing({ Version.parse(it) }))
@@ -186,8 +190,8 @@ SortedMap<String, String> dockerTagImages = new TreeMap<>(Comparator.comparing({
 }
 
 with {
-    String versionsCountString = System.getProperty('integration.versions-count')?.trim()
-        ?: project.findProperty('integration.versions-count')?.toString()?.trim()
+    String versionsCountString = System.getProperty('test.versions-count')?.trim()
+        ?: project.findProperty('test.versions-count')?.toString()?.trim()
     if (versionsCountString == null || versionsCountString.isEmpty()) return true
     int versionsCount = versionsCountString.toInteger()
 
@@ -221,5 +225,5 @@ dockerTagImages.forEach { String tagName, String imageName ->
         }
     }
 
-    allTestVersionTask.dependsOn(testVersionTask)
+    testSourceSetVersionsTask.dependsOn(testVersionTask)
 }
