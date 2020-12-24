@@ -16,18 +16,22 @@
 
 package shared;
 
+import static brave.sampler.Sampler.ALWAYS_SAMPLE;
+
 import brave.sampler.Sampler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 @ComponentScan
 public class SharedConfiguration {
 
+    @Primary
     @Bean
     public Sampler sleuthTraceSampler() {
-        return Sampler.ALWAYS_SAMPLE;
+        return ALWAYS_SAMPLE;
     }
 
 }

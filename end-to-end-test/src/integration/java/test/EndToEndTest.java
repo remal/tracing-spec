@@ -142,15 +142,13 @@ class EndToEndTest {
 
 
         // Do tests:
-        val zipkinUrl = sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl();
-        val jaegerPort = sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort();
-
         val expectedGraphPath = getResourcePath("expected.yml");
         long matchAttemptsDelayMillis = 2_500;
         int matchAttempts = toIntExact(round(ceil(15_000.0 / matchAttemptsDelayMillis)));
 
         val expectedDiagram = normalizePuml(readTextResource("expected.puml"));
         {
+            val zipkinUrl = sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl();
             assertDoesNotThrow(
                 (Executable) () ->
                     TracingSpecSpringApplication.run(
@@ -186,6 +184,7 @@ class EndToEndTest {
         }
 
         {
+            val jaegerPort = sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort();
             assertDoesNotThrow(
                 (Executable) () ->
                     TracingSpecSpringApplication.run(

@@ -61,7 +61,6 @@ public class PropertiesApplicationRunListener implements SpringApplicationRunLis
         Map<String, Object> properties = new LinkedHashMap<>();
         properties.put("server.port", 0);
         properties.put("spring.cloud.bootstrap.enabled", false);
-        properties.put("spring.zipkin.enabled", false);
         serviceName.ifPresent(it -> properties.put("spring.application.name", it));
         serviceName.ifPresent(it -> properties.put("spring.kafka.consumer.group-id", it + '-' + START_MILLIS));
 
