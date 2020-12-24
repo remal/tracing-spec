@@ -17,6 +17,7 @@ spring:
 
 logging:
   level:
+    #ROOT: DEBUG
     org.apache.kafka: ERROR
     org.jboss.threads: WARN
     org.xnio: WARN

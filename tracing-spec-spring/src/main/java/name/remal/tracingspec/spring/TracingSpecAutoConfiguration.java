@@ -29,8 +29,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.sleuth.annotation.SleuthAnnotationAutoConfiguration;
-import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
@@ -41,9 +39,11 @@ import org.springframework.context.annotation.Role;
 @EnableConfigurationProperties(TracingSpecSpringProperties.class)
 @ConditionalOnClass(AbstractPointcutAdvisor.class)
 @ConditionalOnBean(Tracer.class)
-@AutoConfigureAfter({
-    TraceAutoConfiguration.class,
-    SleuthAnnotationAutoConfiguration.class
+@AutoConfigureAfter(name = {
+    "org.springframework.cloud.sleuth.autoconfig.instrument.web.TraceWebAutoConfiguration",
+    "org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration",
+    "org.springframework.cloud.sleuth.annotation.SleuthAnnotationConfiguration",
+    "org.springframework.cloud.sleuth.annotation.SleuthAnnotationAutoConfiguration",
 })
 @SuppressWarnings("java:S1118")
 public class TracingSpecAutoConfiguration {

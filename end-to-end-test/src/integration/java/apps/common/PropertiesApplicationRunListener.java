@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.val;
+import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.core.Ordered;
@@ -54,13 +55,12 @@ public class PropertiesApplicationRunListener implements SpringApplicationRunLis
 
     @Override
     public void environmentPrepared(
-        /*ConfigurableBootstrapContext bootstrapContext,*/
+        ConfigurableBootstrapContext bootstrapContext,
         ConfigurableEnvironment environment
     ) {
         Map<String, Object> properties = new LinkedHashMap<>();
         properties.put("server.port", 0);
         properties.put("spring.cloud.bootstrap.enabled", false);
-        properties.put("spring.zipkin.enabled", false);
         serviceName.ifPresent(it -> properties.put("spring.application.name", it));
         serviceName.ifPresent(it -> properties.put("spring.kafka.consumer.group-id", it + '-' + START_MILLIS));
 
