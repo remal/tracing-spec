@@ -61,4 +61,9 @@ public class LogSpanReporter implements Reporter<Span> {
         });
     }
 
+    @Override
+    public String toString() {
+        return LogSpanReporter.class.getSimpleName();
+    }
+
 }

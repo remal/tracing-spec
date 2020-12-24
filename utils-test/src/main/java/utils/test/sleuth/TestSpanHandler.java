@@ -24,16 +24,12 @@ import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Synchronized;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.TestExecutionListener;
 
-public class TestSpanHandler extends SpanHandler implements TestExecutionListener {
+public class TestSpanHandler extends SpanHandler {
 
     private final List<MutableSpan> spans = new ArrayList<>();
 
-    @Synchronized("spans")
-    public MutableSpan get(int i) {
+    public synchronized MutableSpan get(int i) {
         if (i < 0) {
             throw new AssertionError("Span index can't be less than 0: " + i);
         } else if (i >= spans.size()) {
@@ -46,19 +42,16 @@ public class TestSpanHandler extends SpanHandler implements TestExecutionListene
         return spans.get(i);
     }
 
-    @Synchronized("spans")
-    public List<MutableSpan> getSpans() {
+    public synchronized List<MutableSpan> getSpans() {
         return spans;
     }
 
-    @Synchronized("spans")
-    public void clear() {
+    public synchronized void clear() {
         spans.clear();
     }
 
     @Override
-    @Synchronized("spans")
-    public boolean end(TraceContext context, MutableSpan span, Cause cause) {
+    public synchronized boolean end(TraceContext context, MutableSpan span, Cause cause) {
         if (cause == FINISHED) {
             spans.add(span);
         }
@@ -66,8 +59,8 @@ public class TestSpanHandler extends SpanHandler implements TestExecutionListene
     }
 
     @Override
-    public void afterTestExecution(TestContext testContext) {
-        clear();
+    public synchronized String toString() {
+        return TestSpanHandler.class.getSimpleName() + '[' + spans.size() + " spans]";
     }
 
 }

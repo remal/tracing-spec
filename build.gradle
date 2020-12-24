@@ -113,7 +113,7 @@ allprojects {
     dependencies {
         // BOMs:
         allResolvable enforcedPlatform("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
-        allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR9')
+        allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:2020.0.0')
         allResolvable platform('io.grpc:grpc-bom:1.34.1')
         allResolvable platform('com.google.protobuf:protobuf-bom:3.14.0')
         allResolvable platform('org.testcontainers:testcontainers-bom:1.15.1')

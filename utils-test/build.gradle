@@ -7,6 +7,6 @@ dependencies {
     optional 'org.testcontainers:testcontainers'
     optional 'org.awaitility:awaitility'
     optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
-    optional 'org.springframework.cloud:spring-cloud-starter-zipkin'
+    optional 'org.springframework.cloud:spring-cloud-sleuth-zipkin'
     optional 'com.google.guava:guava'
 }
