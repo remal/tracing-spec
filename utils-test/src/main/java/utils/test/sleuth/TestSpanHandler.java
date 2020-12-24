@@ -60,7 +60,7 @@ public class TestSpanHandler extends SpanHandler {
 
     @Override
     public synchronized String toString() {
-        return TestSpanHandler.class.getSimpleName() + '[' + spans.size() + "spans]";
+        return TestSpanHandler.class.getSimpleName() + '[' + spans.size() + " spans]";
     }
 
 }

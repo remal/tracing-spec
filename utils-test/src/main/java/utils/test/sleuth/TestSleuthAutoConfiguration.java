@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import zipkin2.Span;
 import zipkin2.reporter.Reporter;
 
@@ -41,6 +42,7 @@ import zipkin2.reporter.Reporter;
 @ConditionalOnMissingClass("org.springframework.cloud.sleuth.zipkin2.ZipkinAutoConfiguration")
 public class TestSleuthAutoConfiguration {
 
+    @Primary
     @Bean
     Sampler testTracingSampler() {
         return ALWAYS_SAMPLE;
