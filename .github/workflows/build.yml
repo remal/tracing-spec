@@ -36,7 +36,7 @@ jobs:
       with:
         submodules: recursive
         lfs: true
-        fetch-depth: 2
+        fetch-depth: 0
 
     - name: Adjust files to be built on CI
       run: |
