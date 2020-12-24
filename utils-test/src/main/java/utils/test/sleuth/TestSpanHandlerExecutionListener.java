@@ -40,7 +40,7 @@ public class TestSpanHandlerExecutionListener implements TestExecutionListener {
     private final AtomicBoolean isLocked = new AtomicBoolean();
 
     @Override
-    @SuppressWarnings({"java:S2276", "BusyWait"})
+    @SuppressWarnings({"java:S2276", "java:S2925", "BusyWait"})
     public synchronized void beforeTestExecution(TestContext testContext) throws Exception {
         if (isEnabled(testContext)) {
             long startNanos = nanoTime();
