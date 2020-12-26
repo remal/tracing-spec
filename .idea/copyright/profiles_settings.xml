@@ -1,8 +1,0 @@
-<component name="CopyrightManager">
-  <settings>
-    <module2copyright>
-      <element module="Java sources" copyright="Apache License 2.0" />
-      <element module="Kotlin sources" copyright="Apache License 2.0" />
-    </module2copyright>
-  </settings>
-</component>

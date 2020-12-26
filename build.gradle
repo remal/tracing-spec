@@ -1,7 +1,6 @@
 import static java.util.Collections.newSetFromMap
 
 import groovy.json.JsonSlurper
-import java.nio.file.Path
 import java.time.ZonedDateTime
 import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
@@ -10,10 +9,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
 import net.sourceforge.plantuml.SourceStringReader
 import net.sourceforge.plantuml.core.DiagramDescription
-import nl.javadude.gradle.plugins.license.License
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
-import org.jdom2.Document
-import org.jdom2.input.SAXBuilder
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -28,7 +24,6 @@ buildscript {
     dependencies {
         classpath 'name.remal:gradle-plugins:1.1.6'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
-        classpath 'gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0'
         classpath 'org.jdom:jdom2:2.0.6'
         classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.10'
@@ -66,7 +61,6 @@ List<Class<Task>> tasksToDisable = []
 if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
     tasksToDisable += [
         AbstractCompile.class,
-        License.class,
     ]
 }
 
@@ -171,7 +165,6 @@ allprojects {
         apply plugin: 'name.remal.integration-tests'
         apply plugin: 'checkstyle'
         apply plugin: 'jacoco'
-        apply plugin: 'com.github.hierynomus.license'
 
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = sourceCompatibility
@@ -471,88 +464,6 @@ allprojects {
                             publications.mavenDefault.artifact(bootJar)
                         }
                     }
-                }
-            }
-        }
-    }
-
-    pluginManager.withPlugin('com.github.hierynomus.license') {
-        File licenseTemplateFile = project.file('build/license-template.txt')
-        TaskProvider<Task> prepareLicenseTemplate = tasks.register('prepareLicenseTemplate') {
-            File ideaLicenseFile = rootProject.file('.idea/copyright/Apache_License_2_0.xml')
-            inputs.file(ideaLicenseFile)
-            outputs.file(licenseTemplateFile)
-
-            doLast {
-                licenseTemplateFile.delete()
-
-                SAXBuilder saxBuilder = new SAXBuilder()
-                Document document = saxBuilder.build(ideaLicenseFile)
-                String licenseTemplate = document.rootElement
-                    .getChildren('copyright')
-                    .collect { it.getChildren('option') }.flatten()
-                    .find { it.getAttributeValue('name') == 'notice' }
-                    ?.getAttributeValue('value')
-                if (licenseTemplate == null) {
-                    throw new GradleScriptException('IDEA license template can\'t be retrieved ')
-                }
-
-                licenseTemplate = licenseTemplate
-                    .replace('\r\n', '\n')
-                    .replace('\n\r', '\n')
-                    .replace('\r', '\n')
-                    .replaceAll(/(?:\$|&#36;)([\w.]+)/, '\\$\\{$1\\}')
-
-                licenseTemplateFile.parentFile?.mkdirs()
-                licenseTemplateFile.setText(licenseTemplate, 'UTF-8')
-
-                didWork = true
-            }
-        }
-
-        license {
-            strictCheck = true
-
-            header = licenseTemplateFile
-            encoding = 'UTF-8'
-            ext['today.year'] = Calendar.getInstance().get(Calendar.YEAR)
-
-            useDefaultMappings = true
-            mapping {
-                java = 'IDEA_STYLE'
-            }
-            headerDefinitions {
-                IDEA_STYLE {
-                    firstLine = '/*'
-                    beforeEachLine = ' * '
-                    endLine = ' */\n'
-                    afterEachLine = ''
-                    skipLinePattern = null
-                    firstLineDetectionPattern = /\s*\/\*.*$/
-                    lastLineDetectionPattern = /.*\*\/\s*$/
-                    allowBlankLines = false
-                    isMultiline = true
-                    padLines = false
-                }
-            }
-        }
-
-        tasks.withType(License).configureEach {
-            dependsOn(prepareLicenseTemplate)
-
-            include('**/*.java')
-
-            Path generatedSourcesPath = project.buildDir.toPath()
-            exclude { it.file.toPath().startsWith(generatedSourcesPath) }
-        }
-
-        pluginManager.withPlugin('java') {
-            sourceSets.all { SourceSet sourceSet ->
-                tasks.named(sourceSet.compileJavaTaskName).configure {
-                    dependsOn(sourceSet.getTaskName('license', null))
-                }
-                tasks.named(sourceSet.processResourcesTaskName).configure {
-                    dependsOn(sourceSet.getTaskName('license', null))
                 }
             }
         }
