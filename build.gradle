@@ -152,7 +152,7 @@ allprojects {
                     'org.jacoco:org.jacoco.agent:0.8.6',
 
                     // Checkstyle
-                    'com.puppycrawl.tools:checkstyle:8.38',
+                    'com.puppycrawl.tools:checkstyle:8.39',
                 ].collect { project.dependencies.constraints.create(it) }
             )
         }
