@@ -311,6 +311,7 @@ ij_json_spaces_within_brackets = false
 ij_json_wrap_long_lines = false
 
 ij_yaml_keep_line_breaks = true
+ij_yaml_space_before_colon = false
 
 ij_asciidoc_formatting_enabled = true
 ij_asciidoc_one_sentence_per_line = true
