@@ -22,7 +22,7 @@ buildscript {
     ext.springBootVersion = '2.4.1'
 
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.1.6'
+        classpath 'name.remal:gradle-plugins:1.2.0'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.10'
