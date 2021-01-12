@@ -101,7 +101,7 @@ jobs:
           exit 0
         fi
 
-        git config --unset-all "http.${{ github.server_url }}/.extraheader"
+        git config --unset-all "http.https://github.com/.extraheader"
         git remote set-url origin https://${{ env.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
