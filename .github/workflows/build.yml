@@ -42,14 +42,17 @@ jobs:
       run: |
         sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
 
+    - name: Create cache key
+      id: create-cache-key
+      run: echo "::set-output name=year-month::$(date '+%Y.%m')"
     - name: Cache
       if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       uses: remal/always-cache@main
       with:
         key: ${{ runner.os }}-${{ github.ref }}
         restore-keys: |
-          ${{ runner.os }}-${{ github.ref }}
-          ${{ runner.os }}-refs/heads/master
+          ${{ outputs.create-cache-key.year-month }}-${{ runner.os }}-${{ github.ref }}
+          ${{ outputs.create-cache-key.year-month }}-${{ runner.os }}-refs/heads/master
         path: |
           ~/.gradle
           ~/.sonar/cache
