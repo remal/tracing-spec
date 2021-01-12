@@ -51,6 +51,7 @@ jobs:
       with:
         key: ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-${{ github.ref }}
         restore-keys: |
+          ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-${{ github.ref }}
           ${{ runner.os }}-${{ github.ref }}
           ${{ runner.os }}-refs/heads/master
         path: |
