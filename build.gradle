@@ -87,15 +87,6 @@ allprojects {
 allprojects {
     group = 'name.remal.tracing-spec'
     version = '0.0.0-SNAPSHOT'
-    if (System.getenv('TRAVIS_TAG') != null) {
-        String tagVersion = System.getenv('TRAVIS_TAG').replaceFirst(/^ver-/, '')
-        if (tagVersion.matches(/\d+(\.\d+)*/)) {
-            version = tagVersion
-            if (project == rootProject) {
-                println "Version: $version"
-            }
-        }
-    }
 
     apply plugin: 'name.remal.default-plugins'
 
