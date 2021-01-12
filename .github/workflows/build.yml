@@ -44,6 +44,7 @@ jobs:
 
     - name: Create cache key
       id: create-cache-key
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       run: echo "::set-output name=year-month::$(date '+%Y.%m')"
 
     - name: Cache
@@ -89,23 +90,32 @@ jobs:
 
 
     - name: Push back
-      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      env:
+        PUSH_BACK_TOKEN: ${{ secrets.PUSH_BACK_TOKEN }}
+      if: ${{ env.PUSH_BACK_TOKEN && github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
       run: |
+        REMOTE_URL=$(git config --get remote.origin.url)
+        REMOTE_HEAD_COMMIT_SHA=$(git ls-remote "$REMOTE_URL" "${{ github.ref }}" | awk '{ print $1}')
+        if [ "$REMOTE_HEAD_COMMIT_SHA" != "${{ github.sha }}" ]; then
+          echo "::warning::Remote repository branch has been changed, skipping push back"
+          exit 0
+        fi
+
         git config --unset-all http.https://github.com/.extraheader
-        git remote set-url origin https://${{ secrets.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
+        git remote set-url origin https://${{ env.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
         git config user.name "${{ github.event.head_commit.committer.name }}"
         git config user.email "${{ github.event.head_commit.committer.email }}"
 
         echo "::group::IDEA settings"
         git add --all .idea
-        if git commit --no-status -o -m "[push-back] Update IDEA settings" .idea ; then
+        if git commit --quiet --no-status --no-edit --only -m "[push-back] Update IDEA settings" .idea ; then
           git push origin "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
 
         echo "::group::Documentation"
         git add --all README.md example-graph.png
-        if git commit --no-status -o -m "[push-back] Update documentation" README.md example-graph.png ; then
+        if git commit --quiet --no-status --no-edit --only -m "[push-back] Update documentation" README.md example-graph.png ; then
           git push origin "HEAD:${{ github.ref }}"
         fi
         echo "::endgroup::"
@@ -127,7 +137,7 @@ jobs:
 
 
     - name: Remove files that shouldn't be cached
-      if: ${{ always() }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
       run: |
         rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
         find $HOME/.gradle -name '*.lock' -type f -delete
