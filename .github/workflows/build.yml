@@ -52,6 +52,7 @@ jobs:
         key: ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-${{ github.ref }}
         restore-keys: |
           ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-${{ github.ref }}
+          ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-refs/heads/master
           ${{ runner.os }}-${{ github.ref }}
           ${{ runner.os }}-refs/heads/master
         path: |
@@ -82,7 +83,7 @@ jobs:
       run: |
         testVersionsCount=
         if [ "$RENOVATE_PR" == "true" ] || [ "$DEPENDABOT_PR" == "true" ]; then
-          testVersionsCount=2
+          testVersionsCount=1
         fi
         echo "test.versions-count=$testVersionsCount"
         ./gradlew testAllVersions -Dtest.versions-count=$testVersionsCount
