@@ -51,8 +51,8 @@ jobs:
       with:
         key: ${{ runner.os }}-${{ github.ref }}
         restore-keys: |
-          ${{ outputs.create-cache-key.year-month }}-${{ runner.os }}-${{ github.ref }}
-          ${{ outputs.create-cache-key.year-month }}-${{ runner.os }}-refs/heads/master
+          ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-${{ github.ref }}
+          ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-refs/heads/master
         path: |
           ~/.gradle
           ~/.sonar/cache
