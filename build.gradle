@@ -210,17 +210,17 @@ allprojects {
             staticAnalysis 'com.google.errorprone:error_prone_annotations'
             staticAnalysis 'org.jetbrains:annotations'
 
-            apt 'org.springframework.boot:spring-boot-configuration-processor'
-            apt 'org.springframework.boot:spring-boot-autoconfigure-processor'
-            apt 'org.hibernate.validator:hibernate-validator-annotation-processor'
-            apt 'org.mapstruct:mapstruct-processor'
-            apt 'org.projectlombok:lombok-mapstruct-binding'
+            aptOnly 'org.springframework.boot:spring-boot-configuration-processor'
+            aptOnly 'org.springframework.boot:spring-boot-autoconfigure-processor'
+            aptOnly 'org.hibernate.validator:hibernate-validator-annotation-processor'
+            aptOnly 'org.mapstruct:mapstruct-processor'
+            aptOnly 'org.projectlombok:lombok-mapstruct-binding'
 
             compileOnlyAll 'org.mapstruct:mapstruct'
 
-            annotationProcessing 'name.remal:gradle-plugins-api'
-            annotationProcessing 'org.immutables:value'
-            annotationProcessing 'org.projectlombok:lombok'
+            apt 'name.remal:gradle-plugins-api'
+            apt 'org.immutables:value'
+            apt 'org.projectlombok:lombok'
 
             optional 'com.fasterxml.jackson.core:jackson-databind'
             optional 'org.hibernate.validator:hibernate-validator'
