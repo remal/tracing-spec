@@ -22,7 +22,7 @@ buildscript {
     ext.springBootVersion = '2.4.1'
 
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.1.6'
+        classpath 'name.remal:gradle-plugins:1.2.1'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.0'
         classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.10'
@@ -103,64 +103,75 @@ allprojects {
         mavenCentral()
     }
 
-    dependencies {
-        // BOMs:
-        allResolvable enforcedPlatform("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
-        allResolvable platform('org.springframework.cloud:spring-cloud-dependencies:2020.0.0')
-        allResolvable platform('io.grpc:grpc-bom:1.34.1')
-        allResolvable platform('com.google.protobuf:protobuf-bom:3.14.0')
-        allResolvable platform('org.testcontainers:testcontainers-bom:1.15.1')
-        allResolvable platform('io.opentracing:parent:0.33.0')
-        allResolvable platform('io.zipkin.brave:brave-bom:5.13.3')
-        allResolvable platform('io.zipkin.reporter2:zipkin-reporter-bom:2.16.3')
-
+    Configuration projectDependencyConstraintsConfiguration = configurations.create('projectDependencyConstraints') {
         String immutablesVersion = '2.8.8'
         String mapstructVersion = '1.4.1.Final'
         String graalvmVersion = '20.3.0'
 
-        configurations.matching { it.canBeResolved }.all { Configuration conf ->
-            conf.dependencyConstraints.addAll(
-                [
-                    // Static analysis annotations
-                    'com.google.code.findbugs:jsr305:3.0.2',
-                    'com.google.errorprone:error_prone_annotations:2.4.0',
-                    'org.jetbrains:annotations:20.1.0',
+        dependencies.addAll(
+            [
+                "org.springframework.boot:spring-boot-dependencies:$springBootVersion",
+            ].collect { project.dependencies.enforcedPlatform(it) }
+        )
 
-                    // Annotation processors
-                    "org.immutables:value:$immutablesVersion",
-                    "org.immutables:gson:$immutablesVersion",
-                    "org.mapstruct:mapstruct-processor:$mapstructVersion",
-                    'org.projectlombok:lombok-mapstruct-binding:0.2.0',
+        dependencies.addAll(
+            [
+                'org.springframework.cloud:spring-cloud-dependencies:2020.0.0',
+                'io.grpc:grpc-bom:1.34.1',
+                'com.google.protobuf:protobuf-bom:3.14.0',
+                'org.testcontainers:testcontainers-bom:1.15.1',
+                'io.opentracing:parent:0.33.0',
+                'io.zipkin.brave:brave-bom:5.13.3',
+                'io.zipkin.reporter2:zipkin-reporter-bom:2.16.3',
+            ].collect { project.dependencies.platform(it) }
+        )
 
-                    // Compile
-                    "org.mapstruct:mapstruct:$mapstructVersion",
-                    'com.google.guava:guava:30.1-jre',
-                    "org.graalvm.js:js:$graalvmVersion",
-                    "org.graalvm.js:js-scriptengine:$graalvmVersion",
-                    "org.graalvm.truffle:truffle-api:$graalvmVersion",
-                    'io.swagger.core.v3:swagger-annotations:2.1.6',
-                    'io.swagger:swagger-annotations:1.6.2',
-                    'info.picocli:picocli-spring-boot-starter:4.6.1',
+        dependencyConstraints.addAll(
+            [
+                // Static analysis annotations
+                'com.google.code.findbugs:jsr305:3.0.2',
+                'com.google.errorprone:error_prone_annotations:2.4.0',
+                'org.jetbrains:annotations:20.1.0',
 
-                    // Test
-                    'org.awaitility:awaitility:4.0.3',
-                    'io.jaegertracing:jaeger-thrift:1.5.0',
-                    'com.github.javafaker:javafaker:1.0.2',
-                    'org.fusesource.jansi:jansi:2.1.1',
+                // Annotation processors
+                "org.immutables:value:$immutablesVersion",
+                "org.immutables:gson:$immutablesVersion",
+                "org.mapstruct:mapstruct-processor:$mapstructVersion",
+                'org.projectlombok:lombok-mapstruct-binding:0.2.0',
 
-                    // Jacoco
-                    'org.jacoco:org.jacoco.agent:0.8.6',
+                // Compile
+                "org.mapstruct:mapstruct:$mapstructVersion",
+                'com.google.guava:guava:30.1-jre',
+                "org.graalvm.js:js:$graalvmVersion",
+                "org.graalvm.js:js-scriptengine:$graalvmVersion",
+                "org.graalvm.truffle:truffle-api:$graalvmVersion",
+                'io.swagger.core.v3:swagger-annotations:2.1.6',
+                'io.swagger:swagger-annotations:1.6.2',
+                'info.picocli:picocli-spring-boot-starter:4.6.1',
 
-                    // Checkstyle
-                    'com.puppycrawl.tools:checkstyle:8.39',
-                ].collect { project.dependencies.constraints.create(it) }
-            )
-        }
+                // Test
+                'org.awaitility:awaitility:4.0.3',
+                'io.jaegertracing:jaeger-thrift:1.5.0',
+                'com.github.javafaker:javafaker:1.0.2',
+                'org.fusesource.jansi:jansi:2.1.1',
+
+                // Jacoco
+                'org.jacoco:org.jacoco.agent:0.8.6',
+
+                // Checkstyle
+                'com.puppycrawl.tools:checkstyle:8.39',
+            ].collect { project.dependencies.constraints.create(it) }
+        )
+
+        canBeConsumed = false
+        canBeResolved = false
+    }
+    configurations.matching { it != projectDependencyConstraintsConfiguration }.configureEach {
+        extendsFrom(projectDependencyConstraintsConfiguration)
     }
 
     pluginManager.withPlugin('java') {
         apply plugin: 'name.remal.insert-null-checks'
-        apply plugin: 'name.remal.module-info-generator'
         apply plugin: 'name.remal.integration-tests'
         apply plugin: 'checkstyle'
         apply plugin: 'jacoco'
@@ -339,12 +350,6 @@ allprojects {
                     processorArgs.put('mapstruct.suppressGeneratorTimestamp', true)
                     processorArgs.put('mapstruct.suppressGeneratorVersionInfoComment', true)
                 }
-            }
-        }
-
-        tasks.generateModuleInfo {
-            requires {
-                addStatic('java.desktop') // For java.beans.ConstructorProperties annotation
             }
         }
 
