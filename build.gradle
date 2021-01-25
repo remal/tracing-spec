@@ -23,7 +23,7 @@ buildscript {
 
     dependencies {
         classpath 'name.remal:gradle-plugins:1.2.2'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.1'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.1.1'
         classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.10'
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
