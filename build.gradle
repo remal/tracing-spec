@@ -107,7 +107,7 @@ allprojects {
 
         dependencies.addAll(
             [
-                'org.springframework.cloud:spring-cloud-dependencies:2020.0.0',
+                'org.springframework.cloud:spring-cloud-dependencies:2020.0.1',
                 'io.grpc:grpc-bom:1.35.0',
                 'com.google.protobuf:protobuf-bom:3.14.0',
                 'org.testcontainers:testcontainers-bom:1.15.1',
