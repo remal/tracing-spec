@@ -1,0 +1,12 @@
+apply plugin: 'java-library'
+apply plugin: 'name.remal.test-fixtures'
+
+dependencies {
+    optional project(':tracing-spec-model')
+    optional 'org.springframework.boot:spring-boot-starter-test'
+    optional 'org.testcontainers:testcontainers'
+    optional 'org.awaitility:awaitility'
+    optional 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    optional 'org.springframework.cloud:spring-cloud-sleuth-zipkin'
+    optional 'com.google.guava:guava'
+}

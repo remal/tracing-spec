@@ -1,4 +1,4 @@
-# Configuration file for Trafico – Bot GitHub App: https://github.com/apps/trafico-bot
+# Configuration file for Trafico – Bot GitHub App: https://github.com/marketplace/trafico-pull-request-labeler
 
 # Add WIP labels for PRs that are set to be work-in-progress, no other label will be added.
 addWipLabel: true

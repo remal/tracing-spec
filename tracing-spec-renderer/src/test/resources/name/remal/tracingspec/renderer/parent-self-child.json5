@@ -1,0 +1,12 @@
+[
+  {
+    name: "parent",
+    serviceName: "A",
+    children: [
+      {
+        name: "child",
+        serviceName: "A",
+      }
+    ],
+  },
+]

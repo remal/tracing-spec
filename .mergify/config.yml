@@ -1,40 +1,73 @@
 # Configuration file for Mergify GitHub App: https://github.com/marketplace/mergify
 
 # All Status Checks should be listed explicitly (see https://doc.mergify.io/conditions.html#validating-all-status-check):
-#     WIP - https://github.com/marketplace/wip
-#     Travis CI - https://travis-ci.com/
+#   `pull_request` - .github/workflows/build.yml
+#   `SonarCloud Code Analysis` - https://sonarcloud.io/documentation/integrations/github/
+#   `CodeFactor` - https://github.com/marketplace/codefactor
+#   `WIP` - https://github.com/marketplace/wip
 
 pull_request_rules:
-  - name: Auto merge approved
-    conditions:
-      - "#approved-reviews-by>=1"
-      - -locked
-      - -draft
-      - -conflict
-      - "#changes-requested-reviews-by=0"
-      - label!=wip
-      - status-success=WIP
-      - status-success~=Travis CI\b.*
-      - '#status-neutral=0'
-      - '#status-failure=0'
-    actions:
-      merge:
-        method: squash
-        strict: smart+fasttrack
-      #backport: {}
-      delete_head_branch: {}
+- name: Auto merge approved
+  conditions:
+  - "#approved-reviews-by>=1"
+  - -closed
+  - -merged
+  - -conflict
+  - -draft
+  - -locked
+  - "#changes-requested-reviews-by=0"
+  - status-success=build
+  - status-success=SonarCloud Code Analysis
+  - status-success=CodeFactor
+  - status-success=WIP
+  - -status-neutral=renovate/stability-days
+  - -status-failure=renovate/stability-days
+  - '#status-neutral=0'
+  - '#status-failure=0'
+  actions:
+    merge:
+      method: squash
+      strict: smart+fasttrack
 
-  - name: Auto merge dependencies
-    conditions:
-      - author~=^(dependabot(-preview)?|renovate)\[bot\]$
-      - status-success=WIP
-      - status-success~=Travis CI\b.*
-      - '#status-neutral=0'
-      - '#status-failure=0'
-    actions:
-      review: {}
-      merge:
-        method: squash
-        strict: smart+fasttrack
-      #backport: {}
-      delete_head_branch: {}
+- name: Auto approve dependencies
+  conditions:
+  - author~=^(dependabot(-preview)?|renovate)\[bot\]$
+  - -status-neutral=renovate/stability-days
+  - -status-failure=renovate/stability-days
+  - -closed
+  - -merged
+  actions:
+    review: { }
+
+- name: Update all PRs to master
+  conditions:
+  - base=master
+  - "#approved-reviews-by=0"
+  - -author~=^(dependabot(-preview)?|renovate)\[bot\]$
+  - -closed
+  - -merged
+  - -conflict
+  - -locked
+  actions:
+    update: { }
+
+- name: Merge by authors automatically
+  conditions:
+  - author=remal
+  - -closed
+  - -merged
+  - -conflict
+  - -draft
+  - -locked
+  - "#changes-requested-reviews-by=0"
+  - status-success=build
+  - status-success=SonarCloud Code Analysis
+  - status-success=CodeFactor
+  - status-success=WIP
+  - '#status-neutral=0'
+  - '#status-failure=0'
+  actions:
+    review: { }
+    merge:
+      method: squash
+      strict: smart+fasttrack

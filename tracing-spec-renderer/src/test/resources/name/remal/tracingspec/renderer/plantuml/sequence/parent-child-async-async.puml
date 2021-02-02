@@ -1,0 +1,11 @@
+@startuml
+skinparam maxmessagesize 500
+skinparam responseMessageBelowArrow true
+[->> A: parent
+activate A
+deactivate A
+
+A ->> B: child
+activate B
+deactivate B
+@enduml

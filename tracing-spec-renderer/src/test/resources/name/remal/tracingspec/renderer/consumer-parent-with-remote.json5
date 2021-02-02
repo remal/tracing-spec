@@ -1,0 +1,14 @@
+[
+  {
+    kind: "consumer",
+    name: "parent",
+    serviceName: "local",
+    remoteServiceName: "remote",
+    children: [
+      {
+        name: "child",
+        serviceName: "local",
+      }
+    ],
+  },
+]

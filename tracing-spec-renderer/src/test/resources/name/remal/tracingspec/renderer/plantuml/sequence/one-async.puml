@@ -1,0 +1,7 @@
+@startuml
+skinparam maxmessagesize 500
+skinparam responseMessageBelowArrow true
+[->> service: name
+activate service
+deactivate service
+@enduml

@@ -1,0 +1,229 @@
+import java.time.LocalDate
+import name.remal.version.Version
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
+apply plugin: 'maven-publish'
+
+dependencies {
+    relocateClasses 'commons-codec:commons-codec'
+
+    api project(':tracing-spec-retriever')
+    api 'io.grpc:grpc-protobuf'
+    api 'io.grpc:grpc-stub'
+    api 'io.grpc:grpc-netty-shaded'
+    api 'org.apache.logging.log4j:log4j-api'
+
+
+    integrationImplementation 'io.jaegertracing:jaeger-thrift'
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+File protoFilesDir = file('build/proto')
+TaskProvider<Task> copyProtoFiles = tasks.register('copyProtoFiles', Copy) {
+    from('jaeger-idl/proto/api_v2')
+    into(protoFilesDir)
+
+    doFirst {
+        if (!file('jaeger-idl').isDirectory()) {
+            throw new GradleException("Jaeger IDL directory doesn't exist. Probably, Git submodule hasn't been cloned.")
+        }
+    }
+
+    doFirst { protoFilesDir.deleteDir() }
+
+    doLast {
+        protoFilesDir.traverse { File file ->
+            if (!file.file) return
+
+            String content = file.getText('UTF-8')
+
+            content = content.replaceAll(/import "(gogoproto|protoc-gen-swagger)\/[^"]+"\s*;/, '')
+            content = content.replaceAll(
+                /(option\s*)?\((gogoproto|grpc)\.[^)]+\)\s*=\s*(true|false|"[^"]*"/
+                    + /|\{[^}]*?(info:[^}]+}|external_docs:[^}]+}|[^}]*?)*})[,;]?/,
+                ''
+            )
+            content = content.replaceAll(/\[\s+\]/, '')
+
+            content = content.replaceAll(/option \w+_package\s*=\s*"[^"]*";/, '')
+            content = content.replaceAll(/option java_\w+\s*=\s*"[^"]*";/, '')
+            content = content.replaceAll(/option optimize_for\s*=\s*"[^"]*";/, '')
+            content = content + '\n' + [
+                'option java_package = "name.remal.tracingspec.retriever.jaeger.internal.grpc";',
+                'option java_multiple_files = true;',
+                'option optimize_for = SPEED;',
+            ].join('\n') + '\n'
+
+            file.setText(content, 'UTF-8')
+        }
+    }
+}
+
+TaskProvider<Task> pullProtobufDockerImage = tasks.register('pullProtobufDockerImage', Exec) {
+    inputs.property('localDate', LocalDate.now())
+    outputs.upToDateWhen { true }
+
+    setCommandLine(
+        'docker',
+        'pull',
+        'jaegertracing/protobuf:latest'
+    )
+}
+
+[
+    'model.proto',
+    'query.proto',
+].forEach { protoFileName ->
+    File protoFile = file("$protoFilesDir/$protoFileName")
+    String taskNameSuffix = protoFileName.split(/\W+/)
+        .collect { it.capitalize() }
+        .join('')
+    String rawTaskName = "generateFrom${taskNameSuffix}Raw"
+    File rawOutputDir = file("build/generated/$rawTaskName")
+    TaskProvider<Task> generateFromProtoRaw = tasks.register(rawTaskName, Exec) {
+        dependsOn(copyProtoFiles)
+        dependsOn(pullProtobufDockerImage)
+        inputs.file(protoFile)
+
+        outputs.dir(rawOutputDir)
+        doFirst {
+            rawOutputDir.listFiles()?.collect()?.forEach {
+                it.delete()
+                it.deleteDir()
+            }
+        }
+
+        /*
+         * If you use Docker for Windows, don't forget to go to Settings -> Resource -> File share and add project
+         * directory (or one of its parents) to the list there.
+         */
+        String hostPath = project.projectDir.absolutePath.replace(File.separator, '/')
+        String containerPath = hostPath.replaceFirst(/^[a-zA-Z]:/, '')
+
+        String rawOutputDirRelativePath = project.relativePath(rawOutputDir).replace(File.separator, '/')
+        String protoFilesDirRelativePath = project.relativePath(protoFilesDir).replace(File.separator, '/')
+
+        setCommandLine(
+            'docker',
+            'run',
+            '--rm',
+            '--name', "${protoFileName}".replaceAll(/[^\w-]/, '-'),
+            '-v', "$hostPath:$containerPath",
+            '-w', "$containerPath",
+
+            'jaegertracing/protobuf:latest',
+
+            "--proto_path=$containerPath",
+            '-I/usr/include/github.com/gogo/protobuf',
+            '--java_opt=annotate_code',
+            "--java_out=$rawOutputDirRelativePath",
+            "--grpc-java_out=$rawOutputDirRelativePath",
+            "-I$protoFilesDirRelativePath",
+            "$protoFilesDirRelativePath/$protoFileName"
+        )
+    }
+
+    String taskName = "generateFrom${taskNameSuffix}"
+    File outputDir = file("build/generated/$taskName")
+    TaskProvider<Task> generateFromProto = tasks.register(taskName, Copy) {
+        dependsOn(generateFromProtoRaw)
+
+        from(rawOutputDir) {
+            include('**/*.java')
+        }
+        into(outputDir)
+
+        doFirst { outputDir.deleteDir() }
+
+        doLast {
+            outputDir.traverse { File file ->
+                if (!file.file) return
+
+                String content = file.getText('UTF-8')
+
+                content = content
+                    .replaceAll(/import javax\.annotation\.Generated;\s*\n*/, '')
+                    .replaceAll(/@(?:javax\.annotation\.)?Generated\([^)]*\)/, '@Generated')
+
+                file.setText(content, 'UTF-8')
+            }
+        }
+    }
+
+    SourceSet sourceSet = sourceSets.main
+    sourceSet.java.srcDir(outputDir)
+    tasks.named(sourceSet.compileJavaTaskName).configure { dependsOn(generateFromProto) }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+SourceSet versionTestSourceSet = sourceSets.integration
+String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
+
+Task testSourceSetVersionsTask = tasks.create("${baseVersionTestTaskName}Versions") {
+    group = 'verification'
+    tasks.runAllTests.dependsOn(it)
+}
+
+tasks.create("testAllVersions") {
+    dependsOn(testSourceSetVersionsTask)
+}
+
+SortedMap<String, String> dockerTagImages = new TreeMap<>(Comparator.comparing({ Version.parse(it) }))
+[
+    'jaegertracing/all-in-one',
+].forEach { imageName ->
+    dockerImages.getAllTags(imageName).forEach { String tagName ->
+        Version version = Version.parseOrNull(tagName)
+        // Only versions of <major>.<minor> format
+        if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
+
+        // https://github.com/remal/tracing-spec/issues/19
+        if (version < Version.create(1, 14)) return
+
+        dockerTagImages.putIfAbsent(tagName, imageName)
+    }
+}
+
+with {
+    String versionsCountString = System.getProperty('test.versions-count')?.trim()
+        ?: project.findProperty('test.versions-count')?.toString()?.trim()
+    if (versionsCountString == null || versionsCountString.isEmpty()) return true
+    int versionsCount = versionsCountString.toInteger()
+
+    List<String> tags = dockerTagImages.keySet().toList()
+    List<String> enabledTags = tags.subList(0, Math.min(versionsCount, tags.size()))
+    tags = tags.reverse()
+    enabledTags += tags.subList(0, Math.min(versionsCount, tags.size()))
+    dockerTagImages.keySet().removeIf { !enabledTags.contains(it) }
+}
+
+dockerTagImages.forEach { String tagName, String imageName ->
+    TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
+        dependsOn(versionTestSourceSet.classesTaskName)
+
+        systemProperty('jaeger-image', imageName)
+        systemProperty('jaeger-image-tag', tagName)
+
+        Test baseTestTask = tasks[baseVersionTestTaskName]
+        group = baseTestTask.group
+
+        onlyIf {
+            testClassesDirs = baseTestTask.testClassesDirs
+            classpath = baseTestTask.classpath
+
+            filter {
+                includeTestsMatching('*VersionTest')
+                failOnNoMatchingTests = true
+            }
+
+            return true
+        }
+    }
+
+    testSourceSetVersionsTask.dependsOn(testVersionTask)
+}

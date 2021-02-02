@@ -1,0 +1,19 @@
+[
+  {
+    name: "root",
+    serviceName: "A",
+    children: [
+      {
+        name: "1",
+        serviceName: "A",
+        remoteServiceName: "B",
+        children: [
+          {
+            name: "2",
+            serviceName: "C"
+          }
+        ]
+      }
+    ],
+  },
+]

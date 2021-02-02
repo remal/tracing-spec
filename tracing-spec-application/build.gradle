@@ -1,0 +1,26 @@
+apply plugin: 'java-library'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'maven-publish'
+
+dependencies {
+    api project(':tracing-spec-retriever-jaeger')
+    api project(':tracing-spec-retriever-zipkin')
+    api project(':tracing-spec-renderer')
+    api project(':tracing-spec-matcher')
+    api 'org.springframework.boot:spring-boot-starter'
+    api 'info.picocli:picocli-spring-boot-starter'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    api 'org.springframework.boot:spring-boot-starter-json'
+    api 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    api 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    api 'org.graalvm.js:js'
+    api 'org.graalvm.js:js-scriptengine'
+    api 'org.codehaus.groovy:groovy-jsr223'
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+bootJar.archiveClassifier = 'fatjar'
+jar.enabled = true

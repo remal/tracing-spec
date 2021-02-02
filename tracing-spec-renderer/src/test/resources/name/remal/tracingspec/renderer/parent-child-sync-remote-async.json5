@@ -1,0 +1,14 @@
+[
+  {
+    name: "parent",
+    serviceName: "A",
+    children: [
+      {
+        async: true,
+        name: "child",
+        serviceName: "A",
+        remoteServiceName: "B",
+      }
+    ],
+  },
+]

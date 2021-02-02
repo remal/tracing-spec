@@ -1,1 +1,863 @@
-apply plugin: 'java'
+import static java.util.Collections.newSetFromMap
+
+import groovy.json.JsonSlurper
+import java.time.ZonedDateTime
+import java.util.Map.Entry
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.atomic.AtomicReference
+import java.util.regex.Pattern
+import net.sourceforge.plantuml.SourceStringReader
+import net.sourceforge.plantuml.core.DiagramDescription
+import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    JavaVersion minimumJavaVersion = JavaVersion.VERSION_11
+    if (JavaVersion.current() < minimumJavaVersion) {
+        throw new GradleException("Minimum Java version for building the project is $minimumJavaVersion")
+    }
+
+    ext.springBootVersion = '2.4.2'
+
+    dependencies {
+        classpath 'name.remal:gradle-plugins:1.2.2'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.1.1'
+        classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
+        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.10'
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+    }
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
+    configurations.classpath.allDependencies.all { Dependency dep ->
+        if (dep instanceof ModuleDependency) {
+            if (dep.version.endsWith("-SNAPSHOT")) {
+                repositories {
+                    mavenLocal()
+                    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
+                }
+                project.allprojects {
+                    project.pluginManager.withPlugin('java') {
+                        project.repositories {
+                            mavenLocal()
+                            maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+List<Class<Task>> tasksToDisable = []
+
+if (System.getenv('DISABLE_COMPILATION') == 'true' || findProperty('disable-compilation') == 'true') {
+    tasksToDisable += [
+        AbstractCompile.class,
+    ]
+}
+
+allprojects {
+    afterEvaluate {
+        tasks
+            .matching { task -> tasksToDisable.any { it.isInstance(task) } }
+            .configureEach {
+                it.enabled = false
+                it.onlyIf { false }
+
+                it.dependsOn.clear()
+
+                Iterator filePropsIterator = it.inputs.registeredFileProperties.iterator()
+                while (filePropsIterator.hasNext()) {
+                    filePropsIterator.next()
+                    filePropsIterator.remove()
+                }
+            }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+allprojects {
+    group = 'name.remal.tracing-spec'
+    version = '0.0.0-SNAPSHOT'
+
+    apply plugin: 'name.remal.default-plugins'
+
+    repositories {
+        mavenCentral()
+    }
+
+    Configuration projectDependencyConstraintsConfiguration = configurations.create('projectDependencyConstraints') {
+        String immutablesVersion = '2.8.8'
+        String mapstructVersion = '1.4.1.Final'
+        String graalvmVersion = '21.0.0'
+
+        dependencies.addAll(
+            [
+                "org.springframework.boot:spring-boot-dependencies:$springBootVersion",
+            ].collect { project.dependencies.enforcedPlatform(it) }
+        )
+
+        dependencies.addAll(
+            [
+                'org.springframework.cloud:spring-cloud-dependencies:2020.0.1',
+                'io.grpc:grpc-bom:1.35.0',
+                'com.google.protobuf:protobuf-bom:3.14.0',
+                'org.testcontainers:testcontainers-bom:1.15.1',
+                'io.opentracing:parent:0.33.0',
+                'io.zipkin.brave:brave-bom:5.13.3',
+                'io.zipkin.reporter2:zipkin-reporter-bom:2.16.3',
+            ].collect { project.dependencies.platform(it) }
+        )
+
+        dependencyConstraints.addAll(
+            [
+                // Static analysis annotations
+                'com.google.code.findbugs:jsr305:3.0.2',
+                'com.google.errorprone:error_prone_annotations:2.5.1',
+                'org.jetbrains:annotations:20.1.0',
+
+                // Annotation processors
+                "org.immutables:value:$immutablesVersion",
+                "org.immutables:gson:$immutablesVersion",
+                "org.mapstruct:mapstruct-processor:$mapstructVersion",
+                'org.projectlombok:lombok-mapstruct-binding:0.2.0',
+
+                // Compile
+                "org.mapstruct:mapstruct:$mapstructVersion",
+                'com.google.guava:guava:30.1-jre',
+                "org.graalvm.js:js:$graalvmVersion",
+                "org.graalvm.js:js-scriptengine:$graalvmVersion",
+                "org.graalvm.truffle:truffle-api:$graalvmVersion",
+                'io.swagger.core.v3:swagger-annotations:2.1.6',
+                'io.swagger:swagger-annotations:1.6.2',
+                'info.picocli:picocli-spring-boot-starter:4.6.1',
+
+                // Test
+                'org.awaitility:awaitility:4.0.3',
+                'io.jaegertracing:jaeger-thrift:1.5.0',
+                'com.github.javafaker:javafaker:1.0.2',
+                'org.fusesource.jansi:jansi:2.2.0',
+
+                // Jacoco
+                'org.jacoco:org.jacoco.agent:0.8.6',
+
+                // Checkstyle
+                'com.puppycrawl.tools:checkstyle:8.40',
+            ].collect { project.dependencies.constraints.create(it) }
+        )
+
+        canBeConsumed = false
+        canBeResolved = false
+    }
+    configurations.matching { it != projectDependencyConstraintsConfiguration }.configureEach {
+        extendsFrom(projectDependencyConstraintsConfiguration)
+    }
+
+    pluginManager.withPlugin('java') {
+        apply plugin: 'name.remal.insert-null-checks'
+        apply plugin: 'name.remal.integration-tests'
+        apply plugin: 'checkstyle'
+        apply plugin: 'jacoco'
+
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = sourceCompatibility
+
+        testSourceSets.create('component')
+
+        configurations {
+            compileOnlyAllHidden { conf ->
+                // We don't want IDE to index these dependencies, but they are required for compilation
+                project.tasks.withType(AbstractCompile) {
+                    onlyIf {
+                        Collection<File> confFiles = conf.files
+                        if (!confFiles.isEmpty()) {
+                            classpath = classpath + project.files(confFiles)
+                        }
+                        return true
+                    }
+                }
+            }
+            staticAnalysis {
+                compileOnly.extendsFrom(it)
+                testImplementation.extendsFrom(it)
+            }
+            annotationProcessing {
+                compileOnlyAll.extendsFrom(it)
+                apt.extendsFrom(it)
+            }
+            optional {
+                compileOnly.extendsFrom(it)
+                testImplementation.extendsFrom(it)
+            }
+        }
+
+        dependencies {
+            components.all(RetrofitAlignmentRule)
+            components.all(OkhttpAlignmentRule)
+            components.all(PicocliAlignmentRule)
+            components.all(GraalvmAlignmentRule)
+            components.all(JacocoAlignmentRule)
+
+            staticAnalysis 'com.google.code.findbugs:jsr305'
+            staticAnalysis 'com.google.errorprone:error_prone_annotations'
+            staticAnalysis 'org.jetbrains:annotations'
+
+            aptOnly 'org.springframework.boot:spring-boot-configuration-processor'
+            aptOnly 'org.springframework.boot:spring-boot-autoconfigure-processor'
+            aptOnly 'org.hibernate.validator:hibernate-validator-annotation-processor'
+            aptOnly 'org.mapstruct:mapstruct-processor'
+            aptOnly 'org.projectlombok:lombok-mapstruct-binding'
+
+            compileOnlyAll 'org.mapstruct:mapstruct'
+
+            apt 'name.remal:gradle-plugins-api'
+            apt 'org.immutables:value'
+            apt 'org.projectlombok:lombok'
+
+            optional 'com.fasterxml.jackson.core:jackson-databind'
+            optional 'org.hibernate.validator:hibernate-validator'
+            optional 'org.springframework.boot:spring-boot-autoconfigure'
+
+            runtimeOnly 'org.springframework.boot:spring-boot-properties-migrator'
+
+
+            testImplementation 'org.junit.jupiter:junit-jupiter-api'
+            testImplementation 'org.junit.jupiter:junit-jupiter-params'
+            testImplementation 'org.awaitility:awaitility'
+            testImplementation 'org.hamcrest:hamcrest'
+            testImplementation 'org.mockito:mockito-junit-jupiter'
+            testImplementation 'org.mockito:mockito-inline'
+            testImplementation 'org.apache.commons:commons-lang3'
+            testImplementation 'com.google.guava:guava'
+            testImplementation 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+            testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+            testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+            testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-guava'
+
+            testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+            testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
+            testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
+            testRuntimeOnly 'org.apache.logging.log4j:log4j-jul'
+            testRuntimeOnly 'org.springframework:spring-jcl'
+            testRuntimeOnly 'org.fusesource.jansi:jansi'
+
+
+            integrationImplementation 'org.testcontainers:testcontainers'
+
+
+            componentImplementation 'org.springframework.boot:spring-boot-starter-test'
+        }
+
+        if (project.path != ':utils-test') {
+            dependencies {
+                testImplementation project(':utils-test')
+            }
+        }
+
+        transitiveDependencies {
+            excludeStaticAnalysisTools()
+        }
+
+        configurations.all {
+            resolutionStrategy {
+                eachDependency { DependencyResolveDetails details ->
+                    details.target.with {
+                        String groupModule = "$group:$name"
+                        if (groupModule == 'org.hamcrest:hamcrest-core') {
+                            details.useTarget("$group:hamcrest:$version")
+
+                        } else if (groupModule == 'org.springframework.boot:spring-boot-starter-logging') {
+                            details.useTarget("$group:spring-boot-starter-log4j2:$version")
+
+                        } else if (groupModule == 'org.springframework.boot:spring-boot-starter-tomcat') {
+                            details.useTarget("$group:spring-boot-starter-undertow:$version")
+                        }
+                    }
+                }
+            }
+        }
+
+        configurations.all {
+            exclude group: 'org.springframework.cloud', module: 'spring-cloud-netflix-archaius'
+            exclude group: 'org.springframework.cloud', module: 'spring-cloud-netflix-ribbon'
+            exclude group: 'io.github.openfeign', module: 'feign-hystrix'
+        }
+        Map<String, Pattern> bannedDependencyTokens = [
+            'archaius',
+            'ribbon',
+            'hystrix',
+        ].collectEntries { [it, Pattern.compile('\\b' + Pattern.quote(it) + '\\b')] }
+        configurations.all {
+            resolutionStrategy {
+                componentSelection {
+                    all {
+                        for (Entry<String, Pattern> entry : bannedDependencyTokens.entrySet()) {
+                            Pattern pattern = entry.value
+                            if (pattern.matcher("${candidate.group}:${candidate.module}").find()) {
+                                reject("Banned token: '${entry.key}'")
+                                return
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        tasks.withType(JavaCompile) {
+            options.compilerArgs.addAll(
+                [
+                    '-Werror',
+                    '-Xlint:all',
+                    '-Xlint:-rawtypes',
+                    '-Xlint:-serial',
+                    '-Xlint:-processing',
+                ]
+            )
+
+            doLast {
+                destinationDir.traverse { File file ->
+                    if (file.name != 'spring-configuration-metadata.json' || !file.isFile()) {
+                        return
+                    }
+
+                    String content = file.getText('UTF-8')
+                    content = content.replaceAll(/\{@\S+ ([^}]+?)\s*}/, '$1')
+                    file.setText(content, 'UTF-8')
+                }
+            }
+        }
+
+        aptOptions {
+            configurations.apt.allDependencies.all { Dependency dep ->
+                if ("${dep.group}:${dep.name}" == 'org.mapstruct:mapstruct-processor') {
+                    processorArgs.put('mapstruct.suppressGeneratorTimestamp', true)
+                    processorArgs.put('mapstruct.suppressGeneratorVersionInfoComment', true)
+                }
+            }
+        }
+
+        sourceSets.all { SourceSet sourceSet ->
+            Task allClasses = tasks.maybeCreate('allClasses')
+            allClasses.dependsOn(sourceSet.classesTaskName)
+        }
+
+        tasks.matching { it instanceof JavaForkOptions }.all {
+            List<String> jvmArgs = it.jvmArgs
+            jvmArgs += '--illegal-access=deny'
+            it.jvmArgs = jvmArgs
+
+            systemProperty('spring.main.banner-mode', 'off')
+            systemProperty('logging.pattern.console', '%d{HH:mm:ss.SSS} %5p  %-40.40c{1.} : %m%n%xwEx')
+            systemProperty('CONSOLE_LOG_PATTERN', systemProperties['logging.pattern.console'])
+            //systemProperty('logging.pattern.dateformat', 'HH:mm:ss.SSS')
+            //systemProperty('LOG_DATEFORMAT_PATTERN', systemProperties['logging.pattern.dateformat'])
+        }
+
+        tasks.withType(Test) {
+            useJUnitPlatform()
+
+            testLogging {
+                events('FAILED')
+            }
+
+            Set<Object> testsWithStdErr = newSetFromMap(new ConcurrentHashMap<>())
+            ConcurrentMap<Object, List<String>> testsMessages = new ConcurrentHashMap<>()
+            onOutput { TestDescriptor descr, TestOutputEvent event ->
+                if (event.destination.name() == 'StdErr') {
+                    testsWithStdErr.add(descr.id)
+                }
+
+                List<String> testMessages = testsMessages.computeIfAbsent(descr.id, { new ArrayList<>() })
+                testMessages.add(event.getMessage())
+            }
+            afterTest { TestDescriptor descr, TestResult result ->
+                if (result.resultType.name() == 'FAILURE' || testsWithStdErr.contains(descr.id)) {
+                    List<String> testMessages = testsMessages.get(descr.id)
+                    if (testMessages != null) {
+                        println()
+                        println("Output of $descr.className > $descr.displayName:")
+                        testMessages.forEach { print(" > $it") }
+                    }
+                }
+            }
+        }
+    }
+
+    pluginManager.withPlugin('name.remal.classes-relocation') {
+        configurations.excludeFromForcedClassesRelocation.extendsFrom(configurations.staticAnalysis)
+
+        classesRelocation {
+            relocatedClassesPackageName = project.group.replaceAll(/[^\w.]/, '')
+            if (project.path != ':') {
+                relocatedClassesPackageName += project.path
+                    .replace(':', '.')
+                    .replace("${rootProject.name}-", '')
+                    .replaceAll(/[^\w.]/, '.')
+            }
+            relocatedClassesPackageName += '.internal._relocated'
+        }
+    }
+
+    pluginManager.withPlugin('jacoco') {
+        jacoco.toolVersion = project.configurations
+            .matching { it.name.matches(/^jacoco($|[A-Z].*$)/) }
+            .first()
+            .allDependencyConstraints
+            .matching { it.group == 'org.jacoco' }
+            .matching { it.version != null && !it.version.isEmpty() }
+            .first()
+            .version
+    }
+
+    pluginManager.withPlugin('checkstyle') {
+        checkstyle {
+            configDirectory = rootProject.projectDir
+        }
+
+        checkstyle.toolVersion = project.configurations.checkstyle
+            .allDependencyConstraints
+            .matching { it.group == 'com.puppycrawl.tools' && it.name == 'checkstyle' }
+            .matching { it.version != null && !it.version.isEmpty() }
+            .first()
+            .version
+    }
+
+    pluginManager.withPlugin('maven-publish') {
+        String prefix = rootProject.name
+        if (project.name != prefix && !project.name.startsWith("$prefix-")) {
+            throw new GradleException(
+                "Gradle plugin maven-publish can be applied only to projects with name prefixed with '$prefix-'"
+                    + ": $project"
+            )
+        }
+
+        pluginManager.withPlugin('name.remal.test-fixtures') {
+            throw new GradleException(
+                "Gradle plugin maven-publish can't be applied to test fixtures project"
+            )
+        }
+
+        publishing {
+            repositories {
+                ossrh()
+            }
+            if (project != rootProject) {
+                publications { mavenDefault() }
+                pluginManager.withPlugin('org.springframework.boot') {
+                    afterEvaluate {
+                        Task bootJar = tasks.bootJar
+                        String classifier = bootJar.archiveClassifier.getOrElse('')
+                        if (!classifier.isEmpty()) {
+                            publications.mavenDefault.artifact(bootJar)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+class RetrofitAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group.matches(/com\.squareup\.retrofit\d*/)) {
+                belongsTo("${id.group}:retrofit-bom:${id.version}", true)
+            }
+        }
+    }
+}
+
+class OkhttpAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group.matches(/com\.squareup\.okhttp\d*/)) {
+                belongsTo("${id.group}:okhttp-bom:${id.version}", true)
+            }
+        }
+    }
+}
+
+class PicocliAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group == 'info.picocli') {
+                belongsTo("${id.group}:picocli-bom:${id.version}")
+            }
+        }
+    }
+}
+
+class GraalvmAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group.matches(/org\.graalvm($|\..+)/)) {
+                belongsTo("org.graalvm:graalvm-bom:${id.version}", true)
+            }
+        }
+    }
+}
+
+class JacocoAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext ctx) {
+        ctx.details.with {
+            if (id.group == 'org.jacoco') {
+                belongsTo("${id.group}:jacoco-bom:${id.version}")
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+apply plugin: 'org.sonarqube'
+
+allprojects {
+    sonarqube {
+        properties {
+            List<String> rulesToIgnore = [
+                // https://community.sonarsource.com/t/30934:
+                'java:S5128', // "Bean Validation" (JSR 380) should be properly configured
+            ]
+            Map<String, String> rulesToIgnoreMap = rulesToIgnore.collectEntries { String rule ->
+                String key = rule.replaceAll(/\W/, '_')
+                return [key, rule]
+            }
+            property('sonar.issue.ignore.multicriteria', rulesToIgnoreMap.keySet().join(','))
+            rulesToIgnoreMap.forEach { String key, String rule ->
+                property("sonar.issue.ignore.multicriteria.${key}.ruleKey", rule)
+                property("sonar.issue.ignore.multicriteria.${key}.resourceKey", '**/*')
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+class DockerImages {
+
+    private static final ConcurrentMap<String, List<String>> getAllTagsCache = new ConcurrentHashMap<>()
+
+    private final File cacheDir
+
+    DockerImages(Project project) {
+        cacheDir = project.rootProject.file('build/cache/dockerImages')
+    }
+
+    List<String> getAllTags(String image) {
+        File cacheFile = new File(cacheDir, "getAllTags/$image")
+        return getAllTagsCache.computeIfAbsent(image) {
+            if (cacheFile.file) {
+                return cacheFile.getText('UTF-8').readLines()
+                    .collect { it.trim() }
+                    .findAll { !it.isEmpty() }
+            }
+
+            Map<String, ZonedDateTime> tagsMap = new LinkedHashMap<>()
+            int page = 0
+            while (true) {
+                ++page
+                URL url = new URL("https://hub.docker.com/v2/repositories/$image/tags/?page=$page")
+                HttpURLConnection connection = url.openConnection()
+                connection.connectTimeout = 5000
+                connection.readTimeout = 30000
+                connection.useCaches = false
+                connection.allowUserInteraction = false
+                try {
+                    int responseCode = connection.getResponseCode()
+                    if (responseCode != 200) {
+                        throw new GradleScriptException("Error retrieving GET $url: Status $responseCode")
+                    }
+                    String content = connection.inputStream.getText('UTF-8')
+                    def json = new JsonSlurper().parseText(content)
+                    if (json.results == null || json.results.isEmpty()) {
+                        break
+                    }
+                    json.results.forEach { tagInfo ->
+                        String tag = tagInfo.name
+                        ZonedDateTime updatedAt = ZonedDateTime.parse(tagInfo.last_updated)
+                        tagsMap.put(tag, updatedAt)
+                    }
+                } finally {
+                    connection.disconnect()
+                }
+            }
+
+            List<Entry<String, ZonedDateTime>> tagsMapEntries = tagsMap.entrySet().collect()
+            tagsMapEntries.sort(Entry.comparingByValue())
+            tagsMap = new LinkedHashMap<>()
+            tagsMapEntries.forEach { tagsMap.put(it.key, it.value) }
+
+            List<String> tags = tagsMap.keySet().collect()
+            cacheFile.parentFile.mkdirs()
+            cacheFile.setText(tags.join('\n'), 'UTF-8')
+
+            return tags
+        }
+    }
+
+}
+
+allprojects {
+    extensions.create('dockerImages', DockerImages.class, project)
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/*
+forBuildOnLocal {
+    apply plugin: 'java-library'
+
+    repositories { gradlePluginPortal() }
+    dependencies { runtimeOnly gradleApi() }
+
+    buildscript.configurations.classpath.allDependencies
+        .findAll { it instanceof ExternalModuleDependency }
+        .findAll {
+            String notation = "${it.group}:${it.name}"
+            return (
+                notation == 'name.remal:gradle-plugins'
+                //|| notation == 'org.springframework.boot:spring-boot-gradle-plugin'
+            )
+        }
+        .forEach { configurations.runtimeOnly.dependencies.add(it) }
+}
+//*/
+
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
+publishing.publications {
+    mavenBom()
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+File exampleGraphPumlFile = file("$buildDir/example-graph.puml")
+
+TaskProvider<Task> renderExampleGraphPuml = tasks.register('renderExampleGraphPuml', JavaExec.class) { JavaExec task ->
+    dependsOn(':tracing-spec-application:bootJar')
+
+    File graphFile = file("example-graph.yaml")
+    task.inputs.file(graphFile)
+
+    task.outputs.file(exampleGraphPumlFile)
+    doFirst {
+        exampleGraphPumlFile.parentFile.mkdirs()
+        exampleGraphPumlFile.delete()
+    }
+
+    task.onlyIf {
+        AbstractArchiveTask bootJar = tasks.getByPath(':tracing-spec-application:bootJar')
+        task.main = '-jar'
+        task.args = [
+            bootJar.archiveFile.get().asFile.toString(),
+            'render-graph',
+            graphFile.toString(),
+            'plantuml-sequence',
+            exampleGraphPumlFile.toString(),
+        ]
+        return true
+    }
+}
+
+TaskProvider<Task> renderExampleGraphPng = tasks.register('renderExampleGraphPng') { Task task ->
+    dependsOn(renderExampleGraphPuml)
+
+    task.inputs.file(exampleGraphPumlFile)
+
+    File exampleGraphPngFile = file('example-graph.png')
+    task.outputs.file(exampleGraphPngFile)
+    doFirst { exampleGraphPngFile.parentFile.mkdirs() }
+
+    doLast {
+        String puml = exampleGraphPumlFile.getText('UTF-8')
+        SourceStringReader reader = new SourceStringReader(puml)
+        exampleGraphPngFile.newOutputStream().withCloseable { OutputStream outputStream ->
+            DiagramDescription descr = reader.outputImage(outputStream)
+            if (descr == null) {
+                throw new GradleException("Example graph rendering failed for PlantUML diagram:\n$puml")
+            }
+        }
+    }
+}
+
+tasks.maybeCreate('build').with {
+    group = 'build'
+    dependsOn(renderExampleGraphPng)
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+TaskProvider<Task> processDocumentation = tasks.register('processDocumentation') { Task task ->
+    Closure<List<MavenArtifact>> getAllMavenJarArtifacts = {
+        task.project.allprojects
+            .findAll { it.pluginManager.hasPlugin('maven-publish') }
+            .collect { it.publishing.publications.withType(MavenPublication.class) }
+            .flatten()
+            .collect { it.artifacts }
+            .flatten()
+            .findAll { it.extension == 'jar' && (it.classifier == null || it.classifier == '') }
+    }
+    dependsOn { getAllMavenJarArtifacts() }
+
+    Closure<List<File>> getAllPublicizedJarFiles = {
+        getAllMavenJarArtifacts().collect { it.file }
+    }
+    inputs.files(provider { getAllPublicizedJarFiles() })
+
+    File readmeFile = rootProject.file('README.md')
+    outputs.file(readmeFile)
+
+    AtomicReference<String> originalContent = new AtomicReference<>()
+    doFirst { originalContent.set(readmeFile.getText('UTF-8')) }
+
+    doLast {
+        Map<String, Object> springProperties = new TreeMap<>()
+        JsonSlurper jsonSlurper = new JsonSlurper()
+        getAllPublicizedJarFiles().forEach { File jarFile ->
+            zipTree(jarFile)
+                .matching { include('META-INF/spring-configuration-metadata.json') }
+                .visit { FileVisitDetails details ->
+                    if (details.directory) {
+                        return
+                    }
+
+                    details.open().withCloseable { InputStream input ->
+                        def content = jsonSlurper.parse(input)
+                        content.properties?.forEach { prop ->
+                            String name = prop.name
+                            if (name != null) {
+                                springProperties.put(name, prop)
+                            }
+                        }
+                    }
+                }
+        }
+
+        Closure<String> createMarkdownDoc = { String prefix ->
+            List<Object> curSpringProperties = springProperties.values().findAll { prop ->
+                return (
+                    prefix == null || prefix.isEmpty()
+                        || prop.name == prefix || prop.name.startsWith("$prefix.")
+                )
+            }
+
+            StringBuilder markdownDoc = new StringBuilder()
+            curSpringProperties.forEach { prop ->
+                String name = prop.name
+                String descr = prop.description ?: ''
+                String type = (prop.type ?: '').replaceAll(/(\w+\.)/, '')
+                Object defaultValue = prop.defaultValue?.toString() ?: ''
+
+                if (type == 'Boolean' && prop.defaultValue == null) {
+                    defaultValue = false
+                }
+
+                markdownDoc.append("`$name`")
+                if (!descr.isEmpty()) {
+                    markdownDoc.append("<br>\n$descr")
+                }
+                if (!type.isEmpty()) {
+                    markdownDoc.append("<br>\nType: `$type`")
+                }
+                if (!defaultValue.isEmpty()) {
+                    markdownDoc.append("<br>\nDefault value: `$defaultValue`")
+                }
+                markdownDoc.append('\n\n')
+            }
+            return markdownDoc.toString()
+        }
+
+        String content = readmeFile.getText('UTF-8')
+        content = content.replaceAll(/<!--\s*(properties)(?:\s*:\s*(.+?))?\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/) {
+            String tag = it[1]
+            String prefix = it[2] ?: ''
+            String markdownTable = createMarkdownDoc(prefix)
+            if (!prefix.isEmpty()) {
+                logger.lifecycle('Handling {}: {}', tag, prefix)
+                return "<!-- $tag: $prefix -->\n$markdownTable<!--/ $tag -->"
+            } else {
+                logger.lifecycle('Handling {}', tag)
+                return "<!-- $tag -->\n$markdownTable<!--/ $tag -->"
+            }
+        }
+        readmeFile.setText(content, 'UTF-8')
+    }
+
+    doLast {
+        String content = readmeFile.getText('UTF-8')
+        content = content.replaceAll(/<!--\s*(include(?:-(\w+))?)\s*:\s*(.+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/) {
+            String tag = it[1]
+            String lang = it[2] ?: ''
+            String filePath = it[3]
+            File file = file(filePath)
+            String includeContent = file.getText('UTF-8')
+                .replace('\r\n', '\n')
+                .replace('\n\r', '\n')
+                .replace('\r', '\n')
+            while (includeContent.startsWith('\n')) {
+                includeContent = includeContent.substring(1)
+            }
+            while (includeContent.endsWith('\n')) {
+                includeContent = includeContent.substring(0, includeContent.length() - 1)
+            }
+            logger.lifecycle('Handling {}: {}', tag, filePath)
+            return "<!-- $tag: $filePath -->\n```$lang\n$includeContent\n```\n<!--/ $tag -->"
+        }
+        readmeFile.setText(content, 'UTF-8')
+    }
+
+    doLast {
+        String content = readmeFile.getText('UTF-8')
+        String normalizedContent = content
+            .replace('\r\n', '\n')
+            .replace('\n\r', '\n')
+            .replace('\r', '\n')
+        if (normalizedContent != content
+            || normalizedContent != originalContent.get()
+        ) {
+            readmeFile.setText(normalizedContent, 'UTF-8')
+            logger.lifecycle('Updated content of {}:\n{}', readmeFile, normalizedContent)
+        }
+    }
+}
+
+tasks.maybeCreate('build').with {
+    group = 'build'
+    dependsOn(processDocumentation)
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+apply plugin: 'idea'
+apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
+apply plugin: 'name.remal.idea-settings'
+
+idea {
+    project {
+        jdkName = '11'
+        targetBytecodeVersion = JavaVersion.VERSION_1_8
+        languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
+
+        settings {
+            doNotDetectFrameworks('android', 'web')
+
+            encodings {
+                encoding = 'UTF-8'
+                bomPolicy = 'WITH_NO_BOM'
+                properties {
+                    encoding = 'US-ASCII'
+                    transparentNativeToAsciiConversion = true
+                }
+            }
+        }
+    }
+}

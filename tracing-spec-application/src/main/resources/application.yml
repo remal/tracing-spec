@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: tracing-spec-application
+
+logging:
+  level:
+    root: error

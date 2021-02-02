@@ -1,0 +1,29 @@
+[
+  {
+    name: "parent",
+    serviceName: "A",
+    children: [
+      {
+        name: "child1",
+        serviceName: "B",
+        remoteServiceName: "C",
+      },
+      {
+        name: "child2",
+        serviceName: "E",
+        remoteServiceName: "F",
+        children: [
+          {
+            name: "child3",
+            serviceName: "F",
+          }
+        ]
+      },
+      {
+        name: "child4",
+        serviceName: "B",
+        remoteServiceName: "D",
+      }
+    ]
+  },
+]

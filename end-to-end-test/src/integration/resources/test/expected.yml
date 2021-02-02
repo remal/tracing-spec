@@ -1,0 +1,60 @@
+- name: post /schemas
+  serviceName: schemas-service
+  description: Save schema
+  children:
+  - name: send-schema-changed-event
+    serviceName: schemas-service
+    description: Publish SchemaChangedEvent
+    children:
+    - name: send
+      kind: PRODUCER
+      serviceName: schemas-service
+      remoteServiceName: kafka
+      tags:
+        kafka.topic: schema-changed
+      children:
+      - name: poll
+        kind: CONSUMER
+        async: true
+        serviceName: documents-service
+        remoteServiceName: kafka
+        tags:
+          kafka.topic: schema-changed
+        children:
+        - name: on-message
+          serviceName: documents-service
+          children:
+          - name: process-schema-changed-event
+            serviceName: documents-service
+            children:
+            - name: schedule-reindexing-schema-documents
+              serviceName: documents-service
+              description: Partition documents of the schema into several bulks and schedule their reindexing
+              children:
+              - name: send-stale-documents-event
+                serviceName: documents-service
+                description: Publish StaleDocumentsEvent
+                children:
+                - name: send
+                  kind: PRODUCER
+                  serviceName: documents-service
+                  remoteServiceName: kafka
+                  tags:
+                    kafka.topic: stale-documents
+                  children:
+                  - name: poll
+                    kind: CONSUMER
+                    async: true
+                    serviceName: documents-service
+                    remoteServiceName: kafka
+                    tags:
+                      kafka.topic: stale-documents
+                    children:
+                    - name: on-message
+                      serviceName: documents-service
+                      children:
+                      - name: process-stale-documents-event
+                        serviceName: documents-service
+                        children:
+                        - name: reindex-schema-documents
+                          serviceName: documents-service

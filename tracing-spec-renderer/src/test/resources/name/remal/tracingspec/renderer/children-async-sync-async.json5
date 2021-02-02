@@ -1,0 +1,22 @@
+[
+  {
+    name: "parent",
+    serviceName: "A",
+    children: [
+      {
+        async: true,
+        name: "async1",
+        serviceName: "B",
+      },
+      {
+        name: "sync",
+        serviceName: "B",
+      },
+      {
+        async: true,
+        name: "async2",
+        serviceName: "B",
+      }
+    ],
+  },
+]

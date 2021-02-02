@@ -1,0 +1,41 @@
+spring:
+  kafka:
+    clientId: ${spring.application.name}
+    consumer:
+      group-id: ${spring.application.name}
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+    producer:
+      batch-size: 0
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  cloud:
+    loadbalancer:
+      cache:
+        enabled: false
+
+logging:
+  level:
+    #ROOT: DEBUG
+    org.apache.kafka: ERROR
+    org.jboss.threads: WARN
+    org.xnio: WARN
+    org.springframework.context.support: WARN
+    org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplierBuilder: ERROR
+
+tracingspec:
+  renderer:
+    options:
+      graph-processors:
+      - replace-single-root-with-children
+      node-processors:
+      - append-server-to-client
+      - set-kafka-remote-service-name-from-tag
+      - js:
+          script: |
+            if (node.serviceName == 'documents-service' && node.name == 'reindex-schema-documents') {
+                node.clearChildren()
+            }
+      tags-to-display:
+      - kafka.topic

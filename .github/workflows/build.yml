@@ -3,7 +3,7 @@ name: build
 on:
   push:
     branches:
-    - main
+    - master
     tags:
     - ver-*
   pull_request: { }
@@ -46,7 +46,7 @@ jobs:
 
     - name: Create cache key
       id: create-cache-key
-      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/heads/') }}
       run: echo "::set-output name=year-month::$(date '+%Y.%m')"
 
     - name: Cache
@@ -70,7 +70,26 @@ jobs:
 
     - name: Build
       run: |
-        ./gradlew build runAllTests
+        ./gradlew build runAllTests -Dtest.versions-count=0
+
+    - name: Analyze with SonarQube
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ./gradlew sonarqube -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.organization=remal
+
+
+    - name: Run integration tests against different depedency versions
+      env:
+        RENOVATE_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]' }}
+        DEPENDABOT_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]' }}
+      run: |
+        testVersionsCount=
+        if [ "$RENOVATE_PR" == "true" ] || [ "$DEPENDABOT_PR" == "true" ]; then
+          testVersionsCount=1
+        fi
+        echo "test.versions-count=$testVersionsCount"
+        ./gradlew testAllVersions -Dtest.versions-count=$testVersionsCount
 
 
     - name: Push back
@@ -97,9 +116,31 @@ jobs:
         fi
         echo "::endgroup::"
 
+        echo "::group::Documentation"
+        git add --all README.md example-graph.png
+        if git commit --quiet --no-status --no-edit --only -m "[push-back] Update documentation" README.md example-graph.png ; then
+          git push origin "HEAD:${{ github.ref }}"
+        fi
+        echo "::endgroup::"
+
+
+    - name: Upload release asset
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        RELEASE_ASSET=build/tracing-spec-app.jar
+        RELEASE_ASSET_DIR=$(dirname $RELEASE_ASSET)
+        mkdir -p "$RELEASE_ASSET_DIR"
+        cp tracing-spec-application/build/libs/tracing-spec-application-*-fatjar.jar "$RELEASE_ASSET"
+
+        sudo apt-get -y install gh
+        gh config set prompt disabled
+        gh release upload --clobber "${GITHUB_REF#refs/tags/}" "$RELEASE_ASSET"
+
 
     - name: Remove files that shouldn't be cached
-      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/heads/') }}
       run: |
-        rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers || true
+        rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
         find $HOME/.gradle -name '*.lock' -type f -delete

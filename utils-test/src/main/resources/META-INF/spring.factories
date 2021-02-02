@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration = \
+utils.test.sleuth.TestSleuthAutoConfiguration
+
+org.springframework.test.context.TestExecutionListener = \
+utils.test.sleuth.TestSpanHandlerExecutionListener

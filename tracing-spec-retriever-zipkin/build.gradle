@@ -1,0 +1,91 @@
+import name.remal.version.Version
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+apply plugin: 'java-library'
+apply plugin: 'name.remal.classes-relocation'
+apply plugin: 'maven-publish'
+
+dependencies {
+    relocateClasses project(':utils-okhttp')
+    relocateClasses project(':utils-gson')
+
+    annotationProcessing('org.immutables:gson') { exclude group: 'com.google.code.gson' }
+
+    api project(':tracing-spec-retriever')
+    api 'org.apache.logging.log4j:log4j-api'
+
+
+    integrationImplementation 'io.zipkin.brave:brave'
+    integrationImplementation 'io.zipkin.reporter2:zipkin-sender-urlconnection'
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+SourceSet versionTestSourceSet = sourceSets.integration
+String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
+
+Task testSourceSetVersionsTask = tasks.create("${baseVersionTestTaskName}Versions") {
+    group = 'verification'
+    tasks.runAllTests.dependsOn(it)
+}
+
+tasks.create("testAllVersions") {
+    dependsOn(testSourceSetVersionsTask)
+}
+
+SortedMap<String, String> dockerTagImages = new TreeMap<>(Comparator.comparing({ Version.parse(it) }))
+[
+    'openzipkin/zipkin-slim',
+    'openzipkin/zipkin',
+].forEach { imageName ->
+    dockerImages.getAllTags(imageName).forEach { String tagName ->
+        Version version = Version.parseOrNull(tagName)
+        // Only versions of <major>.<minor> format
+        if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
+
+        // https://github.com/remal/tracing-spec/issues/19
+        if (version < Version.create(2)) return
+
+        dockerTagImages.putIfAbsent(tagName, imageName)
+    }
+}
+
+with {
+    String versionsCountString = System.getProperty('test.versions-count')?.trim()
+        ?: project.findProperty('test.versions-count')?.toString()?.trim()
+    if (versionsCountString == null || versionsCountString.isEmpty()) return true
+    int versionsCount = versionsCountString.toInteger()
+
+    List<String> tags = dockerTagImages.keySet().toList()
+    List<String> enabledTags = tags.subList(0, Math.min(versionsCount, tags.size()))
+    tags = tags.reverse()
+    enabledTags += tags.subList(0, Math.min(versionsCount, tags.size()))
+    dockerTagImages.keySet().removeIf { !enabledTags.contains(it) }
+}
+
+dockerTagImages.forEach { String tagName, String imageName ->
+    TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
+        dependsOn(versionTestSourceSet.classesTaskName)
+
+        systemProperty('zipkin-image', imageName)
+        systemProperty('zipkin-image-tag', tagName)
+
+        Test baseTestTask = tasks[baseVersionTestTaskName]
+        group = baseTestTask.group
+
+        onlyIf {
+            testClassesDirs = baseTestTask.testClassesDirs
+            classpath = baseTestTask.classpath
+
+            filter {
+                includeTestsMatching('*VersionTest')
+                failOnNoMatchingTests = true
+            }
+
+            return true
+        }
+    }
+
+    testSourceSetVersionsTask.dependsOn(testVersionTask)
+}

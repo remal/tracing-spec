@@ -1,0 +1,47 @@
+@startuml
+skinparam maxmessagesize 500
+skinparam responseMessageBelowArrow true
+[-> "schemas&#45;service": post &#47;schemas
+note left: Save schema
+activate "schemas&#45;service"
+"schemas&#45;service" -> "schemas&#45;service": send&#45;schema&#45;changed&#45;event
+note left: Publish SchemaChangedEvent
+activate "schemas&#45;service"
+"schemas&#45;service" -> kafka: send\n<size:10>kafka.topic=schema&#45;changed</size>
+activate kafka
+return <size:9>send</size>
+return <size:9>send&#45;schema&#45;changed&#45;event</size>
+return <size:9>post &#47;schemas</size>
+kafka ->> "documents&#45;service": poll\n<size:10>kafka.topic=schema&#45;changed</size>
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": on&#45;message
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": process&#45;schema&#45;changed&#45;event
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": schedule&#45;reindexing&#45;schema&#45;documents
+note left: Partition documents of the schema into several bulks and schedule their reindexing
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": send&#45;stale&#45;documents&#45;event
+note left: Publish StaleDocumentsEvent
+activate "documents&#45;service"
+"documents&#45;service" -> kafka: send\n<size:10>kafka.topic=stale&#45;documents</size>
+activate kafka
+return <size:9>send</size>
+return <size:9>send&#45;stale&#45;documents&#45;event</size>
+return <size:9>schedule&#45;reindexing&#45;schema&#45;documents</size>
+return <size:9>process&#45;schema&#45;changed&#45;event</size>
+return <size:9>on&#45;message</size>
+deactivate "documents&#45;service"
+kafka ->> "documents&#45;service": poll\n<size:10>kafka.topic=stale&#45;documents</size>
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": on&#45;message
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": process&#45;stale&#45;documents&#45;event
+activate "documents&#45;service"
+"documents&#45;service" -> "documents&#45;service": reindex&#45;schema&#45;documents
+activate "documents&#45;service"
+return <size:9>reindex&#45;schema&#45;documents</size>
+return <size:9>process&#45;stale&#45;documents&#45;event</size>
+return <size:9>on&#45;message</size>
+deactivate "documents&#45;service"
+@enduml

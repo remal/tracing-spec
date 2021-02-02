@@ -1,0 +1,5 @@
+org.springframework.boot.SpringApplicationRunListener = \
+apps.common.PropertiesApplicationRunListener
+
+org.springframework.boot.autoconfigure.EnableAutoConfiguration = \
+apps.common.CommonAutoConfiguration

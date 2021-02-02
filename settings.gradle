@@ -1,1 +1,16 @@
-rootProject.name = 'oss-java-gradle-template'
+rootProject.name = 'tracing-spec'
+
+include(
+    ':tracing-spec-model',
+    ':tracing-spec-retriever',
+    ':tracing-spec-retriever-jaeger',
+    ':tracing-spec-retriever-zipkin',
+    ':tracing-spec-renderer',
+    ':tracing-spec-matcher',
+    ':tracing-spec-application',
+    ':tracing-spec-spring',
+    ':utils-gson',
+    ':utils-okhttp',
+    ':utils-test',
+    ':end-to-end-test',
+)

@@ -1,0 +1,9 @@
+@startuml
+skinparam maxmessagesize 500
+skinparam responseMessageBelowArrow true
+local -> remote: name
+activate local
+  activate remote
+  return <size:9>name</size>
+deactivate local
+@enduml

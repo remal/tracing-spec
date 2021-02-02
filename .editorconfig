@@ -311,6 +311,7 @@ ij_json_spaces_within_brackets = false
 ij_json_wrap_long_lines = false
 
 ij_yaml_keep_line_breaks = true
+ij_yaml_space_before_colon = false
 
 ij_asciidoc_formatting_enabled = true
 ij_asciidoc_one_sentence_per_line = true
@@ -324,8 +325,10 @@ ij_editorconfig_spaces_around_assignment_operators = true
 
 [{spring.schemas, spring.handlers, *.properties}]
 charset = latin1
+max_line_length = 999
 
-[*.{yml, yaml}]
+[*.{yml, yaml, xml, json, json5, puml, md, svg}]
+max_line_length = 999
 tab_width = 2
 indent_size = 2
 continuation_indent_size = 2
@@ -333,3 +336,4 @@ ij_continuation_indent_size = 2
 
 [*.{cmd, bat}]
 end_of_line = crlf
+max_line_length = 999
