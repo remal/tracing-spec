@@ -69,7 +69,7 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
 
     @Override
     public String getQueryApiUrl() {
-        return format("http://localhost:%d/api/v2/spans", getQueryPort());
+        return format("http://localhost:%d/", getQueryPort());
     }
 
 }

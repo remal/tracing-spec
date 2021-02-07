@@ -3,11 +3,15 @@ package name.remal.tracingspec.retriever.zipkin;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
+import static name.remal.gradle_plugins.api.BuildTimeConstants.getClassSimpleName;
 import static utils.gson.GsonFactory.getGsonInstance;
 
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import lombok.SneakyThrows;
 import lombok.ToString;
@@ -18,6 +22,7 @@ import name.remal.tracingspec.retriever.zipkin.internal.ZipkinSpan;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.jetbrains.annotations.VisibleForTesting;
 import utils.okhttp.ConnectionCloseHeaderInterceptor;
 import utils.okhttp.ErroneousResponseInterceptor;
 import utils.okhttp.HttpLoggingInterceptor;
@@ -38,6 +43,8 @@ public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
     @Override
     @SneakyThrows
     public List<SpecSpan> retrieveSpecSpansForTrace(String traceId) {
+        lastErroneousJson.set(null);
+
         val zipkinUrl = properties.getUrl();
         if (zipkinUrl == null) {
             throw new IllegalStateException("properties.url must not be null");
@@ -64,10 +71,26 @@ public class ZipkinSpecSpansRetriever implements SpecSpansRetriever {
         val response = call.execute();
         val json = requireNonNull(response.body()).string();
 
-        List<ZipkinSpan> zipkinSpans = getGsonInstance().fromJson(json, ZIPKIN_SPANS_TYPE);
-        return zipkinSpans.stream()
-            .map(ZipkinSpanConverter::convertZipkinSpanToSpecSpan)
-            .collect(toList());
+        try {
+            List<ZipkinSpan> zipkinSpans = getGsonInstance().fromJson(json, ZIPKIN_SPANS_TYPE);
+            return zipkinSpans.stream()
+                .map(ZipkinSpanConverter::convertZipkinSpanToSpecSpan)
+                .collect(toList());
+
+        } catch (Throwable e) {
+            if (e.getClass().getSimpleName().equalsIgnoreCase(getClassSimpleName(JsonSyntaxException.class))) {
+                lastErroneousJson.set(json);
+            }
+            throw e;
+        }
+    }
+
+    private final AtomicReference<String> lastErroneousJson = new AtomicReference<>();
+
+    @VisibleForTesting
+    @Nullable
+    String getLastErroneousJson() {
+        return lastErroneousJson.get();
     }
 
 }
