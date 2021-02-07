@@ -1,6 +1,6 @@
 package apps.common;
 
-import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 import static zipkin2.codec.SpanBytesEncoder.JSON_V2;
@@ -53,8 +53,8 @@ public class ReportersConfiguration {
 
         return AsyncReporter.builder(sender)
             .queuedMaxSpans(1000)
-            .messageTimeout(1, MICROSECONDS)
-            .closeTimeout(10, SECONDS)
+            .messageTimeout(1, MILLISECONDS)
+            .closeTimeout(1, SECONDS)
             .build(JSON_V2);
     }
 

@@ -34,6 +34,7 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
             withEnv("LOG_LEVEL", "debug");
         }
 
+        withEnv("COLLECTOR_ZIPKIN_HOST_PORT", ":" + ZIPKIN_PORT);
         withEnv("COLLECTOR_ZIPKIN_HTTP_PORT", ZIPKIN_PORT + "");
 
         withExposedPorts(
