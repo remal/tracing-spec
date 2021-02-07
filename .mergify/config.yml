@@ -10,9 +10,9 @@ pull_request_rules:
 - name: Auto merge approved
   conditions:
   - "#approved-reviews-by>=1"
+  - -conflict
   - -closed
   - -merged
-  - -conflict
   - -draft
   - -locked
   - "#changes-requested-reviews-by=0"
@@ -20,8 +20,6 @@ pull_request_rules:
   - status-success=SonarCloud Code Analysis
   - status-success=CodeFactor
   - status-success=WIP
-  - -status-neutral=renovate/stability-days
-  - -status-failure=renovate/stability-days
   - '#status-neutral=0'
   - '#status-failure=0'
   actions:
@@ -44,9 +42,9 @@ pull_request_rules:
   - base=master
   - "#approved-reviews-by=0"
   - -author~=^(dependabot(-preview)?|renovate)\[bot\]$
+  - -conflict
   - -closed
   - -merged
-  - -conflict
   - -locked
   actions:
     update: { }
@@ -56,7 +54,6 @@ pull_request_rules:
   - author=remal
   - -closed
   - -merged
-  - -conflict
   - -draft
   - -locked
   - "#changes-requested-reviews-by=0"
