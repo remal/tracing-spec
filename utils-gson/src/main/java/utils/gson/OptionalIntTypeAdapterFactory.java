@@ -35,7 +35,7 @@ public class OptionalIntTypeAdapterFactory implements TypeAdapterFactory {
                 return OptionalInt.of(in.nextInt());
             }
 
-            in.skipValue();
+            in.nextNull();
             return OptionalInt.empty();
         }
 

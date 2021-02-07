@@ -2,13 +2,14 @@ package utils.test.container;
 
 import static java.lang.String.format;
 import static org.testcontainers.containers.wait.strategy.WaitAllStrategy.Mode.WITH_INDIVIDUAL_TIMEOUTS_ONLY;
+import static utils.test.debug.TestDebug.IS_IN_DEBUG;
 
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 
 public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneContainer>
-    implements WithZipkinCollectorUrl {
+    implements WithZipkinCollectorUrl, WithQueryApiUrl {
 
     public static final String IMAGE = System.getProperty("jaeger-image", "jaegertracing/all-in-one");
     public static final String DEFAULT_TAG = System.getProperty("jaeger-image-tag", "latest");
@@ -29,6 +30,9 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
     @SuppressWarnings("java:S109")
     protected void configure() {
         withEnv("LOG_LEVEL", "info");
+        if (IS_IN_DEBUG) {
+            withEnv("LOG_LEVEL", "debug");
+        }
 
         withEnv("COLLECTOR_ZIPKIN_HTTP_PORT", ZIPKIN_PORT + "");
 
@@ -58,17 +62,14 @@ public class JaegerAllInOneContainer extends GenericContainer<JaegerAllInOneCont
         return getMappedPort(JAEGER_COLLECTOR_THRIFT_PORT);
     }
 
+    @Override
     public int getZipkinPort() {
         return getMappedPort(ZIPKIN_PORT);
     }
 
-    public String getZipkinBaseUrl() {
-        return format("http://localhost:%d/", getZipkinPort());
-    }
-
     @Override
-    public String getZipkinCollectorUrl() {
-        return getZipkinBaseUrl() + "api/v2/spans";
+    public String getQueryApiUrl() {
+        return format("http://localhost:%d/api/v2/spans", getQueryPort());
     }
 
 }

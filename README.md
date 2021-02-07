@@ -197,19 +197,24 @@ These regex modifiers are supported:
 #### Distributed tracing spans retrieving properties
 
 <!-- properties: tracingspec.retriever -->
-`tracingspec.retriever.jaeger.host`<br>
-Jaeger Query service host<br>
-Type: `String`
+`tracingspec.retriever.jaeger.connect-timeout-millis`<br>
+Connect timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `1000`
 
-`tracingspec.retriever.jaeger.port`<br>
-Jaeger Query service port<br>
-Type: `Integer`<br>
-Default value: `16686`
-
-`tracingspec.retriever.jaeger.timeout-millis`<br>
-Retrieving timeout in milliseconds<br>
+`tracingspec.retriever.jaeger.read-timeout-millis`<br>
+Read timeout in milliseconds<br>
 Type: `Long`<br>
 Default value: `10000`
+
+`tracingspec.retriever.jaeger.url`<br>
+Jaeger Query service URL (for example: http://localhost:16686/)<br>
+Type: `URL`
+
+`tracingspec.retriever.jaeger.write-timeout-millis`<br>
+Write timeout in milliseconds<br>
+Type: `Long`<br>
+Default value: `1000`
 
 `tracingspec.retriever.zipkin.connect-timeout-millis`<br>
 Connect timeout in milliseconds<br>

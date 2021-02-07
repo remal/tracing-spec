@@ -1,14 +1,18 @@
 package name.remal.tracingspec.retriever.jaeger;
 
+import static java.time.temporal.ChronoUnit.MICROS;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.toList;
 import static name.remal.tracingspec.model.SpecSpanKind.CLIENT;
 import static name.remal.tracingspec.model.SpecSpanKind.CONSUMER;
 import static name.remal.tracingspec.model.SpecSpanKind.PRODUCER;
 import static name.remal.tracingspec.model.SpecSpanKind.SERVER;
 import static name.remal.tracingspec.model.SpecSpanKind.parseSpecSpanKind;
-import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.decodeJaegerId;
 
-import com.google.common.collect.ImmutableMap;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,29 +21,59 @@ import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.model.SpecSpanAnnotation;
 import name.remal.tracingspec.model.SpecSpanKind;
-import name.remal.tracingspec.retriever.jaeger.internal.grpc.KeyValue;
-import name.remal.tracingspec.retriever.jaeger.internal.grpc.Span;
-import name.remal.tracingspec.retriever.jaeger.internal.grpc.SpanRefType;
-import name.remal.tracingspec.retriever.jaeger.internal.grpc.ValueType;
+import name.remal.tracingspec.retriever.jaeger.internal.JaegerKeyValue;
+import name.remal.tracingspec.retriever.jaeger.internal.JaegerReferenceType;
+import name.remal.tracingspec.retriever.jaeger.internal.JaegerSpan;
+import name.remal.tracingspec.retriever.jaeger.internal.JaegerTrace;
+import name.remal.tracingspec.retriever.jaeger.internal.JaegerTraceData;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.VisibleForTesting;
 
 @Internal
 abstract class JaegerSpanConverter {
 
-    @SuppressWarnings("java:S3776")
-    public static SpecSpan convertJaegerSpanToSpecSpan(Span jaegerSpan) {
-        val spanId = decodeJaegerId(jaegerSpan.getSpanId().toByteArray());
+    private static final Logger logger = LogManager.getLogger(JaegerSpanConverter.class);
+
+    public static List<SpecSpan> convertJaegerTraceToSpecSpans(JaegerTrace jaegerTrace) {
+        return convertJaegerTraceDataItemsToSpecSpans(jaegerTrace.getData());
+    }
+
+    private static List<SpecSpan> convertJaegerTraceDataItemsToSpecSpans(List<JaegerTraceData> jaegerTraceDataItems) {
+        return jaegerTraceDataItems.stream()
+            .flatMap(item -> convertJaegerTraceDataToSpecSpans(item).stream())
+            .collect(toList());
+    }
+
+    private static List<SpecSpan> convertJaegerTraceDataToSpecSpans(JaegerTraceData jaegerTraceData) {
+        Map<String, String> processIdToName = new LinkedHashMap<>();
+        jaegerTraceData.getProcesses().forEach((processId, process) ->
+            process.getServiceName().filter(name -> !name.isEmpty()).ifPresent(name ->
+                processIdToName.put(processId, name)
+            )
+        );
+
+        return jaegerTraceData.getSpans().stream()
+            .map(span -> convertJaegerTraceDataToSpecSpans(span, processIdToName))
+            .collect(toList());
+    }
+
+    @VisibleForTesting
+    static SpecSpan convertJaegerTraceDataToSpecSpans(
+        JaegerSpan jaegerSpan,
+        Map<String, String> processIdToName
+    ) {
+        val spanId = jaegerSpan.getSpanId();
         val specSpan = new SpecSpan(spanId);
 
-        jaegerSpan.getReferencesList().forEach(ref -> {
-            val refSpanId = decodeJaegerId(ref.getSpanId().toByteArray());
-
-            val refType = ref.getRefType();
-            if (refType == SpanRefType.CHILD_OF) {
+        jaegerSpan.getReferences().forEach(ref -> {
+            val refSpanId = ref.getSpanId();
+            val refType = ref.getRefType().orElse(null);
+            if (refType == JaegerReferenceType.CHILD_OF) {
                 specSpan.setParentSpanId(refSpanId);
             } else {
-                LogManager.getLogger(JaegerSpanConverter.class).warn(
+                logger.warn(
                     "Span {}: Unsupported ref type: {}",
                     spanId,
                     refType
@@ -47,38 +81,31 @@ abstract class JaegerSpanConverter {
             }
         });
 
-        Optional.ofNullable(jaegerSpan.getOperationName())
+        jaegerSpan.getOperationName()
             .filter(it -> !it.isEmpty())
             .ifPresent(specSpan::setName);
 
-        if (jaegerSpan.hasProcess()) {
-            Optional.ofNullable(jaegerSpan.getProcess().getServiceName())
-                .filter(it -> !it.isEmpty())
-                .ifPresent(specSpan::setServiceName);
-        }
+        jaegerSpan.getProcessId()
+            .flatMap(processId -> Optional.ofNullable(processIdToName.get(processId)))
+            .filter(it -> !it.isEmpty())
+            .ifPresent(specSpan::setServiceName);
 
-        if (jaegerSpan.hasStartTime()) {
-            val startTime = jaegerSpan.getStartTime();
-            specSpan.setStartedAt(Instant.ofEpochSecond(
-                startTime.getSeconds(),
-                startTime.getNanos()
-            ));
-        }
+        jaegerSpan.getStartTime().ifPresent(micros ->
+            specSpan.setStartedAt(microsecondsToInstant(micros))
+        );
 
-        jaegerSpan.getTagsList().forEach(tag ->
+        jaegerSpan.getTags().forEach(tag ->
             processKeyValue(spanId, tag, specSpan::putTag)
         );
 
-        jaegerSpan.getLogsList().forEach(log ->
-            log.getFieldsList().forEach(field ->
+        jaegerSpan.getLogs().forEach(log ->
+            log.getFields().forEach(field ->
                 processKeyValue(spanId, field, (key, value) -> {
-                    if (log.hasTimestamp()) {
-                        val jaegerTimestamp = log.getTimestamp();
-                        val instant = Instant.ofEpochSecond(
-                            jaegerTimestamp.getSeconds(),
-                            jaegerTimestamp.getNanos()
-                        );
+                    val timestamp = log.getTimestamp();
+                    if (timestamp.isPresent()) {
+                        val instant = microsecondsToInstant(timestamp.getAsLong());
                         specSpan.addAnnotation(new SpecSpanAnnotation(instant, key, value));
+
                     } else {
                         specSpan.addAnnotation(new SpecSpanAnnotation(key, value));
                     }
@@ -105,43 +132,48 @@ abstract class JaegerSpanConverter {
         return specSpan;
     }
 
-    private static void processKeyValue(String spanId, KeyValue keyValue, BiConsumer<String, String> consumer) {
-        val key = keyValue.getKey();
-
-        final String value;
-        val valueType = keyValue.getVType();
-        if (valueType == ValueType.STRING) {
-            value = keyValue.getVStr();
-        } else if (valueType == ValueType.BOOL) {
-            value = keyValue.getVBool() + "";
-        } else if (valueType == ValueType.INT64) {
-            value = keyValue.getVInt64() + "";
-        } else if (valueType == ValueType.FLOAT64) {
-            value = keyValue.getVFloat64() + "";
-        } else if (valueType == ValueType.BINARY) {
-            value = keyValue.getVBinary().toString();
-        } else {
-            LogManager.getLogger(JaegerSpanConverter.class).warn(
-                "Span {}: Unsupported value type for key {} of {}: {}",
+    private static void processKeyValue(String spanId, JaegerKeyValue keyValue, BiConsumer<String, String> consumer) {
+        val key = keyValue.getKey()
+            .filter(it -> !it.isEmpty())
+            .orElse(null);
+        if (key == null) {
+            logger.warn(
+                "Span {}: Empty key: {}",
                 spanId,
-                key,
-                keyValue,
-                valueType
+                keyValue
             );
             return;
         }
 
-        consumer.accept(key, value);
+        keyValue.getValue()
+            .map(Object::toString)
+            .ifPresent(value ->
+                consumer.accept(key, value)
+            );
     }
 
-    private static final Map<String, SpecSpanKind> EVENT_TO_KIND_MAPPINGS = ImmutableMap.<String, SpecSpanKind>builder()
-        .put("ms", PRODUCER)
-        .put("mr", CONSUMER)
-        .put("cs", CLIENT)
-        .put("sr", SERVER)
-        .put("ss", SERVER)
-        .put("cr", CLIENT)
-        .build();
+
+    private static Instant microsecondsToInstant(long micros) {
+        val duration = Duration.of(micros, MICROS);
+        return Instant.ofEpochSecond(
+            duration.getSeconds(),
+            duration.getNano()
+        );
+    }
+
+
+    private static final Map<String, SpecSpanKind> EVENT_TO_KIND_MAPPINGS;
+
+    static {
+        Map<String, SpecSpanKind> eventToKindMappings = new LinkedHashMap<>();
+        eventToKindMappings.put("ms", PRODUCER);
+        eventToKindMappings.put("mr", CONSUMER);
+        eventToKindMappings.put("cs", CLIENT);
+        eventToKindMappings.put("sr", SERVER);
+        eventToKindMappings.put("ss", SERVER);
+        eventToKindMappings.put("cr", CLIENT);
+        EVENT_TO_KIND_MAPPINGS = unmodifiableMap(eventToKindMappings);
+    }
 
 
     private JaegerSpanConverter() {

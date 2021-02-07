@@ -1,6 +1,5 @@
 package name.remal.tracingspec.retriever.zipkin;
 
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -55,7 +54,7 @@ class ZipkinSpecSpansRetrieverVersionTest {
         tracer = tracing.tracer();
 
         val retrieverProperties = new ZipkinSpecSpansRetrieverProperties();
-        retrieverProperties.setUrl(format("http://localhost:%d/", zipkinContainer.getZipkinPort()));
+        retrieverProperties.setUrl(zipkinContainer.getQueryApiUrl());
         retriever = new ZipkinSpecSpansRetriever(retrieverProperties);
     }
 

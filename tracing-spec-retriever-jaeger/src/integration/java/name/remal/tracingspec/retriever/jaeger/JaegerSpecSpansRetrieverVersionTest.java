@@ -53,8 +53,7 @@ class JaegerSpecSpansRetrieverVersionTest {
             .build();
 
         val retrieverProperties = new JaegerSpecSpansRetrieverProperties();
-        retrieverProperties.setHost("localhost");
-        retrieverProperties.setPort(jaegerContainer.getQueryPort());
+        retrieverProperties.setUrl(jaegerContainer.getQueryApiUrl());
         retriever = new JaegerSpecSpansRetriever(retrieverProperties);
     }
 
