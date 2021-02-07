@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties("tracingspec.retriever.jaeger")
 @Data
-@SuppressWarnings("java:S109")
+@SuppressWarnings({"java:S109", "common-java:DuplicatedBlocks"})
 public class JaegerSpecSpansRetrieverProperties {
 
     /**

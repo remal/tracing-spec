@@ -64,14 +64,14 @@ abstract class JaegerSpanConverter {
         JaegerSpan jaegerSpan,
         Map<String, String> processIdToName
     ) {
-        val spanId = jaegerSpan.getSpanId();
+        val spanId = processJaegerId(jaegerSpan.getSpanId());
         val specSpan = new SpecSpan(spanId);
 
         jaegerSpan.getReferences().forEach(ref -> {
             val refSpanId = ref.getSpanId();
             val refType = ref.getRefType().orElse(null);
             if (refType == JaegerReferenceType.CHILD_OF) {
-                specSpan.setParentSpanId(refSpanId);
+                specSpan.setParentSpanId(processJaegerId(refSpanId));
             } else {
                 logger.warn(
                     "Span {}: Unsupported ref type: {}",
@@ -130,6 +130,14 @@ abstract class JaegerSpanConverter {
         }
 
         return specSpan;
+    }
+
+    private static String processJaegerId(String id) {
+        int padding = id.length() % 16;
+        if (padding == 0) {
+            return id;
+        }
+        return "0000000000000000".substring(padding) + id;
     }
 
     private static void processKeyValue(String spanId, JaegerKeyValue keyValue, BiConsumer<String, String> consumer) {

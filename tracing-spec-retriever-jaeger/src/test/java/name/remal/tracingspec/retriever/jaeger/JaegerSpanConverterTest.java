@@ -37,11 +37,11 @@ class JaegerSpanConverterTest {
         assertThat(
             JaegerSpanConverter.convertJaegerTraceDataToSpecSpans(
                 ImmutableJaegerSpan.builder()
-                    .spanId("9a2632c7fe86dfb4")
+                    .spanId("46e110ae1180e35")
                     .build(),
                 PROCESS_ID_TO_NAME
             ),
-            hasProperty("spanId", equalTo("9a2632c7fe86dfb4"))
+            hasProperty("spanId", equalTo("046e110ae1180e35"))
         );
     }
 
@@ -49,16 +49,16 @@ class JaegerSpanConverterTest {
     void parentSpanId() {
         assertThat(
             JaegerSpanConverter.convertJaegerTraceDataToSpecSpans(
-                ImmutableJaegerSpan.builder().spanId(" ")
+                ImmutableJaegerSpan.builder().spanId("0")
                     .addReference(ImmutableJaegerReference.builder()
                         .refType(JaegerReferenceType.CHILD_OF)
-                        .spanId("be829a1bd75ca057")
+                        .spanId("50be829a1bd75ca057")
                         .build()
                     )
                     .build(),
                 PROCESS_ID_TO_NAME
             ),
-            hasProperty("parentSpanId", equalTo("be829a1bd75ca057"))
+            hasProperty("parentSpanId", equalTo("0000000000000050be829a1bd75ca057"))
         );
     }
 
@@ -66,7 +66,7 @@ class JaegerSpanConverterTest {
     void name() {
         assertThat(
             JaegerSpanConverter.convertJaegerTraceDataToSpecSpans(
-                ImmutableJaegerSpan.builder().spanId(" ")
+                ImmutableJaegerSpan.builder().spanId("0")
                     .operationName("test name")
                     .build(),
                 PROCESS_ID_TO_NAME
@@ -79,7 +79,7 @@ class JaegerSpanConverterTest {
     void serviceName() {
         assertThat(
             JaegerSpanConverter.convertJaegerTraceDataToSpecSpans(
-                ImmutableJaegerSpan.builder().spanId(" ")
+                ImmutableJaegerSpan.builder().spanId("0")
                     .processId(PROCESS_ID)
                     .build(),
                 PROCESS_ID_TO_NAME
@@ -94,7 +94,7 @@ class JaegerSpanConverterTest {
         val micros = SECONDS.toMicros(now.getEpochSecond()) + NANOSECONDS.toMicros(now.getNano());
         assertThat(
             JaegerSpanConverter.convertJaegerTraceDataToSpecSpans(
-                ImmutableJaegerSpan.builder().spanId(" ")
+                ImmutableJaegerSpan.builder().spanId("0")
                     .startTime(micros)
                     .build(),
                 PROCESS_ID_TO_NAME
@@ -111,7 +111,7 @@ class JaegerSpanConverterTest {
         void from_tags() {
             assertThat(
                 JaegerSpanConverter.convertJaegerTraceDataToSpecSpans(
-                    ImmutableJaegerSpan.builder().spanId(" ")
+                    ImmutableJaegerSpan.builder().spanId("0")
                         .addTag(ImmutableJaegerKeyValue.builder()
                             .key("span.kind")
                             .value("client")
@@ -138,7 +138,7 @@ class JaegerSpanConverterTest {
                 assertThat(
                     pair.toString(),
                     JaegerSpanConverter.convertJaegerTraceDataToSpecSpans(
-                        ImmutableJaegerSpan.builder().spanId(" ")
+                        ImmutableJaegerSpan.builder().spanId("0")
                             .addLog(ImmutableJaegerLog.builder()
                                 .addField(ImmutableJaegerKeyValue.builder()
                                     .key("event")
