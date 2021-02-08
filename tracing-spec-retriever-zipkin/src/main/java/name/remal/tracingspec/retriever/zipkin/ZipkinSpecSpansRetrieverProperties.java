@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties("tracingspec.retriever.zipkin")
 @Data
-@SuppressWarnings({"java:S109", "common-java:DuplicatedBlocks"})
+@SuppressWarnings("java:S109")
 public class ZipkinSpecSpansRetrieverProperties {
 
     /**
