@@ -27,6 +27,7 @@ String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
 
 Task testSourceSetVersionsTask = tasks.create("${baseVersionTestTaskName}Versions") {
     group = 'verification'
+    dependsOn(baseVersionTestTaskName)
     tasks.runAllTests.dependsOn(it)
 }
 
@@ -34,37 +35,9 @@ tasks.create("testAllVersions") {
     dependsOn(testSourceSetVersionsTask)
 }
 
-SortedMap<String, String> dockerTagImages = new TreeMap<>(Comparator.comparing({ Version.parse(it) }))
-[
-    'openzipkin/zipkin-slim',
-    'openzipkin/zipkin',
-].forEach { imageName ->
-    dockerImages.getAllTags(imageName).forEach { String tagName ->
-        Version version = Version.parseOrNull(tagName)
-        // Only versions of <major>.<minor> format
-        if (version == null || version.numbersCount != 2 || version.hasSuffix()) return
+SortedMap<Version, String> dockerTagImages = dockerImages.getZipkinVersionsToImage()
 
-        // https://github.com/remal/tracing-spec/issues/19
-        if (version < Version.create(2)) return
-
-        dockerTagImages.putIfAbsent(tagName, imageName)
-    }
-}
-
-with {
-    String versionsCountString = System.getProperty('test.versions-count')?.trim()
-        ?: project.findProperty('test.versions-count')?.toString()?.trim()
-    if (versionsCountString == null || versionsCountString.isEmpty()) return true
-    int versionsCount = versionsCountString.toInteger()
-
-    List<String> tags = dockerTagImages.keySet().toList()
-    List<String> enabledTags = tags.subList(0, Math.min(versionsCount, tags.size()))
-    tags = tags.reverse()
-    enabledTags += tags.subList(0, Math.min(versionsCount, tags.size()))
-    dockerTagImages.keySet().removeIf { !enabledTags.contains(it) }
-}
-
-dockerTagImages.forEach { String tagName, String imageName ->
+dockerTagImages.forEach { Version tagName, String imageName ->
     TaskProvider<Task> testVersionTask = tasks.register("$baseVersionTestTaskName-$tagName", Test) {
         dependsOn(versionTestSourceSet.classesTaskName)
 
@@ -84,6 +57,12 @@ dockerTagImages.forEach { String tagName, String imageName ->
             }
 
             return true
+        }
+
+        doFirst {
+            String currentImage = systemProperties['zipkin-image']
+            String currentTag = systemProperties['zipkin-image-tag']
+            println "Testing with Docker image $currentImage:$currentTag"
         }
     }
 

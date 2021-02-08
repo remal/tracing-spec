@@ -1,29 +1,32 @@
 package name.remal.tracingspec.retriever.jaeger;
 
-import static io.grpc.Status.DEADLINE_EXCEEDED;
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static name.remal.tracingspec.retriever.jaeger.JaegerIdUtils.encodeJaegerId;
-import static name.remal.tracingspec.retriever.jaeger.JaegerSpanConverter.convertJaegerSpanToSpecSpan;
+import static name.remal.gradle_plugins.api.BuildTimeConstants.getClassSimpleName;
+import static utils.gson.GsonFactory.getGsonInstance;
 
-import com.google.protobuf.ByteString;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
-import java.util.ArrayList;
+import com.google.gson.JsonSyntaxException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 import javax.validation.Valid;
+import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.val;
 import name.remal.tracingspec.model.SpecSpan;
 import name.remal.tracingspec.retriever.SpecSpansRetriever;
-import name.remal.tracingspec.retriever.jaeger.internal.grpc.GetTraceRequest;
-import name.remal.tracingspec.retriever.jaeger.internal.grpc.QueryServiceGrpc;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import name.remal.tracingspec.retriever.jaeger.internal.JaegerTrace;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import org.jetbrains.annotations.VisibleForTesting;
+import utils.okhttp.ConnectionCloseHeaderInterceptor;
+import utils.okhttp.ErroneousResponseInterceptor;
+import utils.okhttp.HttpLoggingInterceptor;
+import utils.okhttp.RequiredTextResponseBodyInterceptor;
 
 @ToString
 public class JaegerSpecSpansRetriever implements SpecSpansRetriever {
-
-    private static final Logger logger = LogManager.getLogger(JaegerSpecSpansRetriever.class);
 
     @Valid
     private final JaegerSpecSpansRetrieverProperties properties;
@@ -33,45 +36,54 @@ public class JaegerSpecSpansRetriever implements SpecSpansRetriever {
     }
 
     @Override
+    @SneakyThrows
     public List<SpecSpan> retrieveSpecSpansForTrace(String traceId) {
-        val host = properties.getHost();
-        if (host == null) {
-            throw new IllegalStateException("properties.host must not be null");
+        lastErroneousJson.set(null);
+
+        val jaegerUrl = properties.getUrl();
+        if (jaegerUrl == null) {
+            throw new IllegalStateException("properties.url must not be null");
         }
 
-        val channel = ManagedChannelBuilder.forAddress(host, properties.getPort())
-            .usePlaintext()
+        val client = new OkHttpClient.Builder()
+            .connectTimeout(properties.getConnectTimeoutMillis(), MILLISECONDS)
+            .writeTimeout(properties.getWriteTimeoutMillis(), MILLISECONDS)
+            .readTimeout(properties.getReadTimeoutMillis(), MILLISECONDS)
+            .addInterceptor(new RequiredTextResponseBodyInterceptor())
+            .addInterceptor(new ErroneousResponseInterceptor())
+            .addInterceptor(new ConnectionCloseHeaderInterceptor())
+            .addInterceptor(new HttpLoggingInterceptor())
             .build();
+
+        val request = new Request.Builder()
+            .url(requireNonNull(HttpUrl.get(jaegerUrl))
+                .newBuilder()
+                .addPathSegments("api/traces/" + traceId)
+                .build()
+            )
+            .build();
+        val call = client.newCall(request);
+        val response = call.execute();
+        val json = requireNonNull(response.body()).string();
+
         try {
-            val traceIdBytes = encodeJaegerId(traceId);
-            val queryStub = QueryServiceGrpc.newBlockingStub(channel);
-            val request = GetTraceRequest.newBuilder()
-                .setTraceId(ByteString.copyFrom(traceIdBytes))
-                .build();
-            val jaegerSpansChunks = queryStub
-                .withDeadlineAfter(properties.getTimeoutMillis(), MILLISECONDS)
-                .getTrace(request);
+            val jaegerTrace = getGsonInstance().fromJson(json, JaegerTrace.class);
+            return JaegerSpanConverter.convertJaegerTraceToSpecSpans(jaegerTrace);
 
-            List<SpecSpan> result = new ArrayList<>();
-            while (jaegerSpansChunks.hasNext()) {
-                val chunk = jaegerSpansChunks.next();
-                for (val jaegerSpan : chunk.getSpansList()) {
-                    val specSpan = convertJaegerSpanToSpecSpan(jaegerSpan);
-                    result.add(specSpan);
-                }
-            }
-            return result;
-
-        } catch (StatusRuntimeException e) {
-            if (e.getStatus() == DEADLINE_EXCEEDED) {
-                logger.warn("DEADLINE_EXCEEDED gRPC error occurred. It can happen if you use Jaeger <=1.13. Only "
-                    + "Jaeger >=1.14 is supported now: https://github.com/remal/tracing-spec/issues/19");
+        } catch (Throwable e) {
+            if (e.getClass().getSimpleName().equalsIgnoreCase(getClassSimpleName(JsonSyntaxException.class))) {
+                lastErroneousJson.set(json);
             }
             throw e;
-
-        } finally {
-            channel.shutdownNow();
         }
+    }
+
+    private final AtomicReference<String> lastErroneousJson = new AtomicReference<>();
+
+    @VisibleForTesting
+    @Nullable
+    String getLastErroneousJson() {
+        return lastErroneousJson.get();
     }
 
 }

@@ -35,7 +35,7 @@ public class OptionalDoubleTypeAdapterFactory implements TypeAdapterFactory {
                 return OptionalDouble.of(in.nextDouble());
             }
 
-            in.skipValue();
+            in.nextNull();
             return OptionalDouble.empty();
         }
 

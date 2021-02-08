@@ -132,7 +132,7 @@ class EndToEndTest {
 
         val expectedDiagram = normalizePuml(readTextResource("expected.puml"));
         {
-            val zipkinUrl = sharedContext.getBean(ZipkinContainer.class).getZipkinBaseUrl();
+            val zipkinUrl = sharedContext.getBean(ZipkinContainer.class).getQueryApiUrl();
             assertDoesNotThrow(
                 (Executable) () ->
                     TracingSpecSpringApplication.run(
@@ -168,15 +168,14 @@ class EndToEndTest {
         }
 
         {
-            val jaegerPort = sharedContext.getBean(JaegerAllInOneContainer.class).getQueryPort();
+            val jaegerUrl = sharedContext.getBean(JaegerAllInOneContainer.class).getQueryApiUrl();
             assertDoesNotThrow(
                 (Executable) () ->
                     TracingSpecSpringApplication.run(
                         "match",
                         "--spring.application.name=jaeger",
                         "--spring.sleuth.enabled=false",
-                        "--tracingspec.retriever.jaeger.host=localhost",
-                        "--tracingspec.retriever.jaeger.port=" + jaegerPort,
+                        "--tracingspec.retriever.jaeger.url=" + jaegerUrl,
                         "--attempts=" + matchAttempts,
                         "--attempts-delay=" + matchAttemptsDelayMillis,
                         traceId,
@@ -191,8 +190,7 @@ class EndToEndTest {
                     "render-trace",
                     "--spring.application.name=jaeger",
                     "--spring.sleuth.enabled=false",
-                    "--tracingspec.retriever.jaeger.host=localhost",
-                    "--tracingspec.retriever.jaeger.port=" + jaegerPort,
+                    "--tracingspec.retriever.jaeger.url=" + jaegerUrl,
                     traceId,
                     "plantuml-sequence",
                     outputPath.toString()
