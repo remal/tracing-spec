@@ -46,7 +46,7 @@ pull_request_rules:
   - -locked
   actions:
     update:
-      message: 'Approved automatically by @mergify.'
+      message: 'Approved automatically by @Mergifyio.'
 
 - name: Merge by authors automatically
   conditions:
