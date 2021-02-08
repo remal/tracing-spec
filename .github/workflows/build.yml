@@ -46,7 +46,7 @@ jobs:
 
     - name: Create cache key
       id: create-cache-key
-      if: ${{ startsWith(github.ref, 'refs/heads/') }}
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       run: echo "::set-output name=year-month::$(date '+%Y.%m')"
 
     - name: Cache
@@ -140,7 +140,7 @@ jobs:
 
 
     - name: Remove files that shouldn't be cached
-      if: ${{ startsWith(github.ref, 'refs/heads/') }}
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       run: |
         rm -rf $HOME/.gradle/daemon $HOME/.gradle/build-scan-data $HOME/.gradle/kotlin-profile $HOME/.gradle/tmp $HOME/.gradle/workers
         find $HOME/.gradle -name '*.lock' -type f -delete
