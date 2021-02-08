@@ -46,7 +46,7 @@ pull_request_rules:
   - -merged
   - -locked
   actions:
-    update: { }
+    update: {}
 
 - name: Merge by authors automatically
   conditions:

@@ -1,12 +1,14 @@
 import static java.util.Collections.newSetFromMap
 
 import groovy.json.JsonSlurper
+import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.Map.Entry
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
+import name.remal.version.Version
 import net.sourceforge.plantuml.SourceStringReader
 import net.sourceforge.plantuml.core.DiagramDescription
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
@@ -25,7 +27,7 @@ buildscript {
         classpath 'name.remal:gradle-plugins:1.2.2'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.1.1'
         classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
-        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.10'
+        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0'
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
     }
     repositories {
@@ -108,8 +110,6 @@ allprojects {
         dependencies.addAll(
             [
                 'org.springframework.cloud:spring-cloud-dependencies:2020.0.1',
-                'io.grpc:grpc-bom:1.35.0',
-                'com.google.protobuf:protobuf-bom:3.14.0',
                 'org.testcontainers:testcontainers-bom:1.15.1',
                 'io.opentracing:parent:0.33.0',
                 'io.zipkin.brave:brave-bom:5.13.3',
@@ -404,6 +404,13 @@ allprojects {
             }
             relocatedClassesPackageName += '.internal._relocated'
         }
+
+        pluginManager.withPlugin('name.remal.test-source-sets') {
+            testSourceSets.all { SourceSet sourceSet ->
+                // GSON is usually relocated
+                dependencies.add(sourceSet.compileOnlyConfigurationName, 'com.google.code.gson:gson')
+            }
+        }
     }
 
     pluginManager.withPlugin('jacoco') {
@@ -546,15 +553,20 @@ class DockerImages {
     private static final ConcurrentMap<String, List<String>> getAllTagsCache = new ConcurrentHashMap<>()
 
     private final File cacheDir
+    private final String versionsCountString
 
     DockerImages(Project project) {
         cacheDir = project.rootProject.file('build/cache/dockerImages')
+        versionsCountString = System.getProperty('test.versions-count')?.trim()
+            ?: project.findProperty('test.versions-count')?.toString()?.trim()
     }
 
     List<String> getAllTags(String image) {
         File cacheFile = new File(cacheDir, "getAllTags/$image")
         return getAllTagsCache.computeIfAbsent(image) {
-            if (cacheFile.file) {
+            if (cacheFile.file
+                && cacheFile.lastModified() >= System.currentTimeMillis() - Duration.ofDays(1).toMillis()
+            ) {
                 return cacheFile.getText('UTF-8').readLines()
                     .collect { it.trim() }
                     .findAll { !it.isEmpty() }
@@ -601,6 +613,75 @@ class DockerImages {
 
             return tags
         }
+    }
+
+    List<Version> getVersions(String image, int versionNumbers) {
+        return getAllTags(image)
+            .collect { Version.parseOrNull(it) }
+            .findAll { it != null }
+            .findAll { it.numbersCount == versionNumbers && !it.hasSuffix() }
+            .toSorted()
+    }
+
+    SortedMap<Version, String> getVersionsToImage(List<String> images, int versionNumbers) {
+        SortedMap<Version, String> result = new TreeMap<>()
+        for (String image : images) {
+            for (Version version : getVersions(image, versionNumbers)) {
+                result.putIfAbsent(version, image)
+            }
+        }
+        return result
+    }
+
+
+    SortedMap<Version, String> getJaegerVersionsToImage() {
+        SortedMap<Version, String> versionsToImage = getVersionsToImage(
+            [
+                'jaegertracing/all-in-one',
+            ],
+            2
+        )
+
+        versionsToImage.keySet().removeIf { version ->
+            // https://github.com/remal/tracing-spec/issues/19
+            return version < Version.create(1)
+        }
+
+        applyTestVersionsCount(versionsToImage)
+
+        return versionsToImage
+    }
+
+
+    SortedMap<Version, String> getZipkinVersionsToImage() {
+        SortedMap<Version, String> versionsToImage = getVersionsToImage(
+            [
+                'openzipkin/zipkin-slim',
+                'openzipkin/zipkin',
+            ],
+            2
+        )
+
+        versionsToImage.keySet().removeIf { version ->
+            // https://github.com/remal/tracing-spec/issues/22
+            return version < Version.create(2)
+        }
+
+        applyTestVersionsCount(versionsToImage)
+
+        return versionsToImage
+    }
+
+
+    private void applyTestVersionsCount(SortedMap<Version, String> versionsToImage) {
+        if (versionsCountString == null || versionsCountString.isEmpty()) return
+        int versionsCount = versionsCountString.toInteger()
+
+        List<Version> tags = versionsToImage.keySet().toList()
+        List<Version> enabledTags = tags.subList(0, Math.min(versionsCount, tags.size()))
+        tags = tags.reverse()
+        enabledTags += tags.subList(0, Math.min(versionsCount, tags.size()))
+        versionsToImage.keySet().removeIf { !enabledTags.contains(it) }
     }
 
 }

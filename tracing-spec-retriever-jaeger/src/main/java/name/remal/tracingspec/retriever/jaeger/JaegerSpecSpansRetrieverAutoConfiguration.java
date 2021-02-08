@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(JaegerSpecSpansRetrieverProperties.class)
-@ConditionalOnProperty(value = "tracingspec.retriever.jaeger.host")
+@ConditionalOnProperty(value = "tracingspec.retriever.jaeger.url")
 public class JaegerSpecSpansRetrieverAutoConfiguration {
 
     @Bean

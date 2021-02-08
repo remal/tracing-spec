@@ -64,13 +64,12 @@ public abstract class DateTimePrecisionUtils {
     }
 
     private static long withMicrosecondsPrecision(long nanos) {
-        val micros = MICROSECONDS.convert(nanos, NANOSECONDS);
-        return NANOSECONDS.convert(micros, MICROSECONDS);
+        val micros = NANOSECONDS.toMicros(nanos);
+        return MICROSECONDS.toNanos(micros);
     }
 
     private static int withMicrosecondsPrecision(int nanos) {
-        val micros = MICROSECONDS.convert(nanos, NANOSECONDS);
-        return toIntExact(NANOSECONDS.convert(micros, MICROSECONDS));
+        return toIntExact(withMicrosecondsPrecision((long) nanos));
     }
 
 

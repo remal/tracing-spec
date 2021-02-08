@@ -1,6 +1,5 @@
 package name.remal.tracingspec.retriever.zipkin;
 
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -55,7 +54,7 @@ class ZipkinSpecSpansRetrieverVersionTest {
         tracer = tracing.tracer();
 
         val retrieverProperties = new ZipkinSpecSpansRetrieverProperties();
-        retrieverProperties.setUrl(format("http://localhost:%d/", zipkinContainer.getZipkinPort()));
+        retrieverProperties.setUrl(zipkinContainer.getQueryApiUrl());
         retriever = new ZipkinSpecSpansRetriever(retrieverProperties);
     }
 
@@ -84,14 +83,23 @@ class ZipkinSpecSpansRetrieverVersionTest {
 
         val traceId = rootSpan.context().traceIdString();
         List<SpecSpan> specSpans = new ArrayList<>();
-        await().until(
-            () -> {
-                specSpans.clear();
-                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
-                return specSpans;
-            },
-            hasSize(2)
-        );
+        try {
+            await().until(
+                () -> {
+                    specSpans.clear();
+                    specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
+                    return specSpans;
+                },
+                hasSize(2)
+            );
+        } catch (Throwable e) {
+            val lastErroneousJson = retriever.getLastErroneousJson();
+            if (lastErroneousJson != null) {
+                throw new AssertionError("Invalid JSON:\n" + lastErroneousJson, e);
+            } else {
+                throw e;
+            }
+        }
 
         specSpans.forEach(specSpan -> {
             specSpan.getTags().clear();

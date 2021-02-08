@@ -35,7 +35,7 @@ public class OptionalLongTypeAdapterFactory implements TypeAdapterFactory {
                 return OptionalLong.of(in.nextLong());
             }
 
-            in.skipValue();
+            in.nextNull();
             return OptionalLong.empty();
         }
 

@@ -53,8 +53,7 @@ class JaegerSpecSpansRetrieverVersionTest {
             .build();
 
         val retrieverProperties = new JaegerSpecSpansRetrieverProperties();
-        retrieverProperties.setHost("localhost");
-        retrieverProperties.setPort(jaegerContainer.getQueryPort());
+        retrieverProperties.setUrl(jaegerContainer.getQueryApiUrl());
         retriever = new JaegerSpecSpansRetriever(retrieverProperties);
     }
 
@@ -78,14 +77,23 @@ class JaegerSpecSpansRetrieverVersionTest {
 
         val traceId = rootSpan.context().getTraceId();
         List<SpecSpan> specSpans = new ArrayList<>();
-        await().until(
-            () -> {
-                specSpans.clear();
-                specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
-                return specSpans;
-            },
-            hasSize(2)
-        );
+        try {
+            await().until(
+                () -> {
+                    specSpans.clear();
+                    specSpans.addAll(retriever.retrieveSpecSpansForTrace(traceId));
+                    return specSpans;
+                },
+                hasSize(2)
+            );
+        } catch (Throwable e) {
+            val lastErroneousJson = retriever.getLastErroneousJson();
+            if (lastErroneousJson != null) {
+                throw new AssertionError("Invalid JSON:\n" + lastErroneousJson, e);
+            } else {
+                throw e;
+            }
+        }
 
         specSpans.forEach(specSpan -> {
             specSpan.getTags().clear();

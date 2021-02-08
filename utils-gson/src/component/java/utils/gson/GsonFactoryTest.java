@@ -2,8 +2,10 @@ package utils.gson;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static utils.gson.GsonFactory.getGsonInstance;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -16,6 +18,50 @@ import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("java:S2789")
 class GsonFactoryTest {
+
+    @Test
+    void case_insensitive_enum() {
+        assertThat(
+            getGsonInstance().fromJson("null", TestEnum.class),
+            nullValue()
+        );
+        assertThat(
+            getGsonInstance().fromJson("\"unknown\"", TestEnum.class),
+            nullValue()
+        );
+
+        assertThat(
+            getGsonInstance().fromJson("\"VALUE\"", TestEnum.class),
+            equalTo(TestEnum.VALUE)
+        );
+        assertThat(
+            getGsonInstance().fromJson("\"c\"", TestEnum.class),
+            equalTo(TestEnum.COMPLEX)
+        );
+        assertThat(
+            getGsonInstance().fromJson("\"com\"", TestEnum.class),
+            equalTo(TestEnum.COMPLEX)
+        );
+        assertThat(
+            getGsonInstance().fromJson("\"value\"", TestEnum.class),
+            equalTo(TestEnum.COMPLEX)
+        );
+        assertThat(
+            getGsonInstance().fromJson("\"C\"", TestEnum.class),
+            equalTo(TestEnum.COMPLEX)
+        );
+        assertThat(
+            getGsonInstance().fromJson("\"COM\"", TestEnum.class),
+            equalTo(TestEnum.COMPLEX)
+        );
+    }
+
+    private enum TestEnum {
+        VALUE,
+        @SerializedName(value = "c", alternate = {"com", "value"})
+        COMPLEX,
+    }
+
 
     @Test
     void java_util_Optional() {
