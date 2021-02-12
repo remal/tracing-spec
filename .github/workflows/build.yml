@@ -96,25 +96,10 @@ jobs:
       env:
         PUSH_BACK_TOKEN: ${{ secrets.PUSH_BACK_TOKEN }}
       if: ${{ env.PUSH_BACK_TOKEN && github.event_name == 'push' && startsWith(github.ref, 'refs/heads/') }}
-      run: |
-        REMOTE_URL=$(git config --get remote.origin.url)
-        REMOTE_HEAD_COMMIT_SHA=$(git ls-remote "$REMOTE_URL" "${{ github.ref }}" | awk '{ print $1}')
-        if [ "$REMOTE_HEAD_COMMIT_SHA" != "${{ github.sha }}" ]; then
-          echo "::warning::Remote repository branch has been changed, skipping push back"
-          exit 0
-        fi
-
-        git config --unset-all "http.https://github.com/.extraheader"
-        git remote set-url origin https://${{ env.PUSH_BACK_TOKEN }}@github.com/${{ github.repository }}
-        git config user.name "${{ github.event.head_commit.committer.name }}"
-        git config user.email "${{ github.event.head_commit.committer.email }}"
-
-        echo "::group::IDEA settings"
-        git add --all .idea
-        if git commit --quiet --no-status --no-edit --only -m "[push-back] Update IDEA settings" .idea ; then
-          git push origin "HEAD:${{ github.ref }}"
-        fi
-        echo "::endgroup::"
+      uses: remal-github-actions/push-back@v1
+      with:
+        githubToken: ${{ env.PUSH_BACK_TOKEN }}
+        message: '[push-back] Push-back updated files during build'
 
         echo "::group::Documentation"
         git add --all README.md example-graph.png
