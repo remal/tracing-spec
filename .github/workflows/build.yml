@@ -101,16 +101,9 @@ jobs:
         githubToken: ${{ env.PUSH_BACK_TOKEN }}
         message: '[push-back] Push-back updated files during build'
 
-        echo "::group::Documentation"
-        git add --all README.md example-graph.png
-        if git commit --quiet --no-status --no-edit --only -m "[push-back] Update documentation" README.md example-graph.png ; then
-          git push origin "HEAD:${{ github.ref }}"
-        fi
-        echo "::endgroup::"
-
 
     - name: Upload release asset
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
