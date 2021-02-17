@@ -38,7 +38,7 @@ pull_request_rules:
 
 - name: Update all PRs to master
   conditions:
-  - base=master
+  - base~=^(main|master)$
   - "#approved-reviews-by=0"
   - -author~=^(dependabot(-preview)?|renovate)\[bot\]$
   - -conflict
