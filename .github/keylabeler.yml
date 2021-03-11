@@ -10,6 +10,4 @@ matchBody: true
 caseSensitive: false
 
 # Explicit keyword mappings to labels. Form of match:label.
-labelMappings:
-  "jaeger": jaeger
-  "zipkin": zipkin
+labelMappings: {}
