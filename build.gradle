@@ -21,7 +21,7 @@ buildscript {
         throw new GradleException("Minimum Java version for building the project is $minimumJavaVersion")
     }
 
-    ext.springBootVersion = '2.4.3'
+    ext.springBootVersion = '2.4.4'
 
     dependencies {
         classpath 'name.remal:gradle-plugins:1.2.2'
