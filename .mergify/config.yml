@@ -8,13 +8,13 @@
 pull_request_rules:
 - name: Auto merge approved
   conditions:
-  - "#approved-reviews-by>=1"
+  - '#approved-reviews-by>=1'
   - -conflict
   - -closed
   - -merged
   - -draft
   - -locked
-  - "#changes-requested-reviews-by=0"
+  - '#changes-requested-reviews-by=0'
   - status-success=build
   - status-success=SonarCloud Code Analysis
   - status-success=WIP
@@ -25,11 +25,13 @@ pull_request_rules:
       method: squash
       strict: smart+fasttrack
 
-- name: Auto approve dependencies
+- name: Auto approve dependency updates
   conditions:
   - author~=^(dependabot(-preview)?|renovate)\[bot\]$
   - label!=dependencies-ci
   - label!=sync-with-template
+  - 'status-neutral!=renovate/stability-days'
+  - 'status-failure!=renovate/stability-days'
   - -closed
   - -merged
   actions:
@@ -59,7 +61,7 @@ pull_request_rules:
   - -merged
   - -draft
   - -locked
-  - "#changes-requested-reviews-by=0"
+  - '#changes-requested-reviews-by=0'
   - status-success=build
   - status-success=SonarCloud Code Analysis
   - status-success=WIP
