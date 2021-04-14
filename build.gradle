@@ -21,10 +21,10 @@ buildscript {
         throw new GradleException("Minimum Java version for building the project is $minimumJavaVersion")
     }
 
-    ext.springBootVersion = '2.4.3'
+    ext.springBootVersion = '2.4.4'
 
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.2.2'
+        classpath 'name.remal:gradle-plugins:1.3.0'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.1.1'
         classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0'
@@ -109,7 +109,7 @@ allprojects {
 
         dependencies.addAll(
             [
-                'org.springframework.cloud:spring-cloud-dependencies:2020.0.1',
+                'org.springframework.cloud:spring-cloud-dependencies:2020.0.2',
                 'org.testcontainers:testcontainers-bom:1.15.2',
                 'io.opentracing:parent:0.33.0',
                 'io.zipkin.brave:brave-bom:5.13.3',
@@ -121,7 +121,7 @@ allprojects {
             [
                 // Static analysis annotations
                 'com.google.code.findbugs:jsr305:3.0.2',
-                'com.google.errorprone:error_prone_annotations:2.5.1',
+                'com.google.errorprone:error_prone_annotations:2.6.0',
                 'org.jetbrains:annotations:20.1.0',
 
                 // Annotation processors
@@ -132,7 +132,7 @@ allprojects {
 
                 // Compile
                 "org.mapstruct:mapstruct:$mapstructVersion",
-                'com.google.guava:guava:30.1-jre',
+                'com.google.guava:guava:30.1.1-jre',
                 "org.graalvm.js:js:$graalvmVersion",
                 "org.graalvm.js:js-scriptengine:$graalvmVersion",
                 "org.graalvm.truffle:truffle-api:$graalvmVersion",
@@ -144,13 +144,13 @@ allprojects {
                 'org.awaitility:awaitility:4.0.3',
                 'io.jaegertracing:jaeger-thrift:1.5.0',
                 'com.github.javafaker:javafaker:1.0.2',
-                'org.fusesource.jansi:jansi:2.3.1',
+                'org.fusesource.jansi:jansi:2.3.2',
 
                 // Jacoco
                 'org.jacoco:org.jacoco.agent:0.8.6',
 
                 // Checkstyle
-                'com.puppycrawl.tools:checkstyle:8.41',
+                'com.puppycrawl.tools:checkstyle:8.41.1',
             ].collect { project.dependencies.constraints.create(it) }
         )
 

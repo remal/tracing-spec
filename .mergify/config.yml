@@ -38,19 +38,6 @@ pull_request_rules:
     review:
       message: 'Approved automatically by @Mergifyio.'
 
-- name: Update all PRs to master
-  conditions:
-  - base~=^(main|master)$
-  - "#approved-reviews-by=0"
-  - label!=sync-with-template
-  - -author~=^(dependabot(-preview)?|renovate)\[bot\]$
-  - -conflict
-  - -closed
-  - -merged
-  - -locked
-  actions:
-    update: {}
-
 - name: Merge by authors automatically
   conditions:
   - author=remal
