@@ -21,10 +21,10 @@ buildscript {
         throw new GradleException("Minimum Java version for building the project is $minimumJavaVersion")
     }
 
-    ext.springBootVersion = '2.4.4'
+    ext.springBootVersion = '2.4.5'
 
     dependencies {
-        classpath 'name.remal:gradle-plugins:1.3.0'
+        classpath 'name.remal:gradle-plugins:1.3.1'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.1.1'
         classpath 'net.sourceforge.plantuml:plantuml:1.2020.19'
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0'
@@ -110,7 +110,7 @@ allprojects {
         dependencies.addAll(
             [
                 'org.springframework.cloud:spring-cloud-dependencies:2020.0.2',
-                'org.testcontainers:testcontainers-bom:1.15.2',
+                'org.testcontainers:testcontainers-bom:1.15.3',
                 'io.opentracing:parent:0.33.0',
                 'io.zipkin.brave:brave-bom:5.13.3',
                 'io.zipkin.reporter2:zipkin-reporter-bom:2.16.3',
