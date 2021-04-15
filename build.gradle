@@ -110,7 +110,7 @@ allprojects {
         dependencies.addAll(
             [
                 'org.springframework.cloud:spring-cloud-dependencies:2020.0.2',
-                'org.testcontainers:testcontainers-bom:1.15.2',
+                'org.testcontainers:testcontainers-bom:1.15.3',
                 'io.opentracing:parent:0.33.0',
                 'io.zipkin.brave:brave-bom:5.13.3',
                 'io.zipkin.reporter2:zipkin-reporter-bom:2.16.3',
