@@ -35,8 +35,7 @@ pull_request_rules:
   - -closed
   - -merged
   actions:
-    review:
-      message: 'Approved automatically by @Mergifyio.'
+    review: { }
 
 - name: Merge by authors automatically
   conditions:
