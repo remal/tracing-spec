@@ -147,7 +147,7 @@ allprojects {
                 'org.fusesource.jansi:jansi:2.3.2',
 
                 // Jacoco
-                'org.jacoco:org.jacoco.agent:0.8.6',
+                'org.jacoco:org.jacoco.agent:0.8.7',
 
                 // Checkstyle
                 'com.puppycrawl.tools:checkstyle:8.41.1',
