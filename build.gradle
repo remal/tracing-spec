@@ -141,7 +141,7 @@ allprojects {
                 'info.picocli:picocli-spring-boot-starter:4.6.1',
 
                 // Test
-                'org.awaitility:awaitility:4.0.3',
+                'org.awaitility:awaitility:4.1.0',
                 'io.jaegertracing:jaeger-thrift:1.5.0',
                 'com.github.javafaker:javafaker:1.0.2',
                 'org.fusesource.jansi:jansi:2.3.2',
