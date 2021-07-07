@@ -340,6 +340,9 @@ indent_size = 2
 continuation_indent_size = 2
 ij_continuation_indent_size = 2
 
+[*.{gradle, gradle.kts}]
+max_line_length = 999
+
 [*.{cmd, bat}]
 end_of_line = crlf
 max_line_length = 999
