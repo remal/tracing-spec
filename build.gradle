@@ -425,7 +425,7 @@ allprojects {
 
     pluginManager.withPlugin('checkstyle') {
         checkstyle {
-            configDirectory = rootProject.projectDir
+            configFile = rootProject.file('checkstyle.xml')
         }
 
         checkstyle.toolVersion = project.configurations.checkstyle
