@@ -1,6 +1,6 @@
 # Configuration file for Mergify GitHub App: https://github.com/marketplace/mergify
 
-# All Status Checks should be listed explicitly (see https://doc.mergify.io/conditions.html#validating-all-status-check):
+# All Status Checks should be listed explicitly (see https://docs.mergify.io/conditions/#about-status-checks):
 #   `build` - .github/workflows/build.yml
 #   `SonarCloud Code Analysis` - https://sonarcloud.io/documentation/integrations/github/
 #   `WIP` - https://github.com/marketplace/wip
@@ -15,11 +15,12 @@ pull_request_rules:
   - -draft
   - -locked
   - '#changes-requested-reviews-by=0'
-  - status-success=build
-  - status-success=SonarCloud Code Analysis
-  - status-success=WIP
-  - '#status-neutral=0'
-  - '#status-failure=0'
+  - check-success=build
+  - check-success=SonarCloud Code Analysis
+  - check-success=WIP
+  - '#check-pending=0'
+  - '#check-neutral=0'
+  - '#check-failure=0'
   actions:
     merge:
       method: squash
@@ -30,8 +31,9 @@ pull_request_rules:
   - author~=^(dependabot(-preview)?|renovate)\[bot\]$
   - label!=dependencies-ci
   - label!=sync-with-template
-  - 'status-neutral!=renovate/stability-days'
-  - 'status-failure!=renovate/stability-days'
+  - 'check-neutral!=renovate/stability-days'
+  - 'check-pending!=renovate/stability-days'
+  - 'check-failure!=renovate/stability-days'
   - -closed
   - -merged
   actions:
@@ -48,11 +50,12 @@ pull_request_rules:
   - -draft
   - -locked
   - '#changes-requested-reviews-by=0'
-  - status-success=build
-  - status-success=SonarCloud Code Analysis
-  - status-success=WIP
-  - '#status-neutral=0'
-  - '#status-failure=0'
+  - check-success=build
+  - check-success=SonarCloud Code Analysis
+  - check-success=WIP
+  - '#check-pending=0'
+  - '#check-neutral=0'
+  - '#check-failure=0'
   actions:
     review: { }
     merge:
