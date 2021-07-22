@@ -28,7 +28,7 @@ String baseVersionTestTaskName = versionTestSourceSet.getTaskName('test', null)
 Task testSourceSetVersionsTask = tasks.create("${baseVersionTestTaskName}Versions") {
     group = 'verification'
     dependsOn(baseVersionTestTaskName)
-    tasks.runAllTests.dependsOn(it)
+    tasks.allTests.dependsOn(it)
 }
 
 tasks.create("testAllVersions") {
