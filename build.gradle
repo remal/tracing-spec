@@ -734,9 +734,9 @@ TaskProvider<Task> renderExampleGraphPuml = tasks.register('renderExampleGraphPu
         exampleGraphPumlFile.delete()
     }
 
+    task.main = '-jar'
     task.onlyIf {
         AbstractArchiveTask bootJar = tasks.getByPath(':tracing-spec-application:bootJar')
-        task.main = '-jar'
         task.args = [
             bootJar.archiveFile.get().asFile.toString(),
             'render-graph',
