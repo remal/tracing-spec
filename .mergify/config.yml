@@ -15,11 +15,12 @@ pull_request_rules:
   - -draft
   - -locked
   - '#changes-requested-reviews-by=0'
-  - status-success=build
-  - status-success=SonarCloud Code Analysis
-  - status-success=WIP
-  - '#status-neutral=0'
-  - '#status-failure=0'
+  - check-success=build
+  - check-success=SonarCloud Code Analysis
+  - check-success=WIP
+  - '#check-pending=0'
+  - '#check-neutral=0'
+  - '#check-failure=0'
   actions:
     merge:
       method: squash
@@ -49,11 +50,12 @@ pull_request_rules:
   - -draft
   - -locked
   - '#changes-requested-reviews-by=0'
-  - status-success=build
-  - status-success=SonarCloud Code Analysis
-  - status-success=WIP
-  - '#status-neutral=0'
-  - '#status-failure=0'
+  - check-success=build
+  - check-success=SonarCloud Code Analysis
+  - check-success=WIP
+  - '#check-pending=0'
+  - '#check-neutral=0'
+  - '#check-failure=0'
   actions:
     review: { }
     merge:
