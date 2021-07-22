@@ -357,8 +357,7 @@ allprojects {
             systemProperty('spring.main.banner-mode', 'off')
             systemProperty('logging.pattern.console', '%d{HH:mm:ss.SSS} %5p  %-40.40c{1.} : %m%n%xwEx')
             systemProperty('CONSOLE_LOG_PATTERN', systemProperties['logging.pattern.console'])
-            //systemProperty('logging.pattern.dateformat', 'HH:mm:ss.SSS')
-            //systemProperty('LOG_DATEFORMAT_PATTERN', systemProperties['logging.pattern.dateformat'])
+            systemProperty('polyglot.engine.WarnInterpreterOnly', 'false')
         }
 
         tasks.withType(Test) {
