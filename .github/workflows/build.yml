@@ -45,19 +45,11 @@ jobs:
           sed -i 's/-all\.zip/-bin.zip/' gradle/wrapper/gradle-wrapper.properties
 
 
-      - name: Create cache key
-        id: create-cache-key
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        run: echo "::set-output name=year-month::$(date '+%Y.%m')"
-
       - name: Cache
-        if: ${{ startsWith(github.ref, 'refs/heads/') }}
+        id: cache
         uses: actions/cache@v2
         with:
-          key: ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-${{ github.ref }}
-          restore-keys: |
-            ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-${{ github.ref }}
-            ${{ steps.create-cache-key.outputs.year-month }}-${{ runner.os }}-refs/heads/master
+          key: ${{runner.os}}-gradle-${{hashFiles('gradle/wrapper/**', '**/*.gradle')}}
           path: |
             ~/.gradle
             ~/.sonar/cache
