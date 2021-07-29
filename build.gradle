@@ -266,6 +266,10 @@ allprojects {
             excludeStaticAnalysisTools()
         }
 
+        sourceSets.all { SourceSet sourceSet ->
+            configurations[sourceSet.compileOnlyConfigurationName].canBeResolved = true
+        }
+
         configurations.all {
             resolutionStrategy {
                 eachDependency { DependencyResolveDetails details ->
