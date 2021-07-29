@@ -4,6 +4,17 @@
 
   semanticCommits: "disabled",
 
+  'gradle-wrapper': {
+    major: {
+      description: ["Don't update Gradle major version"],
+      enabled: false,
+    },
+    minor: {
+      description: ["Don't update Gradle minor version"],
+      enabled: false,
+    }
+  },
+
   "git-submodules": {
     enabled: false, // This is in beta for now, so let's use Dependabot to update Git submodules
   },

@@ -37,7 +37,7 @@ class JaegerSpecSpansRetrieverVersionTest {
     private JaegerSpecSpansRetriever retriever;
 
     @BeforeEach
-    void beforeEach() {
+    void beforeEach() throws Throwable {
         jaegerContainer.start();
 
         val endpoint = format("http://localhost:%d/api/traces", jaegerContainer.getCollectorThriftPort());
