@@ -28,6 +28,7 @@ pull_request_rules:
 
 - name: Auto approve dependency updates
   conditions:
+  - '#approved-reviews-by=0'
   - author~=^(dependabot(-preview)?|renovate)\[bot\]$
   - label!=dependencies-ci
   - label!=sync-with-template
