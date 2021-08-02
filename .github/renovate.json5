@@ -2,9 +2,10 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["github>remal/renovate-config:jre"],
 
-  semanticCommits: "disabled",
-
   'gradle-wrapper': {
+    separateMultipleMajor: false,
+    separateMajorMinor: false,
+    separateMinorPatch: false,
     major: {
       description: ["Don't update Gradle major version"],
       enabled: false,
