@@ -3,17 +3,7 @@
   extends: ["github>remal/renovate-config:jre"],
 
   'gradle-wrapper': {
-    separateMultipleMajor: true,
-    separateMajorMinor: true,
-    separateMinorPatch: true,
-    major: {
-      description: ["Don't update Gradle major version"],
-      enabled: false,
-    },
-    minor: {
-      description: ["Don't update Gradle minor version"],
-      enabled: false,
-    }
+    extends: ["github>remal/renovate-config:disable-minor-updates"],
   },
 
   "git-submodules": {
