@@ -142,7 +142,7 @@ allprojects {
 
                 // Test
                 'org.awaitility:awaitility:4.1.0',
-                'io.jaegertracing:jaeger-thrift:1.5.0',
+                'io.jaegertracing:jaeger-thrift:1.6.0',
                 'com.github.javafaker:javafaker:1.0.2',
                 'org.fusesource.jansi:jansi:2.3.4',
 
@@ -150,7 +150,7 @@ allprojects {
                 'org.jacoco:org.jacoco.agent:0.8.7',
 
                 // Checkstyle
-                'com.puppycrawl.tools:checkstyle:8.44',
+                'com.puppycrawl.tools:checkstyle:8.45',
             ].collect { project.dependencies.constraints.create(it) }
         )
 
@@ -264,6 +264,10 @@ allprojects {
 
         transitiveDependencies {
             excludeStaticAnalysisTools()
+        }
+
+        sourceSets.all { SourceSet sourceSet ->
+            configurations[sourceSet.compileOnlyConfigurationName].canBeResolved = true
         }
 
         configurations.all {
