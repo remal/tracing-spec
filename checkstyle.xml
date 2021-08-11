@@ -12,7 +12,7 @@
     * Indent - 4 spaces
     * Continuation indent - 4 spaces
     * *TypeParameterName: ^[A-Z][a-zA-Z0-9]*$
-    * LambdaParameterName: ^(__|[a-z]([a-z0-9][a-zA-Z0-9]*)?)$
+    * LambdaParameterName: ^(_{2,}|[a-z]([a-z0-9][a-zA-Z0-9]*)?)$
 -->
 
 <module name="Checker">
@@ -173,7 +173,7 @@
         value="Parameter name ''{0}'' must match pattern ''{1}''."/>
     </module>
     <module name="LambdaParameterName">
-      <property name="format" value="^(__|[a-z]([a-z0-9][a-zA-Z0-9]*)?)$"/>
+      <property name="format" value="^(_{2,}|[a-z]([a-z0-9][a-zA-Z0-9]*)?)$"/>
       <message key="name.invalidPattern"
         value="Lambda parameter name ''{0}'' must match pattern ''{1}''."/>
     </module>
