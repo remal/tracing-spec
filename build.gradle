@@ -98,7 +98,7 @@ allprojects {
 
     Configuration projectDependencyConstraintsConfiguration = configurations.create('projectDependencyConstraints') {
         String immutablesVersion = '2.8.8'
-        String mapstructVersion = '1.4.1.Final'
+        String mapstructVersion = '1.4.2.Final'
         String graalvmVersion = '21.2.0'
 
         dependencies.addAll(
