@@ -137,7 +137,7 @@ allprojects {
                 "org.graalvm.js:js-scriptengine:$graalvmVersion",
                 "org.graalvm.truffle:truffle-api:$graalvmVersion",
                 'io.swagger.core.v3:swagger-annotations:2.1.10',
-                'io.swagger:swagger-annotations:1.6.2',
+                'io.swagger:swagger-annotations:1.6.3',
                 'info.picocli:picocli-spring-boot-starter:4.6.1',
 
                 // Test
