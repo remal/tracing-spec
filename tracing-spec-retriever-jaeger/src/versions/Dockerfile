@@ -1,3 +1,3 @@
 # This file is handled by Dependabot and Renovate bots,
 # so we'll run integration tests when a new Jaeger version is released
-FROM jaegertracing/all-in-one:1.28.0@sha256:37a682fc098a1589a52930ac5dca99301d75e1b3992fc8b2261a7ae471ec189e
+FROM jaegertracing/all-in-one:1.29.0@sha256:42822be7888bb90ea359dcf14e3fd039ae8bfad08329691f6981796707c6d1dd
