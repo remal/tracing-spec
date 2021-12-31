@@ -142,7 +142,7 @@ allprojects {
 
                 // Test
                 'org.awaitility:awaitility:4.1.1',
-                'io.jaegertracing:jaeger-thrift:1.6.0',
+                'io.jaegertracing:jaeger-thrift:1.7.0',
                 'com.github.javafaker:javafaker:1.0.2',
                 'org.fusesource.jansi:jansi:2.4.0',
 
