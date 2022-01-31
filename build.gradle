@@ -121,7 +121,7 @@ allprojects {
             [
                 // Static analysis annotations
                 'com.google.code.findbugs:jsr305:3.0.2',
-                'com.google.errorprone:error_prone_annotations:2.10.0',
+                'com.google.errorprone:error_prone_annotations:2.11.0',
                 'org.jetbrains:annotations:23.0.0',
 
                 // Annotation processors
