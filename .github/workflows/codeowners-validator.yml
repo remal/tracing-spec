@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 15
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # tag=v2
       with:
         fetch-depth: 1
 
@@ -34,13 +34,13 @@ jobs:
 
     - name: Basic CODEOWNERS validation
       if: ${{ steps.owner-type.outputs.owner-type != 'organization' }}
-      uses: mszostok/codeowners-validator@v0.6.0
+      uses: mszostok/codeowners-validator@2f6e3bb39aa6837d7dcf8eff2de5d6c046d0c9a9 # tag=v0.6.0
       with:
         checks: 'syntax,duppatterns,files'
         github_access_token: '${{ github.token }}'
 
     - name: Full CODEOWNERS validation
       if: ${{ steps.owner-type.outputs.owner-type == 'organization' }}
-      uses: mszostok/codeowners-validator@v0.6.0
+      uses: mszostok/codeowners-validator@2f6e3bb39aa6837d7dcf8eff2de5d6c046d0c9a9 # tag=v0.6.0
       with:
         github_access_token: '${{ github.token }}'

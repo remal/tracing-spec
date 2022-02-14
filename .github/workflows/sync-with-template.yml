@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 15
     steps:
     - name: Sync with template repository
-      uses: remal-github-actions/sync-with-template@v1
+      uses: remal-github-actions/sync-with-template@5ac64fc1ed56f0fb90fab0dfea60007e04ca4944 # tag=v1
       if: ${{ env.PUSH_BACK_TOKEN }}
       with:
         githubToken: '${{ env.PUSH_BACK_TOKEN }}'
