@@ -132,7 +132,7 @@ allprojects {
 
                 // Compile
                 "org.mapstruct:mapstruct:$mapstructVersion",
-                'com.google.guava:guava:31.0.1-jre',
+                'com.google.guava:guava:31.1-jre',
                 "org.graalvm.js:js:$graalvmVersion",
                 "org.graalvm.js:js-scriptengine:$graalvmVersion",
                 "org.graalvm.truffle:truffle-api:$graalvmVersion",
